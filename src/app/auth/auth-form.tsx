@@ -311,7 +311,7 @@ function AuthForm({
             placeholder={
               registerMode ? t.auth.passwordHint : "••••••••"
             }
-            // 注册强度由 registerSchema(zod min 6) 兜底；登录不限制历史/短密码
+            minLength={6}
             required
           />
         </div>
