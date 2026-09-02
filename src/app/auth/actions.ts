@@ -8,6 +8,12 @@ import { signIn } from "@/lib/auth";
 import { getActionLocale, dictForLocale } from "@/i18n";
 import { homeForRole } from "@/lib/roles";
 import { UserRole } from "@prisma/client";
+import {
+  generateCode,
+  storeCode,
+  sendVerificationEmail,
+  consumeCode,
+} from "@/lib/verify-email";
 
 const registerSchema = z.object({
   fullName: z.string().min(2, "name"),
@@ -15,6 +21,8 @@ const registerSchema = z.object({
   email: z.string().email("email"),
   password: z.string().min(6, "password"),
   role: z.enum(["retailer", "wholesaler"]),
+  countryId: z.string().min(1, "country"),
+  verificationCode: z.string().regex(/^\d{6}$/, "code"),
 });
 
 export type RegisterState = { error?: string } | undefined;
@@ -32,6 +40,8 @@ export async function registerAction(
         email: formData.get("email"),
         password: formData.get("password"),
         role: formData.get("role"),
+        countryId: formData.get("countryId"),
+        verificationCode: formData.get("verificationCode"),
       }),
     ),
   ]);
@@ -46,11 +56,14 @@ export async function registerAction(
       business: a.errBusiness,
       email: a.errEmail,
       password: a.errPassword,
+      country: a.errCountry,
+      code: a.errCode,
     };
     return { error: map[code] ?? a.errInvalidForm };
   }
 
-  const { fullName, businessName, email, password, role } = parsed.data;
+  const { fullName, businessName, email, password, role, countryId, verificationCode } =
+    parsed.data;
   const normalizedEmail = email.toLowerCase().trim();
 
   const existing = await db.user.findUnique({
@@ -58,11 +71,25 @@ export async function registerAction(
   });
   if (existing) return { error: a.errExists };
 
+  // 国家必须存在且启用 → 决定账户货币
+  const country = await db.country.findFirst({
+    where: { code: countryId, active: true },
+  });
+  if (!country) return { error: a.errCountry };
+
+  // 邮箱验证码校验（通过即消费）
+  const codeResult = await consumeCode(normalizedEmail, verificationCode);
+  if (codeResult !== "ok") return { error: a.errCodeInvalid };
+
   const userRole: UserRole = role === "wholesaler" ? "WHOLESALER" : "RETAILER";
 
   try {
     const business = await db.business.create({
-      data: { legalName: businessName.trim(), tradeName: businessName.trim() },
+      data: {
+        legalName: businessName.trim(),
+        tradeName: businessName.trim(),
+        countryId: country.id,
+      },
     });
 
     const [retailer, wholesaler] =
@@ -86,6 +113,7 @@ export async function registerAction(
         name: fullName,
         passwordHash: hashPassword(password),
         role: userRole,
+        currency: country.currency, // 注册国家决定账户货币（显示符号）
         retailerId: retailer?.id ?? null,
         wholesalerId: wholesaler?.id ?? null,
       },
@@ -135,4 +163,30 @@ export async function loginAction(
     return { error: dict.auth.errInvalid };
   }
   redirect("/");
+}
+
+/**
+ * 发送邮箱验证码（注册前校验邮箱归属）。
+ * 由客户端按钮事件调用（非 useActionState 表单）。
+ */
+export async function requestVerificationAction(
+  emailRaw: string,
+): Promise<{ ok: boolean; error?: string; devCode?: string }> {
+  const locale = await getActionLocale();
+  const a = dictForLocale(locale).auth;
+  const email = String(emailRaw ?? "").trim().toLowerCase();
+
+  if (!z.string().email().safeParse(email).success) {
+    return { ok: false, error: a.errEmail };
+  }
+
+  const existing = await db.user.findUnique({ where: { email } });
+  if (existing) return { ok: false, error: a.errEmailTaken };
+
+  const code = generateCode();
+  await storeCode(email, code);
+  const r = await sendVerificationEmail(email, code);
+  if (!r.sent) return { ok: false, error: r.error ?? a.errMailFailed };
+
+  return { ok: true, devCode: r.devCode };
 }

@@ -20,6 +20,7 @@ export default async function RetailerOrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const retailerId = session.retailerId!;
   const { id } = await params;
@@ -107,7 +108,7 @@ export default async function RetailerOrderDetailPage({
                       href="/retailer/account"
                       className="badge badge-warning font-medium transition-opacity hover:opacity-80"
                     >
-                      {t.orders.paymentDue} · {money(inv.amount)}
+                      {t.orders.paymentDue} · {money(inv.amount, cur)}
                     </Link>
                   ) : inv ? (
                     <span className="badge badge-success">
@@ -148,11 +149,11 @@ export default async function RetailerOrderDetailPage({
                     <td className="px-5 py-3">{item.productName}</td>
                     <td className="px-5 py-3 text-meta">{item.sku}</td>
                     <td className="hidden px-5 py-3 text-right text-[var(--color-ink-2)] sm:table-cell">
-                      {money(item.unitPrice)}
+                      {money(item.unitPrice, cur)}
                     </td>
                     <td className="px-5 py-3 text-right">{item.quantity}</td>
                     <td className="px-5 py-3 text-right font-medium">
-                      {money(item.subtotal)}
+                      {money(item.subtotal, cur)}
                     </td>
                   </tr>
                 ))}
@@ -161,7 +162,7 @@ export default async function RetailerOrderDetailPage({
             <div className="flex justify-end border-t border-[var(--color-line-2)] px-5 py-3">
               <span className="text-sm">
                 <span className="text-meta">{t.orders.supplierTotal}: </span>
-                <span className="font-semibold">{money(so.total)}</span>
+                <span className="font-semibold">{money(so.total, cur)}</span>
               </span>
             </div>
           </div>
@@ -178,7 +179,7 @@ export default async function RetailerOrderDetailPage({
             <p className="text-meta mt-1 text-sm">{t.orders.notes} {order.notes}</p>
           )}
         </div>
-        <p className="text-xl font-semibold">{money(total)}</p>
+        <p className="text-xl font-semibold">{money(total, cur)}</p>
       </div>
     </div>
   );

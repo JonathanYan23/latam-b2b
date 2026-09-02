@@ -39,11 +39,13 @@ export function DraftManager({
   groups,
   total,
   t,
+  currency = "USD",
 }: {
   orderId: string;
   groups: DraftGroup[];
   total: number;
   t: Dict;
+  currency?: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -82,7 +84,7 @@ export function DraftManager({
                 </p>
               )}
             </div>
-            <p className="text-sm font-semibold">{money(g.subtotal)}</p>
+            <p className="text-sm font-semibold">{money(g.subtotal, currency)}</p>
           </div>
 
           <div className="divide-y divide-[var(--color-line-2)]">
@@ -106,7 +108,7 @@ export function DraftManager({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{item.name}</p>
                   <p className="text-meta text-[11px]">
-                    {money(item.unitPrice)} × {item.quantity} · {t.common.moq}{" "}
+                    {money(item.unitPrice, currency)} × {item.quantity} · {t.common.moq}{" "}
                     {item.moq}
                   </p>
                 </div>
@@ -135,7 +137,7 @@ export function DraftManager({
                 </div>
 
                 <p className="w-16 shrink-0 text-right text-sm font-semibold tabular-nums">
-                  {money(item.subtotal)}
+                  {money(item.subtotal, currency)}
                 </p>
                 <button
                   type="button"
@@ -154,7 +156,7 @@ export function DraftManager({
       {/* 提交栏 */}
       <div className="card sticky bottom-20 flex flex-col justify-between gap-3 p-5 sm:flex-row sm:items-center md:bottom-4">
         <div>
-          <p className="text-lg font-semibold tabular-nums">{money(total)}</p>
+          <p className="text-lg font-semibold tabular-nums">{money(total, currency)}</p>
           <p className="text-meta text-xs">
             {fmt(t.orders.masterDesc, { n: groups.length })}
           </p>

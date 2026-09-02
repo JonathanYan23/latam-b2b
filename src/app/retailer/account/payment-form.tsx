@@ -3,14 +3,17 @@
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { recordPaymentAction } from "./actions";
+import { money } from "@/lib/format";
 import type { Dict } from "@/i18n";
 
 export function PaymentForm({
   wholesalers,
   t,
+  currency = "USD",
 }: {
   wholesalers: { id: string; name: string; outstanding: number }[];
   t: Dict;
+  currency?: string;
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +57,7 @@ export function PaymentForm({
             <option key={w.id} value={w.id}>
               {t.retailerAccount.wsOption
                 .replace("{name}", w.name)
-                .replace("{amount}", `$${w.outstanding.toFixed(2)}`)}
+                .replace("{amount}", money(w.outstanding, currency))}
             </option>
           ))}
         </select>

@@ -42,6 +42,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: user.role,
           retailerId: user.retailerId,
           wholesalerId: user.wholesalerId,
+          currency: user.currency, // 注册国家决定的账户货币
         };
       },
     }),
@@ -56,6 +57,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = (user as any).role;
         token.retailerId = (user as any).retailerId;
         token.wholesalerId = (user as any).wholesalerId;
+        token.currency = (user as any).currency;
       }
       return token;
     },
@@ -65,6 +67,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = token.role as any;
         session.user.retailerId = token.retailerId as string | undefined;
         session.user.wholesalerId = token.wholesalerId as string | undefined;
+        (session.user as any).currency = token.currency as string | undefined;
       }
       return session;
     },

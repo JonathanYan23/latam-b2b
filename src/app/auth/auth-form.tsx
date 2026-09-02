@@ -1,13 +1,33 @@
 "use client";
 
-import { useState, useActionState, Suspense } from "react";
+import { useState, useActionState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Package, ShoppingBag, ArrowLeft } from "lucide-react";
-import { loginAction, registerAction } from "./actions";
+import { Package, ShoppingBag, ArrowLeft, MailCheck } from "lucide-react";
+import { loginAction, registerAction, requestVerificationAction } from "./actions";
+import { currencySymbol } from "@/lib/currency";
+import { fmt } from "@/i18n/utils";
 import type { Dict } from "@/i18n";
 
-function AuthForm({ t }: { t: Dict }) {
+interface CountryOption {
+  code: string;
+  label: string;
+  currency: string;
+}
+
+type CodePhase = {
+  status: "idle" | "sending" | "sent" | "error";
+  msg?: string;
+  devCode?: string;
+};
+
+function AuthForm({
+  t,
+  countries,
+}: {
+  t: Dict;
+  countries: CountryOption[];
+}) {
   const params = useSearchParams();
   const initialMode =
     params.get("mode") === "register" ? "register" : "login";
@@ -22,6 +42,61 @@ function AuthForm({ t }: { t: Dict }) {
     undefined,
   );
 
+  // ---- 邮箱验证码状态 ----
+  const [email, setEmail] = useState("");
+  const [country, setCountry] = useState("");
+  const [codeState, setCodeState] = useState<CodePhase>({ status: "idle" });
+  const [countdown, setCountdown] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (countdown <= 0) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      return;
+    }
+    if (!timerRef.current) {
+      timerRef.current = setInterval(() => {
+        setCountdown((c) => {
+          if (c <= 1) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            timerRef.current = null;
+            return 0;
+          }
+          return c - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [countdown]);
+
+  const selCountry = countries.find((c) => c.code === country);
+
+  async function handleSendCode() {
+    if (!email.trim() || codeState.status === "sending") return;
+    setCodeState({ status: "sending" });
+    const r = await requestVerificationAction(email);
+    if (!r.ok) {
+      setCodeState({ status: "error", msg: r.error });
+      return;
+    }
+    setCodeState({
+      status: "sent",
+      devCode: r.devCode,
+      msg: fmt(t.auth.codeSent, { email: email.trim() }),
+    });
+    setCountdown(60);
+  }
+
+  const registerMode = mode === "register";
+
   return (
     <div className="mx-auto w-full max-w-sm px-6">
       <Link
@@ -32,10 +107,10 @@ function AuthForm({ t }: { t: Dict }) {
       </Link>
 
       <h1 className="text-h1">
-        {mode === "register" ? t.auth.createAccount : t.auth.welcomeBack}
+        {registerMode ? t.auth.createAccount : t.auth.welcomeBack}
       </h1>
       <p className="text-body mt-2">
-        {mode === "register" ? t.auth.registerDesc : t.auth.loginDesc}
+        {registerMode ? t.auth.registerDesc : t.auth.loginDesc}
       </p>
 
       {/* 登录 / 注册切换 */}
@@ -57,7 +132,7 @@ function AuthForm({ t }: { t: Dict }) {
       </div>
 
       <form action={formAction} className="mt-6 space-y-4">
-        {mode === "register" && (
+        {registerMode && (
           <>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
@@ -84,7 +159,7 @@ function AuthForm({ t }: { t: Dict }) {
           </>
         )}
 
-        {mode === "register" && (
+        {registerMode && (
           <div>
             <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
               {t.auth.iAmA}
@@ -128,6 +203,38 @@ function AuthForm({ t }: { t: Dict }) {
           </div>
         )}
 
+        {registerMode && (
+          <>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
+                {t.auth.country}
+              </label>
+              <select
+                name="countryId"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                className={`input ${country ? "" : "text-[var(--color-ink-3)]"}`}
+                required
+              >
+                <option value="">{t.auth.chooseCountry}</option>
+                {countries.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              {selCountry && (
+                <p className="mt-1.5 text-xs text-[var(--color-ink-3)]">
+                  {fmt(t.auth.currencyNote, {
+                    symbol: currencySymbol(selCountry.currency),
+                    code: selCountry.currency,
+                  })}
+                </p>
+              )}
+            </div>
+          </>
+        )}
+
         <div>
           <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
             {t.auth.email}
@@ -135,11 +242,63 @@ function AuthForm({ t }: { t: Dict }) {
           <input
             name="email"
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="input"
             placeholder="you@company.com"
+            autoComplete="email"
             required
           />
+          {registerMode && (
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={handleSendCode}
+                disabled={
+                  codeState.status === "sending" || countdown > 0 || !email.trim()
+                }
+                className="btn btn-secondary w-full py-2 text-sm disabled:opacity-50"
+              >
+                {codeState.status === "sending"
+                  ? t.auth.pleaseWait
+                  : countdown > 0
+                    ? fmt(t.auth.resendIn, { s: String(countdown) })
+                    : t.auth.sendCode}
+              </button>
+              {codeState.status === "sent" && codeState.msg && (
+                <p className="mt-1.5 flex items-center gap-1 text-xs text-[var(--color-ok, #15803d)] animate-fade-in">
+                  <MailCheck className="size-3.5" /> {codeState.msg}
+                </p>
+              )}
+              {codeState.status === "sent" && codeState.devCode && (
+                <p className="mt-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-800">
+                  {fmt(t.auth.devCodeNote, { code: codeState.devCode })}
+                </p>
+              )}
+              {codeState.status === "error" && codeState.msg && (
+                <p className="mt-1.5 text-xs text-[#b91c1c]">{codeState.msg}</p>
+              )}
+            </div>
+          )}
         </div>
+
+        {registerMode && (
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
+              {t.auth.codePlaceholder}
+            </label>
+            <input
+              name="verificationCode"
+              inputMode="numeric"
+              pattern="\d{6}"
+              maxLength={6}
+              className="input font-mono tracking-[0.5em]"
+              placeholder="000000"
+              autoComplete="one-time-code"
+              required
+            />
+          </div>
+        )}
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
@@ -150,7 +309,7 @@ function AuthForm({ t }: { t: Dict }) {
             type="password"
             className="input"
             placeholder={
-              mode === "register" ? t.auth.passwordHint : "••••••••"
+              registerMode ? t.auth.passwordHint : "••••••••"
             }
             minLength={6}
             required
@@ -170,7 +329,7 @@ function AuthForm({ t }: { t: Dict }) {
         >
           {pending
             ? t.auth.pleaseWait
-            : mode === "register"
+            : registerMode
               ? t.auth.createBtn
               : t.auth.signInBtn}
         </button>

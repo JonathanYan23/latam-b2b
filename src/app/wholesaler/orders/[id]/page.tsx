@@ -14,6 +14,7 @@ export default async function WholesalerOrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await requireRole("WHOLESALER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const wholesalerId = session.wholesalerId!;
   const { id } = await params;
@@ -106,10 +107,10 @@ export default async function WholesalerOrderDetailPage({
               >
                 <td className="px-5 py-3.5 font-medium">{item.productName}</td>
                 <td className="px-5 py-3.5 text-meta">{item.sku}</td>
-                <td className="px-5 py-3.5 text-right">{money(item.unitPrice)}</td>
+                <td className="px-5 py-3.5 text-right">{money(item.unitPrice, cur)}</td>
                 <td className="px-5 py-3.5 text-right">{item.quantity}</td>
                 <td className="px-5 py-3.5 text-right font-medium">
-                  {money(item.subtotal)}
+                  {money(item.subtotal, cur)}
                 </td>
               </tr>
             ))}
@@ -119,23 +120,23 @@ export default async function WholesalerOrderDetailPage({
           <div className="w-64 space-y-1.5 text-sm">
             <div className="flex justify-between text-[var(--color-ink-2)]">
               <span>{t.common.subtotal}</span>
-              <span>{money(so.subtotal)}</span>
+              <span>{money(so.subtotal, cur)}</span>
             </div>
             {Number(so.discount) > 0 && (
               <div className="flex justify-between text-[var(--color-ink-2)]">
                 <span>{t.common.discount}</span>
-                <span>-{money(so.discount)}</span>
+                <span>-{money(so.discount, cur)}</span>
               </div>
             )}
             {Number(so.shipping) > 0 && (
               <div className="flex justify-between text-[var(--color-ink-2)]">
                 <span>{t.common.shipping}</span>
-                <span>{money(so.shipping)}</span>
+                <span>{money(so.shipping, cur)}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-[var(--color-line-2)] pt-1.5 text-base font-semibold">
               <span>{t.common.total}</span>
-              <span>{money(so.total)}</span>
+              <span>{money(so.total, cur)}</span>
             </div>
           </div>
         </div>

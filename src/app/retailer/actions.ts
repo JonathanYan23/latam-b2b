@@ -13,6 +13,7 @@ export async function requestCustomerPricing(
   wholesalerId: string,
 ): Promise<{ ok: boolean; error?: string }> {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = dictForLocale(await getActionLocale());
   const retailerId = session.retailerId!;
 
@@ -64,6 +65,7 @@ export async function placeOrderAction(
   cart: CartItemInput[],
 ): Promise<{ ok: boolean; orderId?: string; error?: string }> {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = dictForLocale(await getActionLocale());
   const retailerId = session.retailerId!;
 
@@ -148,7 +150,7 @@ export async function placeOrderAction(
         ok: false,
         error: fmt(t.cart.errMinOrder, {
           supplier: ws.business.tradeName ?? t.common.supplier,
-          amount: money(min),
+          amount: money(min, cur),
         }),
       };
     }
@@ -230,6 +232,7 @@ export async function getCartProductsAction(
   productIds: string[],
 ): Promise<{ products: CartProductInfo[] }> {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const retailerId = session.retailerId!;
 
   const relationships = await db.customerRelationship.findMany({

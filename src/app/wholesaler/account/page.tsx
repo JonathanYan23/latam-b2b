@@ -17,6 +17,7 @@ export const metadata = { title: "Accounts Receivable" };
 
 export default async function WholesalerAccountPage() {
   const session = await requireRole("WHOLESALER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const wholesalerId = session.wholesalerId!;
 
@@ -99,7 +100,7 @@ export default async function WholesalerAccountPage() {
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <DollarSign className="size-4 text-[var(--color-ink-2)]" />
           </span>
-          <p className="mt-3 text-lg font-semibold">{money(totalOutstanding)}</p>
+          <p className="mt-3 text-lg font-semibold">{money(totalOutstanding, cur)}</p>
           <p className="text-meta mt-0.5">{t.wsAccount.totalOutstanding}</p>
         </div>
         <div className="card p-5">
@@ -125,7 +126,7 @@ export default async function WholesalerAccountPage() {
                 <div>
                   <p className="text-sm font-medium">
                     {p.retailer.business.tradeName} —{" "}
-                    <span className="font-semibold">{money(p.amount)}</span>
+                    <span className="font-semibold">{money(p.amount, cur)}</span>
                   </p>
                   <p className="text-meta text-xs">
                     {date(p.createdAt)} · {paymentMethodLabel(p.method, t)}
@@ -176,11 +177,11 @@ export default async function WholesalerAccountPage() {
                   </p>
                   {owes < Number(inv.amount) && (
                     <p className="mt-0.5 text-xs text-[var(--color-ink-3)]">
-                      {t.retailerAccount.paid}: {money(Number(inv.amount) - owes)}
+                      {t.retailerAccount.paid}: {money(Number(inv.amount) - owes, cur)}
                     </p>
                   )}
                 </div>
-                <p className="shrink-0 text-base font-semibold">{money(owes)}</p>
+                <p className="shrink-0 text-base font-semibold">{money(owes, cur)}</p>
               </div>
             );
           })}
@@ -214,7 +215,7 @@ export default async function WholesalerAccountPage() {
                   </p>
                 )}
               </div>
-              <p className="text-sm font-semibold">{money(p.amount)}</p>
+              <p className="text-sm font-semibold">{money(p.amount, cur)}</p>
             </div>
           ))
         )}

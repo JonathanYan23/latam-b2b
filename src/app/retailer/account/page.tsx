@@ -17,6 +17,7 @@ export const metadata = { title: "Payments & Accounts" };
 
 export default async function RetailerAccountPage() {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const retailerId = session.retailerId!;
 
@@ -70,7 +71,7 @@ export default async function RetailerAccountPage() {
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <Wallet className="size-4 text-[var(--color-ink-2)]" />
           </span>
-          <p className="mt-3 text-lg font-semibold">{money(totalOutstanding)}</p>
+          <p className="mt-3 text-lg font-semibold">{money(totalOutstanding, cur)}</p>
           <p className="text-meta mt-0.5">{t.retailerAccount.totalOutstanding}</p>
         </div>
         <div className="card p-5">
@@ -102,6 +103,7 @@ export default async function RetailerAccountPage() {
               name: w.name,
               outstanding: w.outstanding,
             }))}
+            currency={cur}
             t={t}
           />
         </div>
@@ -131,7 +133,7 @@ export default async function RetailerAccountPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold">{money(p.amount)}</p>
+                    <p className="text-sm font-semibold">{money(p.amount, cur)}</p>
                     <span
                       className={`badge text-[11px] ${
                         p.status === "RECEIVED"
@@ -185,7 +187,7 @@ export default async function RetailerAccountPage() {
                       {w.name}
                     </Link>
                   </td>
-                  <td className="px-5 py-3.5 font-semibold">{money(w.outstanding)}</td>
+                  <td className="px-5 py-3.5 font-semibold">{money(w.outstanding, cur)}</td>
                 </tr>
               ))}
             </tbody>
@@ -216,7 +218,7 @@ export default async function RetailerAccountPage() {
                 </p>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
-                <p className="text-base font-semibold">{money(inv.amount)}</p>
+                <p className="text-base font-semibold">{money(inv.amount, cur)}</p>
                 <a
                   href={`/retailer/invoices/${inv.id}/pdf`}
                   className="btn btn-ghost px-2 py-1 text-xs"

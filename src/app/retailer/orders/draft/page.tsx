@@ -104,6 +104,7 @@ export default async function DraftOrderPage() {
             groups={groups}
             total={total}
             t={t}
+            currency={session.currency ?? "USD"}
           />
         )}
       </div>

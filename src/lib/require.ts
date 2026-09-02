@@ -8,6 +8,7 @@ export interface PortalSession {
   email?: string | null;
   retailerId?: string | null;
   wholesalerId?: string | null;
+  currency?: string; // 账户货币（注册国家决定），默认 USD
 }
 
 /** 要求已登录且为指定角色，否则重定向；返回安全会话 */
@@ -22,5 +23,6 @@ export async function requireRole(role: UserRole): Promise<PortalSession> {
     email: session.user.email,
     retailerId: session.user.retailerId ?? null,
     wholesalerId: session.user.wholesalerId ?? null,
+    currency: (session.user as { currency?: string }).currency ?? "USD",
   };
 }

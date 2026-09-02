@@ -17,6 +17,7 @@ export default async function SupplierPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const retailerId = session.retailerId!;
   const { id } = await params;
@@ -181,7 +182,7 @@ export default async function SupplierPage({
                   {view.price ? (
                     <>
                       <span className="text-sm font-semibold">
-                        {money(view.price)}
+                        {money(view.price, cur)}
                       </span>
                       {view.priceType === "CUSTOMER" && (
                         <span className="badge badge-success ml-2 text-[11px]">

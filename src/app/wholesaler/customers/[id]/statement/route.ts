@@ -62,6 +62,7 @@ export async function GET(
       })),
       outstanding,
       t: pdf,
+      currency: (session.user as { currency?: string }).currency ?? "USD",
     }),
   );
 

@@ -15,6 +15,7 @@ export const metadata = { title: "Orders" };
 
 export default async function WholesalerOrdersPage() {
   const session = await requireRole("WHOLESALER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const wholesalerId = session.wholesalerId!;
 
@@ -90,7 +91,7 @@ export default async function WholesalerOrdersPage() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold">{money(o.total)}</p>
+                  <p className="text-sm font-semibold">{money(o.total, cur)}</p>
                   <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-ink-3)] transition-colors group-hover:text-[var(--color-ink)]">
                     {t.common.view} <ArrowRight className="size-3.5" />
                   </p>

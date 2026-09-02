@@ -10,6 +10,7 @@ export const metadata = { title: "Orders" };
 
 export default async function RetailerOrdersPage() {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const retailerId = session.retailerId!;
 
@@ -63,7 +64,7 @@ export default async function RetailerOrdersPage() {
               <div>
                 <p className="font-medium">{t.cart.title}</p>
                 <p className="text-meta text-xs">
-                  {draftItemCount} {t.orders.items} · {money(draftTotal)} ·{" "}
+                  {draftItemCount} {t.orders.items} · {money(draftTotal, cur)} ·{" "}
                   {fmt(t.orders.masterDesc, { n: draft?.supplierOrders.length ?? 0 })}
                 </p>
               </div>
@@ -127,7 +128,7 @@ export default async function RetailerOrdersPage() {
                         {t.orders.paymentDue}
                       </span>
                     )}
-                    <p className="text-sm font-semibold">{money(total)}</p>
+                    <p className="text-sm font-semibold">{money(total, cur)}</p>
                     <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-ink-3)] transition-colors group-hover:text-[var(--color-ink)]">
                       {t.common.view} <ArrowRight className="size-3.5" />
                     </p>

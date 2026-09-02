@@ -30,6 +30,7 @@ export async function addToDraftAction(
   quantity: number,
 ): Promise<{ ok: boolean; draftId?: string; error?: string }> {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = dictForLocale(await getActionLocale());
   const retailerId = session.retailerId!;
   const qty = Math.max(1, Math.floor(quantity));
@@ -79,6 +80,7 @@ export async function addToDraftAction(
             .slice(2, 6)}`.toUpperCase(),
           retailerId,
           status: "DRAFT",
+          currency: session.currency ?? "USD",
         },
       });
       const so = await tx.supplierOrder.create({
@@ -157,6 +159,7 @@ export async function adjustDraftItemAction(
   delta: number,
 ): Promise<{ ok: boolean; error?: string }> {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = dictForLocale(await getActionLocale());
   const order = await db.order.findFirst({
     where: { id: orderId, retailerId: session.retailerId!, status: "DRAFT" },
@@ -196,6 +199,7 @@ export async function removeDraftItemAction(
   productId: string,
 ): Promise<{ ok: boolean; error?: string }> {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = dictForLocale(await getActionLocale());
   const order = await db.order.findFirst({
     where: { id: orderId, retailerId: session.retailerId!, status: "DRAFT" },
@@ -232,6 +236,7 @@ export async function submitDraftAction(
   orderId: string,
 ): Promise<{ ok: boolean; orderId?: string; error?: string }> {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = dictForLocale(await getActionLocale());
   const retailerId = session.retailerId!;
 
@@ -283,7 +288,7 @@ export async function submitDraftAction(
         ok: false,
         error: fmt(t.cart.errMinOrder, {
           supplier: so.wholesaler.business.tradeName ?? t.common.supplier,
-          amount: money(min),
+          amount: money(min, cur),
         }),
       };
     }

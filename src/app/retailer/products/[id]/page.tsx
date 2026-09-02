@@ -20,6 +20,7 @@ export default async function ProductPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const retailerId = session.retailerId!;
   const { id } = await params;
@@ -176,7 +177,7 @@ export default async function ProductPage({
               <>
                 <div className="flex items-baseline justify-between">
                   <span className="text-2xl font-semibold tracking-tight">
-                    {money(view.price)}
+                    {money(view.price, cur)}
                   </span>
                   {view.priceType === "CUSTOMER" && (
                     <span className="badge badge-success">{t.product.customerPrice}</span>
@@ -186,7 +187,7 @@ export default async function ProductPage({
                   <p className="text-meta mt-1 text-xs">
                     {t.product.publicPrice}:{" "}
                     <span className="line-through">
-                      {product.publicPrice ? money(product.publicPrice) : "—"}
+                      {product.publicPrice ? money(product.publicPrice, cur) : "—"}
                     </span>
                   </p>
                 )}

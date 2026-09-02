@@ -16,6 +16,7 @@ import { money } from "@/lib/format";
 
 export default async function WholesalerHome() {
   const session = await requireRole("WHOLESALER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const wholesalerId = session.wholesalerId!;
 
@@ -108,7 +109,7 @@ export default async function WholesalerHome() {
             <DollarSign className="size-4 text-[var(--color-ink-2)]" />
           </span>
           <p className="mt-3 text-[15px] font-semibold">
-            {money(receivables._sum?.amount)}
+            {money(receivables._sum?.amount, cur)}
           </p>
           <p className="text-meta mt-0.5">{t.wholesalerHome.receivables}</p>
         </div>

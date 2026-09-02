@@ -37,6 +37,34 @@ async function main() {
     create: { code: "CO", name: "Colombia", nameEs: "Colombia", currency: "COP" },
   });
 
+  // ---------- 拉美主要市场扩展（注册时选择国家 → 自动带该国货币） ----------
+  const latamCountries: Array<{
+    code: string;
+    name: string;
+    nameEs: string;
+    currency: string;
+  }> = [
+    { code: "MX", name: "Mexico", nameEs: "México", currency: "MXN" },
+    { code: "BR", name: "Brazil", nameEs: "Brasil", currency: "BRL" },
+    { code: "AR", name: "Argentina", nameEs: "Argentina", currency: "ARS" },
+    { code: "CL", name: "Chile", nameEs: "Chile", currency: "CLP" },
+    { code: "PE", name: "Peru", nameEs: "Perú", currency: "PEN" },
+    { code: "EC", name: "Ecuador", nameEs: "Ecuador", currency: "USD" },
+    { code: "VE", name: "Venezuela", nameEs: "Venezuela", currency: "VES" },
+    { code: "CR", name: "Costa Rica", nameEs: "Costa Rica", currency: "CRC" },
+    { code: "GT", name: "Guatemala", nameEs: "Guatemala", currency: "GTQ" },
+    { code: "UY", name: "Uruguay", nameEs: "Uruguay", currency: "UYU" },
+    { code: "PY", name: "Paraguay", nameEs: "Paraguay", currency: "PYG" },
+    { code: "BO", name: "Bolivia", nameEs: "Bolivia", currency: "BOB" },
+  ];
+  for (const c of latamCountries) {
+    await db.country.upsert({
+      where: { code: c.code },
+      update: { name: c.name, nameEs: c.nameEs, currency: c.currency },
+      create: c,
+    });
+  }
+
   const doRegion = await db.region.upsert({
     where: { id: "seed-do-region" },
     update: {},
@@ -148,12 +176,13 @@ async function main() {
 
   await db.user.upsert({
     where: { email: "wholesale@latam.com" },
-    update: {},
+    update: { currency: doCountry.currency },
     create: {
       email: "wholesale@latam.com",
       name: "Carlos Mendez",
       passwordHash: hashPassword("wholesale123"),
       role: UserRole.WHOLESALER,
+      currency: doCountry.currency,
       wholesalerId: ws.id,
     },
   });
@@ -181,12 +210,13 @@ async function main() {
 
   await db.user.upsert({
     where: { email: "retailer@latam.com" },
-    update: {},
+    update: { currency: paCountry.currency },
     create: {
       email: "retailer@latam.com",
       name: "Maria Rodriguez",
       passwordHash: hashPassword("retailer123"),
       role: UserRole.RETAILER,
+      currency: paCountry.currency,
       retailerId: rt.id,
     },
   });

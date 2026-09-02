@@ -20,6 +20,7 @@ export default async function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await requireRole("WHOLESALER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const wholesalerId = session.wholesalerId!;
   const { id } = await params;
@@ -167,11 +168,11 @@ export default async function CustomerDetailPage({
                     </p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       <span className="badge badge-neutral">
-                        {t.wsCustomers.publicPrice}: {money(p.publicPrice)}
+                        {t.wsCustomers.publicPrice}: {money(p.publicPrice, cur)}
                       </span>
                       {cp ? (
                         <span className="badge badge-success">
-                          {t.wsCustomers.customerPrice}: {money(cp.price)}
+                          {t.wsCustomers.customerPrice}: {money(cp.price, cur)}
                           {cp.moq ? ` · ${t.common.moq} ${cp.moq}` : ""}
                         </span>
                       ) : (

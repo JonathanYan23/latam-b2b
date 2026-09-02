@@ -31,7 +31,7 @@ export async function updateSupplierOrderStatusAction(
     where: { id: supplierOrderId },
     include: {
       items: true,
-      order: { select: { retailerId: true } },
+      order: { select: { retailerId: true, currency: true } },
       relationship: { select: { paymentTerms: true } },
     },
   });
@@ -140,7 +140,7 @@ type SoForInvoice = {
   wholesalerId: string;
   total: number | { toString(): string };
   relationship: { paymentTerms: string | null } | null;
-  order: { retailerId: string };
+  order: { retailerId: string; currency: string };
 };
 
 /** 订单确认后生成 Invoice，账期按客户条款（NET30 等）计算 */
@@ -157,6 +157,7 @@ async function createInvoiceFor(so: SoForInvoice) {
       wholesalerId: so.wholesalerId,
       retailerId: so.order.retailerId,
       amount: so.total as unknown as number,
+      currency: so.order.currency ?? "USD",
       status: "UNPAID",
       dueDate,
     },

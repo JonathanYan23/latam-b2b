@@ -69,6 +69,7 @@ export async function GET(
       total: Number(invoice.amount),
       status: invoiceStatusLabel(invoice.status, dictForLocale(locale)),
       t: pdf,
+      currency: invoice.currency,
     }),
   );
 

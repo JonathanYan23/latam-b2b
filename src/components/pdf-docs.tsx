@@ -7,6 +7,7 @@ import {
 } from "@react-pdf/renderer";
 import type { Dict } from "@/i18n";
 import { fmt } from "@/i18n/utils";
+import { currencySymbol } from "@/lib/currency";
 
 // =============================================================
 // PDF 文档（PRD 12/25 节：Order / Invoice / Statement）
@@ -64,8 +65,11 @@ export interface PdfSection {
   total: number;
 }
 
-function fmt$(n: number): string {
-  return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function fmt$(n: number, currency = "USD"): string {
+  return `${currencySymbol(currency)}${n.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 export function OrderPdfDocument({
@@ -75,6 +79,7 @@ export function OrderPdfDocument({
   sections,
   notes,
   t,
+  currency = "USD",
 }: {
   orderNumber: string;
   date: string;
@@ -82,6 +87,7 @@ export function OrderPdfDocument({
   sections: PdfSection[];
   notes?: string | null;
   t: Dict["pdf"];
+  currency?: string;
 }) {
   const grandTotal = sections.reduce((s, sec) => s + sec.total, 0);
   return (
@@ -129,32 +135,32 @@ export function OrderPdfDocument({
                 <View key={j} style={styles.tableRow}>
                   <Text style={styles.td}>{item.name}</Text>
                   <Text style={styles.td}>{item.sku}</Text>
-                  <Text style={styles.tdRight}>{fmt$(item.unitPrice)}</Text>
+                  <Text style={styles.tdRight}>{fmt$(item.unitPrice, currency)}</Text>
                   <Text style={styles.tdRight}>{item.quantity}</Text>
-                  <Text style={styles.tdRight}>{fmt$(item.subtotal)}</Text>
+                  <Text style={styles.tdRight}>{fmt$(item.subtotal, currency)}</Text>
                 </View>
               ))}
             </View>
             <View style={styles.totals}>
               <View style={styles.totalRow}>
                 <Text style={styles.muted}>{t.subtotal}</Text>
-                <Text>{fmt$(sec.subtotal)}</Text>
+                <Text>{fmt$(sec.subtotal, currency)}</Text>
               </View>
               {sec.discount > 0 && (
                 <View style={styles.totalRow}>
                   <Text style={styles.muted}>{t.discount}</Text>
-                  <Text>-{fmt$(sec.discount)}</Text>
+                  <Text>-{fmt$(sec.discount, currency)}</Text>
                 </View>
               )}
               {sec.shipping > 0 && (
                 <View style={styles.totalRow}>
                   <Text style={styles.muted}>{t.shipping}</Text>
-                  <Text>{fmt$(sec.shipping)}</Text>
+                  <Text>{fmt$(sec.shipping, currency)}</Text>
                 </View>
               )}
               <View style={styles.totalRowBold}>
                 <Text style={{ fontWeight: "bold" }}>{t.supplierTotal}</Text>
-                <Text style={{ fontWeight: "bold" }}>{fmt$(sec.total)}</Text>
+                <Text style={{ fontWeight: "bold" }}>{fmt$(sec.total, currency)}</Text>
               </View>
             </View>
           </View>
@@ -163,7 +169,7 @@ export function OrderPdfDocument({
         <View style={[styles.totals, { alignSelf: "flex-end", marginTop: 16 }]}>
           <View style={styles.totalRowBold}>
             <Text style={{ fontSize: 11, fontWeight: "bold" }}>{t.grandTotal}</Text>
-            <Text style={{ fontSize: 11, fontWeight: "bold" }}>{fmt$(grandTotal)}</Text>
+            <Text style={{ fontSize: 11, fontWeight: "bold" }}>{fmt$(grandTotal, currency)}</Text>
           </View>
         </View>
 
@@ -196,6 +202,7 @@ export function InvoicePdfDocument({
   total,
   status,
   t,
+  currency = "USD",
 }: {
   invoiceNumber: string;
   orderNumber?: string | null;
@@ -210,6 +217,7 @@ export function InvoicePdfDocument({
   total: number;
   status: string;
   t: Dict["pdf"];
+  currency?: string;
 }) {
   return (
     <Document>
@@ -267,9 +275,9 @@ export function InvoicePdfDocument({
             <View key={j} style={styles.tableRow}>
               <Text style={styles.td}>{item.name}</Text>
               <Text style={styles.td}>{item.sku}</Text>
-              <Text style={styles.tdRight}>{fmt$(item.unitPrice)}</Text>
+              <Text style={styles.tdRight}>{fmt$(item.unitPrice, currency)}</Text>
               <Text style={styles.tdRight}>{item.quantity}</Text>
-              <Text style={styles.tdRight}>{fmt$(item.subtotal)}</Text>
+              <Text style={styles.tdRight}>{fmt$(item.subtotal, currency)}</Text>
             </View>
           ))}
         </View>
@@ -277,23 +285,23 @@ export function InvoicePdfDocument({
         <View style={styles.totals}>
           <View style={styles.totalRow}>
             <Text style={styles.muted}>{t.subtotal}</Text>
-            <Text>{fmt$(subtotal)}</Text>
+            <Text>{fmt$(subtotal, currency)}</Text>
           </View>
           {discount > 0 && (
             <View style={styles.totalRow}>
               <Text style={styles.muted}>{t.discount}</Text>
-              <Text>-{fmt$(discount)}</Text>
+              <Text>-{fmt$(discount, currency)}</Text>
             </View>
           )}
           {shipping > 0 && (
             <View style={styles.totalRow}>
               <Text style={styles.muted}>{t.shipping}</Text>
-              <Text>{fmt$(shipping)}</Text>
+              <Text>{fmt$(shipping, currency)}</Text>
             </View>
           )}
           <View style={styles.totalRowBold}>
             <Text style={{ fontWeight: "bold" }}>{t.totalDue}</Text>
-            <Text style={{ fontWeight: "bold" }}>{fmt$(total)}</Text>
+            <Text style={{ fontWeight: "bold" }}>{fmt$(total, currency)}</Text>
           </View>
         </View>
 
@@ -313,6 +321,7 @@ export function StatementPdfDocument({
   invoices,
   outstanding,
   t,
+  currency = "USD",
 }: {
   customer: PdfParty;
   supplier: PdfParty;
@@ -326,6 +335,7 @@ export function StatementPdfDocument({
   }[];
   outstanding: number;
   t: Dict["pdf"];
+  currency?: string;
 }) {
   return (
     <Document>
@@ -369,7 +379,7 @@ export function StatementPdfDocument({
               <Text style={styles.td}>{inv.number}</Text>
               <Text style={styles.td}>{inv.date}</Text>
               <Text style={styles.td}>{inv.dueDate ?? "—"}</Text>
-              <Text style={styles.tdRight}>{fmt$(inv.amount)}</Text>
+              <Text style={styles.tdRight}>{fmt$(inv.amount, currency)}</Text>
               <Text style={styles.tdRight}>{inv.status}</Text>
             </View>
           ))}
@@ -378,7 +388,7 @@ export function StatementPdfDocument({
         <View style={[styles.totals, { marginTop: 12 }]}>
           <View style={styles.totalRowBold}>
             <Text style={{ fontWeight: "bold" }}>{t.outstandingBalance}</Text>
-            <Text style={{ fontWeight: "bold" }}>{fmt$(outstanding)}</Text>
+            <Text style={{ fontWeight: "bold" }}>{fmt$(outstanding, currency)}</Text>
           </View>
         </View>
 

@@ -14,6 +14,7 @@ export const metadata = { title: "Products" };
 
 export default async function WholesalerProductsPage() {
   const session = await requireRole("WHOLESALER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const wholesalerId = session.wholesalerId!;
 
@@ -85,7 +86,7 @@ export default async function WholesalerProductsPage() {
                 <div className="mt-4 flex items-end justify-between border-t border-[var(--color-line-2)] pt-3">
                   <div>
                     <p className="text-meta text-xs">{t.common.moq} {p.moq}</p>
-                    <p className="text-lg font-semibold">{money(p.publicPrice)}</p>
+                    <p className="text-lg font-semibold">{money(p.publicPrice, cur)}</p>
                   </div>
                   <Link
                     href={`/wholesaler/products/${p.id}/edit`}

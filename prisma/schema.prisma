@@ -76,6 +76,18 @@ model User {
   @@index([email])
 }
 
+// 邮箱验证码（注册前无 User 记录，独立按 email 存储）
+model VerificationCode {
+  id        String    @id @default(cuid())
+  email     String
+  code      String // 6 位数字
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email, code])
+}
+
 enum UserRole {
   RETAILER
   WHOLESALER

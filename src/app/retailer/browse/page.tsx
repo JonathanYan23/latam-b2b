@@ -17,6 +17,7 @@ export default async function BrowsePage({
   searchParams: Promise<{ q?: string; cat?: string }>;
 }) {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
   const retailerId = session.retailerId!;
   const { q, cat } = await searchParams;
@@ -175,7 +176,7 @@ export default async function BrowsePage({
                     {view.price ? (
                       <div>
                         <p className="text-sm font-semibold">
-                          {money(view.price)}
+                          {money(view.price, cur)}
                         </p>
                         {view.priceType === "CUSTOMER" && (
                           <p className="text-[11px] font-medium text-[var(--color-accent)]">

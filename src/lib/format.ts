@@ -8,6 +8,7 @@ import type {
 } from "@prisma/client";
 import type { Dict } from "@/i18n";
 import type { Locale } from "@/i18n/config";
+import { currencySymbol } from "@/lib/currency";
 
 /** 订单状态标签（按字典） */
 export function orderStatusLabel(status: OrderStatus, t: Dict): string {
@@ -63,7 +64,7 @@ export function tierLabel(tier: CustomerTier, t: Dict): string {
   return t.statusTier[tier];
 }
 
-/** 金额格式化（B2B 统一 USD 美元格式，语言无关） */
+/** 金额格式化：符号按货币代码（注册国家决定），数字保持 en-US 千分位 2 位小数（美元定价值） */
 export function money(
   amount: unknown,
   currency = "USD",
@@ -71,11 +72,11 @@ export function money(
   if (amount === null || amount === undefined) return "—";
   const n = typeof amount === "string" ? parseFloat(amount) : Number(amount);
   if (Number.isNaN(n)) return "—";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
+  const sym = currencySymbol(currency);
+  return `${sym}${n.toLocaleString("en-US", {
     minimumFractionDigits: 2,
-  }).format(n);
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 const LOCALE_STR: Record<Locale, string> = {

@@ -16,6 +16,7 @@ import { computeOutstanding } from "@/lib/payments";
 
 export default async function RetailerHome() {
   const session = await requireRole("RETAILER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const retailerId = session.retailerId!;
 
@@ -195,7 +196,7 @@ export default async function RetailerHome() {
             >
               {totalOutstanding > 0
                 ? fmt(t.retailerHome.payDue, {
-                    amount: money(totalOutstanding),
+                    amount: money(totalOutstanding, cur),
                   })
                 : t.retailerHome.payNoBalance}
             </span>
@@ -255,7 +256,7 @@ export default async function RetailerHome() {
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
-                    <p className="text-sm font-semibold">{money(b.amount)}</p>
+                    <p className="text-sm font-semibold">{money(b.amount, cur)}</p>
                     <ArrowRight className="size-4 text-[var(--color-ink-3)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--color-ink)]" />
                   </div>
                 </Link>

@@ -60,6 +60,7 @@ export async function GET(
       })),
       notes: order.notes,
       t: pdf,
+      currency: order.currency,
     }),
   );
 
