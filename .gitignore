@@ -29,3 +29,10 @@ next-env.d.ts
 # prisma local db
 /prisma/dev.db
 /prisma/dev.db-journal
+
+.vercel
+.env*
+
+# vercel env pull 产物
+.env.vercel.prod
+.env.vercel.*
