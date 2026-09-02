@@ -1,0 +1,43 @@
+{
+  "name": "latam-b2b",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Latin America B2B Commerce Platform — connect wholesalers and retailers across LatAm markets",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "postinstall": "prisma generate",
+    "schema:pg": "node scripts/make-pg-schema.js",
+    "db:push:pg": "node scripts/make-pg-schema.js && prisma db push --schema prisma/schema.postgres.prisma",
+    "db:seed:pg": "node scripts/make-pg-schema.js && prisma generate --schema prisma/schema.postgres.prisma && prisma db seed --schema prisma/schema.postgres.prisma && prisma generate",
+    "build:pg": "node scripts/make-pg-schema.js && prisma generate --schema prisma/schema.postgres.prisma && next build"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.1",
+    "@react-pdf/renderer": "^4.9.0",
+    "framer-motion": "^11.18.2",
+    "geist": "^1.3.1",
+    "lucide-react": "^0.475.0",
+    "next": "15.2.4",
+    "next-auth": "^5.0.0-beta.25",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "prisma": "^6.2.1",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

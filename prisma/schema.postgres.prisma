@@ -1,0 +1,487 @@
+// =============================================================
+// Latam B2B Commerce Platform — Prisma Schema (MVP, future-ready)
+// 数据库：SQLite（本地 MVP）→ 结构兼容 PostgreSQL（部署迁移）
+// 设计原则：不写死国家/货币/语言；Master Order → Supplier Order 架构
+// =============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================
+// 地域（未来多国家架构：国家不写死）
+// =============================================================
+
+model Country {
+  id        String   @id @default(cuid())
+  code      String   @unique // ISO 3166-1 alpha-2: DO, PA, CO, EC, VE...
+  name      String
+  nameEs    String?
+  currency  String   @default("USD") // 默认货币
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  regions Region[]
+  businesses Business[]
+}
+
+model Region {
+  id        String   @id @default(cuid())
+  countryId String
+  country   Country  @relation(fields: [countryId], references: [id])
+  name      String
+  nameEs    String?
+  createdAt DateTime @default(now())
+
+  cities City[]
+}
+
+model City {
+  id        String   @id @default(cuid())
+  regionId  String
+  region    Region   @relation(fields: [regionId], references: [id])
+  name      String
+  nameEs    String?
+  createdAt DateTime @default(now())
+
+  businesses Business[]
+  warehouses Warehouse[]
+  deliveries Delivery[]
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  name          String?
+  passwordHash  String? // null 时使用 OAuth
+  image         String?
+  role          UserRole   @default(RETAILER)
+  // 身份主体（二选一，Role 决定）
+  retailerId    String?    @unique
+  retailer      Retailer?  @relation(fields: [retailerId], references: [id])
+  wholesalerId  String?    @unique
+  wholesaler    Wholesaler? @relation(fields: [wholesalerId], references: [id])
+  language      String     @default("en") // i18n：en / es
+  currency      String     @default("USD")
+  active        Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  messages      Message[]  @relation("MessageSender")
+  @@index([email])
+}
+
+enum UserRole {
+  RETAILER
+  WHOLESALER
+  ADMIN
+}
+
+// 企业资料（Retailer 与 Wholesaler 共用）
+model Business {
+  id           String   @id @default(cuid())
+  legalName    String
+  tradeName    String?
+  taxId        String? // RNC / RUC / NIT
+  address      String?
+  cityId       String?
+  city         City?    @relation(fields: [cityId], references: [id])
+  countryId    String?
+  country      Country? @relation(fields: [countryId], references: [id])
+  phone        String?
+  website      String?
+  logo         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  retailer     Retailer?
+  wholesaler   Wholesaler?
+}
+
+// =============================================================
+// 零售商（采购方）
+// =============================================================
+
+model Retailer {
+  id           String   @id @default(cuid())
+  businessId   String   @unique
+  business     Business @relation(fields: [businessId], references: [id])
+  user         User?
+  approvedCustomer CustomerRelationship[]
+  orders       Order[]
+  invoices     Invoice[]
+  payments     Payment[]
+  messages     Message[]
+  createdAt    DateTime @default(now())
+}
+
+// =============================================================
+// 批发商（供应方）
+// =============================================================
+
+model Wholesaler {
+  id           String   @id @default(cuid())
+  businessId   String   @unique
+  business     Business @relation(fields: [businessId], references: [id])
+  user         User?
+  // 销售模式默认：Both（公开 + 客户价）
+  defaultSellingMode SellingMode @default(BOTH)
+  paymentTerms       String? // 默认账期，如 "NET30"
+  minOrderAmount     Decimal?  // 最小订单金额（低于此金额不下单）
+  creditLimit        Decimal?  // 全局信用额度上限
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  products         Product[]
+  warehouses       Warehouse[]
+  customers        CustomerRelationship[]
+  orders           SupplierOrder[]
+  invoices         Invoice[]
+  messages         Message[] @relation("WholesalerMessages")
+  payments         Payment[]
+}
+
+enum SellingMode {
+  PUBLIC // 仅公开
+  CUSTOMER_ONLY // 仅客户
+  BOTH // 公开 + 客户专属价（推荐默认）
+}
+
+// =============================================================
+// 分类 / 商品 / 库存
+// =============================================================
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  nameEs    String?
+  nameZh    String?
+  parentId  String?
+  parent    Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  sortOrder Int       @default(0)
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  products Product[]
+}
+
+model Product {
+  id           String    @id @default(cuid())
+  wholesalerId String
+  wholesaler   Wholesaler @relation(fields: [wholesalerId], references: [id])
+  categoryId   String?
+  category     Category? @relation(fields: [categoryId], references: [id])
+
+  name        String
+  description String?
+  keywords    String? // 多语言搜索关键词（逗号分隔），如 "无线耳机,audifonos,earbuds"
+  sku         String
+  images      String // JSON array of image URLs
+  sellingMode SellingMode @default(BOTH)
+
+  // 公开定价
+  publicPrice Decimal?  
+  currency    String     @default("USD")
+
+  moq         Int        @default(1) // Minimum Order Quantity
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  inventories  Inventory[]
+  customerPrices CustomerPrice[]
+  orderItems   OrderItem[]
+
+  @@unique([wholesalerId, sku])
+  @@index([categoryId])
+  @@index([active, sellingMode])
+}
+
+model Inventory {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  stock       Int      @default(0) // 当前可用库存
+  lowStockAt  Int      @default(5) // 低库存预警阈值（未来）
+  updatedAt   DateTime @updatedAt
+
+  @@unique([productId, warehouseId])
+}
+
+model Warehouse {
+  id           String   @id @default(cuid())
+  wholesalerId String
+  wholesaler   Wholesaler @relation(fields: [wholesalerId], references: [id])
+  name         String
+  address      String?
+  cityId       String?
+  city         City?    @relation(fields: [cityId], references: [id])
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  inventories Inventory[]
+}
+
+// =============================================================
+// 客户关系（每个 Wholesaler ↔ Retailer 独立商业关系）
+// =============================================================
+
+model CustomerRelationship {
+  id           String    @id @default(cuid())
+  wholesalerId String
+  wholesaler   Wholesaler @relation(fields: [wholesalerId], references: [id])
+  retailerId   String
+  retailer     Retailer  @relation(fields: [retailerId], references: [id])
+
+  status       RelationshipStatus @default(PENDING)
+  tier         CustomerTier       @default(STANDARD) // 未来：VIP / GOLD / VOLUME
+  // 客户专属条款（可选，覆盖全局默认）
+  paymentTerms String?
+  creditLimit  Decimal? 
+  requestedAt  DateTime  @default(now())
+  approvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  customerPrices CustomerPrice[]
+  supplierOrders SupplierOrder[]
+
+  @@unique([wholesalerId, retailerId])
+  @@index([retailerId])
+}
+
+enum RelationshipStatus {
+  PENDING // 申请中
+  APPROVED
+  REJECTED
+}
+
+enum CustomerTier {
+  STANDARD
+  VIP
+  GOLD
+  VOLUME
+}
+
+// 客户专属价格（Product × CustomerRelationship）
+model CustomerPrice {
+  id              String   @id @default(cuid())
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+  relationshipId  String
+  relationship    CustomerRelationship @relation(fields: [relationshipId], references: [id])
+  price           Decimal 
+  moq             Int?     // 客户专属 MOQ（可覆盖）
+  currency        String   @default("USD")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([productId, relationshipId])
+}
+
+// =============================================================
+// 订单：Master Order → Supplier Order（多供应商采购）
+// =============================================================
+
+model Order {
+  id          String    @id @default(cuid())
+  orderNumber String    @unique
+  retailerId  String
+  retailer    Retailer  @relation(fields: [retailerId], references: [id])
+  status      OrderStatus @default(DRAFT)
+  currency    String    @default("USD")
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  supplierOrders SupplierOrder[]
+  invoices       Invoice[]
+  deliveries     Delivery[]
+
+  @@index([retailerId, status])
+}
+
+enum OrderStatus {
+  DRAFT
+  SUBMITTED
+  CONFIRMED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+// 供应商子订单（一单对一批发商）
+model SupplierOrder {
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id])
+  wholesalerId String
+  wholesaler   Wholesaler @relation(fields: [wholesalerId], references: [id])
+  relationshipId String?
+  relationship CustomerRelationship? @relation(fields: [relationshipId], references: [id])
+  status       OrderStatus @default(SUBMITTED)
+
+  subtotal     Decimal  // 商品小计（含折扣）
+  discount     Decimal  @default(0)
+  shipping     Decimal  @default(0)
+  total        Decimal 
+  currency     String   @default("USD")
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items       OrderItem[]
+  payments    Payment[]
+  invoices    Invoice[]
+
+  @@index([wholesalerId, status])
+}
+
+model OrderItem {
+  id              String   @id @default(cuid())
+  supplierOrderId String
+  supplierOrder   SupplierOrder @relation(fields: [supplierOrderId], references: [id])
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+  // 下单时快照（价格/名称可随商品变化，订单必须保留历史）
+  productName     String
+  sku             String
+  unitPrice       Decimal 
+  discount        Decimal  @default(0)
+  quantity        Int
+  subtotal        Decimal 
+
+  createdAt DateTime @default(now())
+}
+
+// =============================================================
+// 账单 / 付款 / 应收账款
+// =============================================================
+
+model Invoice {
+  id              String   @id @default(cuid())
+  invoiceNumber   String   @unique
+  orderId         String?
+  order           Order?   @relation(fields: [orderId], references: [id])
+  supplierOrderId String?
+  supplierOrder   SupplierOrder? @relation(fields: [supplierOrderId], references: [id])
+  wholesalerId    String
+  wholesaler      Wholesaler @relation(fields: [wholesalerId], references: [id])
+  retailerId      String
+  retailer        Retailer @relation(fields: [retailerId], references: [id])
+
+  amount     Decimal
+  currency   String  @default("USD")
+  status     InvoiceStatus @default(UNPAID)
+  dueDate    DateTime? // 账期到期日
+  pdfUrl     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  payments   Payment[]
+
+  @@index([wholesalerId, status])
+  @@index([retailerId, status])
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  supplierOrderId String?
+  supplierOrder   SupplierOrder? @relation(fields: [supplierOrderId], references: [id])
+  invoiceId       String?
+  invoice         Invoice? @relation(fields: [invoiceId], references: [id])
+  wholesalerId    String
+  wholesaler      Wholesaler @relation(fields: [wholesalerId], references: [id])
+  retailerId      String
+  retailer        Retailer @relation(fields: [retailerId], references: [id])
+
+  amount     Decimal    
+  currency   String      @default("USD")
+  method     PaymentMethod
+  status     PaymentStatus @default(PENDING) // 批发商确认后才变为 RECEIVED
+  paidAt     DateTime?
+  confirmedByName String? // 确认收款时的经手人姓名（防重名）
+  notes      String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([wholesalerId])
+  @@index([retailerId])
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CASH
+  CARD
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING // 待批发商确认
+  RECEIVED // 已确认收款
+  FAILED
+}
+
+// =============================================================
+// 消息（Wholesaler ↔ Retailer）
+// =============================================================
+
+model Message {
+  id            String   @id @default(cuid())
+  senderId      String   // User.id
+  sender        User     @relation("MessageSender", fields: [senderId], references: [id])
+  wholesalerId  String?
+  wholesaler    Wholesaler? @relation("WholesalerMessages", fields: [wholesalerId], references: [id])
+  retailerId    String?
+  retailer      Retailer? @relation(fields: [retailerId], references: [id])
+  body          String
+  readAt        DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([wholesalerId, retailerId])
+}
+
+// =============================================================
+// 交付（未来：多供应商聚合 → 一单配送）
+// =============================================================
+
+model Delivery {
+  id              String   @id @default(cuid())
+  orderId         String?
+  order           Order?   @relation(fields: [orderId], references: [id])
+  status          DeliveryStatus @default(PENDING)
+  carrier         String? // 第三方物流商
+  trackingNumber  String?
+  address         String?
+  cityId          String?
+  city            City?    @relation(fields: [cityId], references: [id])
+  estimatedAt     DateTime?
+  deliveredAt     DateTime?
+  createdAt       DateTime @default(now())
+}
+
+enum DeliveryStatus {
+  PENDING
+  PICKUP
+  CONSOLIDATION
+  IN_TRANSIT
+  DELIVERED
+}
