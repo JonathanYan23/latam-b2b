@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
-import { Loader2, Upload, X } from "lucide-react";
-import { updateStockAction, importProductsAction } from "../actions";
+import { Loader2, Trash2, Upload, X } from "lucide-react";
+import { updateStockAction, importProductsAction, deleteProductAction } from "../actions";
 import type { Dict } from "@/i18n";
 
 /** 列表页内联库存更新 */
@@ -145,5 +145,40 @@ export function ImportCsvButton({ t }: { t: Dict }) {
           document.body,
         )}
     </>
+  );
+}
+
+/** 列表页商品删除按钮：确认后删除；被引用商品自动停用隐藏 */
+export function DeleteProductButton({
+  productId,
+  productName,
+  t,
+}: {
+  productId: string;
+  productName: string;
+  t: Dict;
+}) {
+  const [pending, startTransition] = useTransition();
+
+  return (
+    <button
+      type="button"
+      disabled={pending}
+      onClick={() => {
+        if (!window.confirm(`${t.wsProducts.deleteConfirm}\n\n「${productName}」`)) return;
+        startTransition(async () => {
+          const res = await deleteProductAction(productId);
+          if (!res.ok) window.alert(res.error);
+        });
+      }}
+      className="btn btn-ghost inline-flex items-center gap-1 border border-[var(--color-line-2)] px-2.5 py-1.5 text-xs text-[var(--color-danger)] hover:border-[var(--color-danger)]/40 disabled:opacity-50"
+    >
+      {pending ? (
+        <Loader2 className="size-3.5 animate-spin" />
+      ) : (
+        <Trash2 className="size-3.5" />
+      )}
+      {t.wsProducts.deleteProduct}
+    </button>
   );
 }

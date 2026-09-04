@@ -8,7 +8,7 @@ import { catName } from "@/lib/cat";
 import { fmt } from "@/i18n/utils";
 import { money, sellingModeLabel } from "@/lib/format";
 import { parseImages } from "@/lib/pricing";
-import { StockUpdater, ImportCsvButton } from "./product-tools";
+import { StockUpdater, ImportCsvButton, DeleteProductButton } from "./product-tools";
 
 export const metadata = { title: "Products" };
 
@@ -19,7 +19,7 @@ export default async function WholesalerProductsPage() {
   const wholesalerId = session.wholesalerId!;
 
   const products = await db.product.findMany({
-    where: { wholesalerId },
+    where: { wholesalerId, active: true },
     orderBy: { createdAt: "desc" },
     include: { category: true, inventories: true },
   });
@@ -83,17 +83,20 @@ export default async function WholesalerProductsPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-end justify-between border-t border-[var(--color-line-2)] pt-3">
-                  <div>
+                <div className="mt-4 flex items-end justify-between gap-2 border-t border-[var(--color-line-2)] pt-3">
+                  <div className="min-w-0">
                     <p className="text-meta text-xs">{t.common.moq} {p.moq}</p>
                     <p className="text-lg font-semibold">{money(p.publicPrice, cur)}</p>
                   </div>
-                  <Link
-                    href={`/wholesaler/products/${p.id}/edit`}
-                    className="btn btn-secondary px-3 py-1.5 text-xs"
-                  >
-                    <Pencil className="size-3.5" /> {t.wsProducts.edit}
-                  </Link>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Link
+                      href={`/wholesaler/products/${p.id}/edit`}
+                      className="btn btn-secondary px-3 py-1.5 text-xs"
+                    >
+                      <Pencil className="size-3.5" /> {t.wsProducts.edit}
+                    </Link>
+                    <DeleteProductButton productId={p.id} productName={p.name} t={t} />
+                  </div>
                 </div>
 
                 <div className="mt-3 flex items-center justify-between rounded-lg border border-[var(--color-line-2)] px-3 py-2">

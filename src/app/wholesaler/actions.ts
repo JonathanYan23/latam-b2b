@@ -290,6 +290,39 @@ export async function importProductsAction(
   return undefined;
 }
 
+/** 删除商品：无订单/客户价引用 → 物理删除；被引用 → 软删除（active=false，历史保留） */
+export async function deleteProductAction(
+  productId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await requireRole("WHOLESALER");
+  const t = dictForLocale(await getActionLocale());
+  const wholesalerId = session.wholesalerId!;
+
+  const product = await db.product.findFirst({
+    where: { id: productId, wholesalerId },
+  });
+  if (!product) return { ok: false, error: t.wsProducts.deleteNotFound ?? "Not found" };
+
+  const [refOrders, refPrices] = await Promise.all([
+    db.orderItem.count({ where: { productId } }),
+    db.customerPrice.count({ where: { productId } }),
+  ]);
+
+  if (refOrders > 0 || refPrices > 0) {
+    // 被业务引用：停用并隐藏（不破坏订单/报价历史）
+    await db.product.update({
+      where: { id: productId },
+      data: { active: false },
+    });
+  } else {
+    await db.inventory.deleteMany({ where: { productId } });
+    await db.product.delete({ where: { id: productId } });
+  }
+
+  revalidatePath("/wholesaler/products");
+  return { ok: true };
+}
+
 /** 极简 CSV 解析（支持双引号包裹字段） */
 function parseCsv(text: string): string[][] {
   const rows: string[][] = [];

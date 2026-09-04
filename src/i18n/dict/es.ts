@@ -332,6 +332,10 @@ const es = {
     stock: "Stock",
     mode: "Modo",
     edit: "Editar",
+    deleteProduct: "Eliminar",
+    deleteConfirm:
+      "¿Eliminar este producto? Si está referenciado por pedidos o precios de cliente, se desactivará y ocultará de la lista (se conserva el historial).",
+    deleteNotFound: "Producto no encontrado o sin permiso",
     csvTitle: "Importación masiva",
     csvHint: "Columnas CSV: name, sku, price, moq, stock, sellingmode, imageUrl, description",
     csvDone: "Importación completada.",

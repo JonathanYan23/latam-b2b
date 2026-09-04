@@ -328,6 +328,10 @@ const en = {
     stock: "Stock",
     mode: "Mode",
     edit: "Edit",
+    deleteProduct: "Delete",
+    deleteConfirm:
+      "Delete this product? If referenced by orders or customer prices, it will be deactivated and hidden from the list instead (history kept).",
+    deleteNotFound: "Product not found or no permission",
     csvTitle: "Bulk import products",
     csvHint: "CSV columns: name, sku, price, moq, stock, sellingmode, imageUrl, description",
     csvDone: "Import complete.",
