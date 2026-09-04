@@ -181,3 +181,50 @@ async function nextInvoiceNumber(prefix: string): Promise<string> {
   });
   return `${prefix}-${ymd}-${String(count + 1).padStart(3, "0")}`;
 }
+
+/**
+ * 删除供应商订单（带后果守卫）：
+ * - 仅允许状态 SUBMITTED（未处理）或 CANCELLED（已取消的废单清理）
+ * - 已生成发票或已有收款记录的订单禁止删除（财务数据完整性）
+ * - 删除订单明细 + 订单本身；若买家主订单下无其他供应商订单，主订单置 CANCELLED（保留买家历史）
+ */
+export async function deleteSupplierOrderAction(
+  supplierOrderId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireRole("WHOLESALER");
+  const t = dictForLocale(await getActionLocale());
+  const wholesalerId = session.wholesalerId!;
+
+  const so = await db.supplierOrder.findUnique({
+    where: { id: supplierOrderId },
+    select: { id: true, wholesalerId: true, status: true, orderId: true },
+  });
+  if (!so || so.wholesalerId !== wholesalerId)
+    return { ok: false, error: t.wsOrders.errNotFound };
+
+  const [invCount, payCount] = await Promise.all([
+    db.invoice.count({ where: { supplierOrderId } }),
+    db.payment.count({ where: { supplierOrderId } }),
+  ]);
+  if (invCount > 0) return { ok: false, error: t.wsOrders.errHasInvoice };
+  if (payCount > 0) return { ok: false, error: t.wsOrders.errHasPayment };
+  if (so.status !== "SUBMITTED" && so.status !== "CANCELLED")
+    return { ok: false, error: t.wsOrders.errActive };
+
+  await db.$transaction([
+    db.orderItem.deleteMany({ where: { supplierOrderId } }),
+    db.supplierOrder.delete({ where: { id: supplierOrderId } }),
+  ]);
+
+  // 主订单若无剩余子单 → 置 CANCELLED（买家订单历史仍保留）
+  const siblings = await db.supplierOrder.count({ where: { orderId: so.orderId } });
+  if (siblings === 0) {
+    await db.order.update({
+      where: { id: so.orderId },
+      data: { status: "CANCELLED" },
+    });
+  }
+
+  revalidatePath("/wholesaler/orders");
+  return { ok: true };
+}

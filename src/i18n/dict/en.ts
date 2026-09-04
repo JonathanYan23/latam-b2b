@@ -384,6 +384,13 @@ const en = {
     errNotFound: "Order not found",
     errTransition: "Cannot move from {from} to {to}",
     errStock: "Insufficient stock: {name} ({stock} left, {needed} needed)",
+    deleteOrder: "Delete",
+    deleteTitle: "Delete order — cannot be undone",
+    deleteConfirm:
+      "Deleting this supplier order removes it and all its line items permanently. If the buyer's master order has no other supplier orders, it will be cancelled as well. Orders that already have an invoice or received payments cannot be deleted — cancel the order first.",
+    errHasInvoice: "This order has an invoice and cannot be deleted",
+    errHasPayment: "This order has received payments and cannot be deleted",
+    errActive: "This order is being fulfilled; cancel it before deleting",
     unitPrice: "Unit price",
   },
 

@@ -374,6 +374,13 @@ const zh = {
     errNotFound: "订单不存在",
     errTransition: "无法从 {from} 变更为 {to}",
     errStock: "库存不足：{name}（剩 {stock} 件，需 {needed} 件）",
+    deleteOrder: "删除",
+    deleteTitle: "删除订单 — 不可恢复",
+    deleteConfirm:
+      "删除该供应商订单及其全部明细，此操作不可恢复。若买家主订单下没有其他供应商订单，主订单将同步取消。已生成发票或已收款的订单无法删除，请先走「取消订单」流程。",
+    errHasInvoice: "该订单已生成发票，无法删除",
+    errHasPayment: "该订单已有收款记录，无法删除",
+    errActive: "订单正在履行中，无法删除；请先取消订单",
     unitPrice: "单价",
   },
 

@@ -388,6 +388,13 @@ const es = {
     errNotFound: "Pedido no encontrado",
     errTransition: "No se puede pasar de {from} a {to}",
     errStock: "Stock insuficiente: {name} ({stock} disponibles, se necesitan {needed})",
+    deleteOrder: "Eliminar",
+    deleteTitle: "Eliminar pedido — no se puede deshacer",
+    deleteConfirm:
+      "Eliminar este pedido de proveedor quita el pedido y sus líneas de forma permanente. Si el pedido principal del comprador no tiene otros pedidos de proveedor, también se cancelará. Los pedidos con factura o pagos recibidos no pueden eliminarse — cancélalo primero.",
+    errHasInvoice: "Este pedido tiene una factura y no puede eliminarse",
+    errHasPayment: "Este pedido tiene pagos recibidos y no puede eliminarse",
+    errActive: "Este pedido está en proceso; cancélalo antes de eliminar",
     unitPrice: "Precio unitario",
   },
 

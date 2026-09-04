@@ -10,6 +10,7 @@ import {
   money,
   date,
 } from "@/lib/format";
+import { DeleteOrderButton } from "./delete-order-button";
 
 export const metadata = { title: "Orders" };
 
@@ -30,7 +31,7 @@ export default async function WholesalerOrdersPage() {
           },
         },
       },
-      _count: { select: { items: true } },
+      _count: { select: { items: true, invoices: true, payments: true } },
     },
   });
 
@@ -60,45 +61,65 @@ export default async function WholesalerOrdersPage() {
         </div>
       ) : (
         <div className="mt-8 grid gap-4 lg:grid-cols-2">
-          {orders.map((o) => (
-            <Link
-              key={o.id}
-              href={`/wholesaler/orders/${o.id}`}
-              className="card card-hover group flex flex-col p-5"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-semibold">#{o.order.orderNumber}</p>
-                  <p className="text-meta mt-0.5 truncate">
-                    {o.order.retailer.business.tradeName}
-                  </p>
-                  {o.order.retailer.user?.name && (
-                    <p className="text-meta truncate text-[11px]">
-                      {t.common.contactPerson}: {o.order.retailer.user.name}
-                    </p>
-                  )}
-                </div>
-                <span className={`badge shrink-0 ${orderStatusTone(o.status)}`}>
-                  {orderStatusLabel(o.status, t)}
-                </span>
-              </div>
+          {orders.map((o) => {
+            // 可删判定：未处理或已取消，且无发票/无收款（与 server action 守卫一致）
+            const deletable =
+              (o.status === "SUBMITTED" || o.status === "CANCELLED") &&
+              o._count.invoices === 0 &&
+              o._count.payments === 0;
+            return (
+              <div
+                key={o.id}
+                className="card group relative flex flex-col p-5 transition-shadow hover:shadow-md"
+              >
+                <Link
+                  href={`/wholesaler/orders/${o.id}`}
+                  className="absolute inset-0 rounded-2xl"
+                  aria-label={`#${o.order.orderNumber}`}
+                />
 
-              <div className="mt-4 flex items-end justify-between border-t border-[var(--color-line-2)] pt-4">
-                <div>
-                  <p className="text-meta text-xs">{date(o.createdAt)}</p>
-                  <p className="text-meta mt-0.5 text-xs">
-                    {o._count.items} × {t.common.product}
-                  </p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold">#{o.order.orderNumber}</p>
+                    <p className="text-meta mt-0.5 truncate">
+                      {o.order.retailer.business.tradeName}
+                    </p>
+                    {o.order.retailer.user?.name && (
+                      <p className="text-meta truncate text-[11px]">
+                        {t.common.contactPerson}: {o.order.retailer.user.name}
+                      </p>
+                    )}
+                  </div>
+                  <span className={`badge shrink-0 ${orderStatusTone(o.status)}`}>
+                    {orderStatusLabel(o.status, t)}
+                  </span>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold">{money(o.total, cur)}</p>
-                  <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-ink-3)] transition-colors group-hover:text-[var(--color-ink)]">
-                    {t.common.view} <ArrowRight className="size-3.5" />
-                  </p>
+
+                <div className="mt-4 flex items-end justify-between gap-2 border-t border-[var(--color-line-2)] pt-4">
+                  <div className="min-w-0">
+                    <p className="text-meta text-xs">{date(o.createdAt)}</p>
+                    <p className="text-meta mt-0.5 text-xs">
+                      {o._count.items} × {t.common.product}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <p className="text-sm font-semibold">{money(o.total, cur)}</p>
+                    <div className="relative z-10 flex items-center gap-1.5">
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-ink-3)]">
+                        {t.common.view} <ArrowRight className="size-3.5" />
+                      </span>
+                      <DeleteOrderButton
+                        supplierOrderId={o.id}
+                        orderNumber={o.order.orderNumber}
+                        deletable={deletable}
+                        t={t}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
