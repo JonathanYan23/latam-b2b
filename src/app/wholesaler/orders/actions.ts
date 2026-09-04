@@ -184,7 +184,7 @@ async function nextInvoiceNumber(prefix: string): Promise<string> {
 
 /**
  * 删除供应商订单（带后果守卫）：
- * - 仅允许状态 SUBMITTED（未处理）或 CANCELLED（已取消的废单清理）
+ * - 仅允许状态 DRAFT / SUBMITTED（未处理）或 CANCELLED（已取消的废单清理）
  * - 已生成发票或已有收款记录的订单禁止删除（财务数据完整性）
  * - 删除订单明细 + 订单本身；若买家主订单下无其他供应商订单，主订单置 CANCELLED（保留买家历史）
  */
@@ -208,7 +208,7 @@ export async function deleteSupplierOrderAction(
   ]);
   if (invCount > 0) return { ok: false, error: t.wsOrders.errHasInvoice };
   if (payCount > 0) return { ok: false, error: t.wsOrders.errHasPayment };
-  if (so.status !== "SUBMITTED" && so.status !== "CANCELLED")
+  if (!["DRAFT", "SUBMITTED", "CANCELLED"].includes(so.status))
     return { ok: false, error: t.wsOrders.errActive };
 
   await db.$transaction([

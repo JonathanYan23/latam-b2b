@@ -62,9 +62,9 @@ export default async function WholesalerOrdersPage() {
       ) : (
         <div className="mt-8 grid gap-4 lg:grid-cols-2">
           {orders.map((o) => {
-            // 可删判定：未处理或已取消，且无发票/无收款（与 server action 守卫一致）
+            // 可删判定：草稿/未处理/已取消，且无发票/无收款（与 server action 守卫一致）
             const deletable =
-              (o.status === "SUBMITTED" || o.status === "CANCELLED") &&
+              ["DRAFT", "SUBMITTED", "CANCELLED"].includes(o.status) &&
               o._count.invoices === 0 &&
               o._count.payments === 0;
             return (
