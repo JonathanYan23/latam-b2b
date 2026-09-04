@@ -1,4 +1,4 @@
-import { DollarSign, AlertTriangle } from "lucide-react";
+import { DollarSign, AlertTriangle, ListChecks } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
@@ -83,7 +83,7 @@ export default async function WholesalerAccountPage() {
       <p className="text-body mt-1">{t.wsAccount.desc}</p>
 
       {/* 订单与付款政策 */}
-      <div className="card mt-8 p-6">
+      <div className="card mt-8 p-5">
         <h2 className="text-h3 text-[15px]">{t.wsAccount.policyTitle}</h2>
         <p className="text-meta mt-1 text-xs">{t.wsAccount.policyDesc}</p>
         <PolicyForm
@@ -96,27 +96,41 @@ export default async function WholesalerAccountPage() {
 
       {/* 概览 */}
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <div className="card p-5">
-          <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
-            <DollarSign className="size-4 text-[var(--color-ink-2)]" />
-          </span>
-          <p className="mt-3 text-lg font-semibold">{money(totalOutstanding, cur)}</p>
-          <p className="text-meta mt-0.5">{t.wsAccount.totalOutstanding}</p>
-        </div>
-        <div className="card p-5">
-          <p className="text-meta text-xs">{t.wsAccount.pendingConfirmations}</p>
-          <p className="mt-1 text-lg font-semibold">{pendingPayments.length}</p>
-        </div>
-        <div className="card p-5">
-          <p className="text-meta text-xs">{t.wsAccount.overdueInvoices}</p>
-          <p className="mt-1 text-lg font-semibold">{overdueCount}</p>
-        </div>
+        {[
+          {
+            icon: <DollarSign className="size-4" />,
+            label: t.wsAccount.totalOutstanding,
+            value: money(totalOutstanding, cur),
+          },
+          {
+            icon: <ListChecks className="size-4" />,
+            label: t.wsAccount.pendingConfirmations,
+            value: String(pendingPayments.length),
+          },
+          {
+            icon: (
+              <AlertTriangle
+                className={`size-4 ${overdueCount ? "text-[var(--color-danger)]" : ""}`}
+              />
+            ),
+            label: t.wsAccount.overdueInvoices,
+            value: String(overdueCount),
+          },
+        ].map((c, i) => (
+          <div key={i} className="card p-5">
+            <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)] text-[var(--color-ink-2)]">
+              {c.icon}
+            </span>
+            <p className="mt-3 text-lg font-semibold leading-tight">{c.value}</p>
+            <p className="text-meta mt-1 text-xs">{c.label}</p>
+          </div>
+        ))}
       </div>
 
       {/* 待确认付款 */}
       {pendingPayments.length > 0 && (
         <>
-          <h2 className="text-h2 mt-10 text-lg">{t.wsAccount.awaiting}</h2>
+          <h2 className="mt-10 text-lg font-semibold">{t.wsAccount.awaiting}</h2>
           <div className="card mt-3 divide-y divide-[var(--color-line-2)]">
             {pendingPayments.map((p) => (
               <div
@@ -141,7 +155,7 @@ export default async function WholesalerAccountPage() {
       )}
 
       {/* 客户应收明细 */}
-      <h2 className="text-h2 mt-10 text-lg">{t.wsAccount.customerOutstanding}</h2>
+      <h2 className="mt-10 text-lg font-semibold">{t.wsAccount.customerOutstanding}</h2>
       {invoices.length === 0 ? (
         <div className="card mt-3 px-5 py-10 text-center text-sm text-[var(--color-ink-3)]">
           {t.wsAccount.allCaughtUp}
@@ -189,7 +203,7 @@ export default async function WholesalerAccountPage() {
       )}
 
       {/* 收款历史 */}
-      <h2 className="text-h2 mt-10 text-lg">{t.wsAccount.paymentHistory}</h2>
+      <h2 className="mt-10 text-lg font-semibold">{t.wsAccount.paymentHistory}</h2>
       <div className="card mt-3 divide-y divide-[var(--color-line-2)]">
         {payments.length === 0 ? (
           <p className="px-5 py-8 text-center text-sm text-[var(--color-ink-3)]">
@@ -199,7 +213,7 @@ export default async function WholesalerAccountPage() {
           payments.map((p) => (
             <div
               key={p.id}
-              className="flex items-center justify-between px-5 py-3.5"
+              className="flex items-center justify-between px-5 py-4"
             >
               <div>
                 <p className="text-sm font-medium">

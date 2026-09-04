@@ -99,20 +99,20 @@ export default async function CustomersPage() {
             <p className="text-meta">{t.wsCustomers.noApproved}</p>
           </div>
         ) : (
-          <div className="card mt-3 overflow-hidden">
-            <table className="w-full text-left text-sm">
+          <div className="card mt-3 overflow-x-auto">
+            <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-line-2)] text-meta">
                   <th className="px-5 py-3 font-medium">{t.common.customer}</th>
-                  <th className="px-5 py-3 font-medium">{t.wsCustomers.tier}</th>
-                  <th className="hidden px-5 py-3 font-medium sm:table-cell">
+                  <th className="w-32 whitespace-nowrap px-5 py-3 font-medium">{t.wsCustomers.tier}</th>
+                  <th className="hidden w-40 whitespace-nowrap px-5 py-3 font-medium sm:table-cell">
                     {t.wsCustomers.terms}
                   </th>
-                  <th className="hidden px-5 py-3 font-medium md:table-cell">
+                  <th className="hidden w-40 whitespace-nowrap px-5 py-3 font-medium md:table-cell">
                     {t.wsCustomers.creditLimit}
                   </th>
-                  <th className="px-5 py-3 font-medium">{t.wsCustomers.pricesSet}</th>
-                  <th className="px-5 py-3 text-right font-medium">
+                  <th className="w-32 whitespace-nowrap px-5 py-3 font-medium">{t.wsCustomers.pricesSet}</th>
+                  <th className="w-28 whitespace-nowrap px-5 py-3 text-right font-medium">
                     {t.common.manage}
                   </th>
                 </tr>
@@ -150,12 +150,12 @@ export default async function CustomersPage() {
                         : "—"}
                     </td>
                     <td className="px-5 py-3.5 text-[var(--color-ink-2)]">
-                      {r._count.customerPrices} {t.common.product}s
+                      {r._count.customerPrices} {t.common.products}
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <Link
                         href={`/wholesaler/customers/${r.id}`}
-                        className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-ink-2)] hover:text-[var(--color-ink)]"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-line-2)] px-3 py-1.5 text-sm font-medium text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-ink-3)] hover:text-[var(--color-ink)]"
                       >
                         {t.common.manage} <ArrowRight className="size-3.5" />
                       </Link>

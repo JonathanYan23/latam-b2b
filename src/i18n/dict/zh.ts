@@ -37,6 +37,7 @@ const zh = {
     outOfStock: "缺货",
     units: "件",
     product: "商品",
+    products: "种商品",
     supplier: "供应商",
     customer: "客户",
     price: "价格",
@@ -458,6 +459,8 @@ const zh = {
 
   messages: {
     title: "消息",
+    expand: "全屏",
+    collapse: "收起",
     empty: "还没有消息 — 发送第一条吧。",
     you: "你",
     supplier: "供应商",

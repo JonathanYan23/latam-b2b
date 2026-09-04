@@ -12,7 +12,7 @@ import {
   CustomerPriceForm,
   RelationshipSettingsForm,
 } from "../customer-actions";
-import { MessageBox } from "@/components/message-box";
+import { ChatPanel } from "@/components/chat-panel";
 
 export default async function CustomerDetailPage({
   params,
@@ -183,11 +183,12 @@ export default async function CustomerDetailPage({
                     </div>
                   </div>
                 </div>
-                <div className="shrink-0">
+                <div className="w-full sm:w-auto">
                   <CustomerPriceForm
                     relationshipId={rel.id}
                     productId={p.id}
                     t={t}
+                    cur={cur}
                     existing={{
                       price: cp ? Number(cp.price) : null,
                       moq: cp?.moq ?? null,
@@ -202,32 +203,27 @@ export default async function CustomerDetailPage({
 
       </div>
 
-      {/* 消息（右侧，客户名旁即聊） */}
+      {/* 消息（右侧，客户名旁即聊；可全屏展开） */}
       <div id="chat" className="scroll-mt-24 lg:sticky lg:top-20">
-        <div className="card flex max-h-[min(60vh,560px)] flex-col p-4">
-          <p className="mb-3 flex shrink-0 items-center gap-2 border-b border-[var(--color-line-2)] pb-3 text-sm font-medium">
-            <MessageCircle className="size-4 text-[var(--color-ink-2)]" />
-            {t.suppliers.messagesTitle}
-            <span className="badge badge-neutral ml-auto">
+        <ChatPanel
+          title={t.suppliers.messagesTitle}
+          badge={
+            <span className="badge badge-neutral max-w-[150px] truncate">
               {rel.retailer.business.tradeName}
             </span>
-          </p>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <MessageBox
-              wholesalerId={wholesalerId}
-              retailerId={rel.retailerId}
-              locale={locale}
-              t={t}
-              messages={messages.map((m) => ({
-                id: m.id,
-                body: m.body,
-                createdAt: m.createdAt.toISOString(),
-                mine: m.senderId === session.userId,
-                senderName: m.sender.name,
-              }))}
-            />
-          </div>
-        </div>
+          }
+          wholesalerId={wholesalerId}
+          retailerId={rel.retailerId}
+          locale={locale}
+          t={t}
+          messages={messages.map((m) => ({
+            id: m.id,
+            body: m.body,
+            createdAt: m.createdAt.toISOString(),
+            mine: m.senderId === session.userId,
+            senderName: m.sender.name,
+          }))}
+        />
       </div>
       </div>
     </div>

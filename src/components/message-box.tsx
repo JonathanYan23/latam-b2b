@@ -15,7 +15,9 @@ export interface MessageItem {
   senderName: string | null;
 }
 
-/** 会话消息框：历史 + 发送（MVP：Send Message，无实时推送） */
+/** 会话消息框：历史 + 发送（MVP：Send Message，无实时推送）
+ * fill=true 时消息区自适应填满父容器（用于全屏聊天视图），默认固定高度（max-h-72）。
+ */
 export function MessageBox({
   wholesalerId,
   retailerId,
@@ -23,6 +25,7 @@ export function MessageBox({
   t,
   locale,
   onSent,
+  fill = false,
 }: {
   wholesalerId: string;
   retailerId: string;
@@ -30,15 +33,22 @@ export function MessageBox({
   t: Dict;
   locale: Locale;
   onSent?: () => void;
+  fill?: boolean;
 }) {
   const [text, setText] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <div className="flex flex-col">
+    <div className={fill ? "flex min-h-0 flex-1 flex-col" : "flex flex-col"}>
       {/* 历史 */}
-      <div className="max-h-72 space-y-3 overflow-y-auto">
+      <div
+        className={
+          fill
+            ? "min-h-0 flex-1 space-y-3 overflow-y-auto px-0.5 py-0.5"
+            : "max-h-72 space-y-3 overflow-y-auto"
+        }
+      >
         {messages.length === 0 ? (
           <p className="py-6 text-center text-sm text-[var(--color-ink-3)]">
             {t.messages.empty}

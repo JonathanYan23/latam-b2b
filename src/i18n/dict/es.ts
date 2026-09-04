@@ -37,6 +37,7 @@ const es = {
     outOfStock: "Agotado",
     units: "unidades",
     product: "Producto",
+    products: "Productos",
     supplier: "Proveedor",
     customer: "Cliente",
     price: "Precio",
@@ -472,6 +473,8 @@ const es = {
 
   messages: {
     title: "Mensajes",
+    expand: "Expandir",
+    collapse: "Contraer",
     empty: "Aún no hay mensajes — envía el primero.",
     you: "Tú",
     supplier: "Proveedor",

@@ -50,7 +50,7 @@ export default async function HomePage() {
       </header>
 
       {/* Hero + 双身份入口 */}
-      <section className="container-x pb-24 pt-16 sm:pt-24">
+      <section className="container-x pb-16 pt-8 sm:pt-14">
         <div className="mx-auto max-w-2xl text-center animate-fade-up">
           <div className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-[var(--color-line)] bg-[var(--color-bg-subtle)] px-3 py-1 text-xs font-medium text-[var(--color-ink-2)]">
             <Sparkles className="size-3.5 text-[var(--color-accent)]" />
@@ -63,7 +63,7 @@ export default async function HomePage() {
         </div>
 
         {/* 双入口卡片 */}
-        <div className="mx-auto mt-14 grid max-w-4xl gap-5 sm:grid-cols-2">
+        <div className="mx-auto mt-10 grid max-w-4xl gap-5 sm:grid-cols-2">
           <Link
             href={
               session?.user?.role === "RETAILER"

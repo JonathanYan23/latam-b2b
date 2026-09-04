@@ -295,17 +295,17 @@ export default async function RetailerHome() {
             </Link>
           </div>
         ) : (
-          <div className="card overflow-hidden">
-            <table className="w-full text-left text-sm">
+          <div className="card overflow-x-auto">
+            <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-line-2)] text-meta">
-                  <th className="px-5 py-3 font-medium">{t.orders.orderNumber}</th>
+                  <th className="whitespace-nowrap px-5 py-3 font-medium">{t.orders.orderNumber}</th>
                   <th className="px-5 py-3 font-medium">{t.orders.suppliers}</th>
-                  <th className="hidden px-5 py-3 font-medium sm:table-cell">
+                  <th className="hidden whitespace-nowrap px-5 py-3 font-medium sm:table-cell">
                     {t.common.date}
                   </th>
-                  <th className="px-5 py-3 font-medium">{t.common.total}</th>
-                  <th className="px-5 py-3 font-medium">{t.common.status}</th>
+                  <th className="whitespace-nowrap px-5 py-3 font-medium">{t.common.total}</th>
+                  <th className="whitespace-nowrap px-5 py-3 font-medium">{t.common.status}</th>
                 </tr>
               </thead>
               <tbody>
@@ -316,17 +316,17 @@ export default async function RetailerHome() {
                       key={o.id}
                       className="border-b border-[var(--color-line-2)] last:border-0"
                     >
-                      <td className="px-5 py-3.5 font-medium">#{o.orderNumber}</td>
-                      <td className="px-5 py-3.5 text-[var(--color-ink-2)]">
+                      <td className="whitespace-nowrap px-5 py-3.5 font-medium">#{o.orderNumber}</td>
+                      <td className="max-w-[200px] truncate px-5 py-3.5 text-[var(--color-ink-2)]">
                         {so?.wholesaler.business.tradeName ?? "—"}
                       </td>
-                      <td className="hidden px-5 py-3.5 text-[var(--color-ink-3)] sm:table-cell">
+                      <td className="hidden whitespace-nowrap px-5 py-3.5 text-[var(--color-ink-3)] sm:table-cell">
                         {date(o.createdAt)}
                       </td>
-                      <td className="px-5 py-3.5 font-medium">
+                      <td className="whitespace-nowrap px-5 py-3.5 font-medium">
                         {money(so?.total, o.currency)}
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="whitespace-nowrap px-5 py-3.5">
                         <span className={`badge ${orderStatusTone(o.status)}`}>
                           {orderStatusLabel(o.status, t)}
                         </span>

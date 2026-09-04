@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, Store, MessageCircle } from "lucide-react";
+import { MapPin, Store } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import { priceView, parseImages } from "@/lib/pricing";
@@ -9,7 +9,7 @@ import { money } from "@/lib/format";
 import { fmt } from "@/i18n/utils";
 import {getDictionary, getLocale} from "@/i18n";
 import { RequestPricingButton } from "@/app/retailer/products/[id]/request-button";
-import { MessageBox } from "@/components/message-box";
+import { ChatPanel } from "@/components/chat-panel";
 
 export default async function SupplierPage({
   params,
@@ -213,29 +213,22 @@ export default async function SupplierPage({
 
       </div>
 
-      {/* 消息（右栏，进店即可见，不需下拉） */}
+      {/* 消息（右栏，进店即可见，不需下拉；可全屏展开） */}
       <div className="order-1 lg:order-2 lg:sticky lg:top-20">
-        <div className="card flex max-h-[min(60vh,560px)] flex-col p-4">
-          <p className="mb-3 flex shrink-0 items-center gap-2 border-b border-[var(--color-line-2)] pb-3 text-sm font-medium">
-            <MessageCircle className="size-4 text-[var(--color-ink-2)]" />
-            {t.suppliers.messagesTitle}
-          </p>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <MessageBox
-              wholesalerId={id}
-              retailerId={retailerId}
-              locale={locale}
-              t={t}
-              messages={messages.map((m) => ({
-                id: m.id,
-                body: m.body,
-                createdAt: m.createdAt.toISOString(),
-                mine: m.senderId === session.userId,
-                senderName: m.sender.name,
-              }))}
-            />
-          </div>
-        </div>
+        <ChatPanel
+          title={t.suppliers.messagesTitle}
+          wholesalerId={id}
+          retailerId={retailerId}
+          locale={locale}
+          t={t}
+          messages={messages.map((m) => ({
+            id: m.id,
+            body: m.body,
+            createdAt: m.createdAt.toISOString(),
+            mine: m.senderId === session.userId,
+            senderName: m.sender.name,
+          }))}
+        />
       </div>
       </div>
     </div>

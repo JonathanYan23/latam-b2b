@@ -98,22 +98,26 @@ export function PortalShell({
 
       {/* 移动端底部导航 */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-line-2)] bg-white/95 backdrop-blur-md md:hidden">
-        <div className="grid grid-cols-6">
+        <div
+          className="grid"
+          style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
+        >
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition-colors ${
+              aria-current={isActive(item) ? "page" : undefined}
+              className={`flex min-w-0 flex-col items-center justify-center gap-1 py-2 text-[10px] leading-none transition-colors ${
                 isActive(item)
                   ? "font-medium text-[var(--color-ink)]"
                   : "text-[var(--color-ink-3)]"
               }`}
             >
               <item.icon
-                className="size-5"
+                className="size-5 shrink-0"
                 strokeWidth={isActive(item) ? 2.2 : 1.8}
               />
-              {item.label}
+              <span className="w-full truncate text-center">{item.label}</span>
             </Link>
           ))}
         </div>

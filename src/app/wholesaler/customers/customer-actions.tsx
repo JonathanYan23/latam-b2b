@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Check, X, Loader2, BadgeCheck } from "lucide-react";
 import { fmt } from "@/i18n/utils";
+import { currencySymbol } from "@/lib/currency";
 import {
   approveCustomerAction,
   rejectCustomerAction,
@@ -59,11 +60,13 @@ export function CustomerPriceForm({
   productId,
   existing,
   t,
+  cur = "USD",
 }: {
   relationshipId: string;
   productId: string;
   existing?: { price: number | null; moq: number | null };
   t: Dict;
+  cur?: string;
 }) {
   const [pending, startTransition] = useTransition();
 
@@ -74,38 +77,47 @@ export function CustomerPriceForm({
           await setCustomerPriceAction(relationshipId, fd);
         })
       }
-      className="flex flex-wrap items-center gap-x-2 gap-y-2"
+      className="flex flex-wrap items-center justify-end gap-x-2 gap-y-2"
     >
       <input name="productId" type="hidden" value={productId} />
-      <div className="flex items-center gap-1">
-        <span className="text-xs text-[var(--color-ink-3)]">$</span>
+      {/* 客户价 */}
+      <div className="flex items-center gap-1.5">
+        <span className="rounded-md border border-[var(--color-line-2)] bg-[var(--color-bg-subtle)] px-1.5 py-1.5 text-xs font-medium text-[var(--color-ink-3)]">
+          {currencySymbol(cur)}
+        </span>
         <input
           name="price"
           type="text"
           inputMode="decimal"
           required
+          aria-label={t.common.price}
           defaultValue={existing?.price ?? ""}
-          className="input w-20 px-2 py-1.5 text-sm"
+          placeholder="0.00"
+          className="input w-24 min-w-0 px-2 py-1.5 text-sm"
         />
       </div>
-      <div className="flex items-center gap-1">
-        <span className="text-[10px] uppercase text-[var(--color-ink-3)]">
+      {/* 起订量 */}
+      <div className="flex items-center gap-1.5">
+        <span className="whitespace-nowrap rounded-md border border-[var(--color-line-2)] bg-[var(--color-bg-subtle)] px-1.5 py-1.5 text-xs font-medium text-[var(--color-ink-3)]">
           {t.common.moq}
         </span>
         <input
           name="moq"
           type="text"
           inputMode="numeric"
+          aria-label={t.common.moq}
           defaultValue={existing?.moq ?? ""}
-          className="input w-12 px-2 py-1.5 text-sm"
+          placeholder="0"
+          className="input w-16 min-w-0 px-2 py-1.5 text-sm"
         />
       </div>
       <button
         type="submit"
         disabled={pending}
-        className="btn btn-secondary px-2.5 py-1.5 text-[11px]"
+        className="btn btn-primary px-3 py-1.5 text-xs"
       >
-        {pending ? <Loader2 className="size-3 animate-spin" /> : t.common.save}
+        {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+        {t.common.save}
       </button>
       <button
         type="button"
@@ -115,7 +127,7 @@ export function CustomerPriceForm({
             await removeCustomerPriceAction(relationshipId, productId);
           })
         }
-        className="btn btn-ghost px-2 py-1.5 text-[11px] text-[var(--color-danger)] disabled:pointer-events-none disabled:opacity-40"
+        className="btn btn-ghost px-2 py-1.5 text-xs text-[var(--color-danger)] disabled:pointer-events-none disabled:opacity-40"
       >
         {t.common.remove}
       </button>

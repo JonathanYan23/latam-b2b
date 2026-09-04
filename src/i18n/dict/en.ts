@@ -37,6 +37,7 @@ const en = {
     outOfStock: "Out of stock",
     units: "units",
     product: "Product",
+    products: "Products",
     supplier: "Supplier",
     customer: "Customer",
     price: "Price",
@@ -468,6 +469,8 @@ const en = {
 
   messages: {
     title: "Messages",
+    expand: "Expand",
+    collapse: "Collapse",
     empty: "No messages yet — send the first one.",
     you: "You",
     supplier: "Supplier",
