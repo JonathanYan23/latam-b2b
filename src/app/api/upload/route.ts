@@ -32,13 +32,20 @@ export async function POST(request: Request): Promise<NextResponse> {
     process.env.BLOB_STORE_ID
   );
   if (hasBlob) {
-    const { put } = await import("@vercel/blob");
-    const ext = file.name.split(".").pop() || "bin";
-    const blob = await put(`uploads/${session.user.id}/${Date.now()}-${randomId()}.${ext}`, file, {
-      access: "public",
-      addRandomSuffix: true,
-    });
-    return NextResponse.json({ url: blob.url });
+    try {
+      const { put } = await import("@vercel/blob");
+      const ext = file.name.split(".").pop() || "bin";
+      const blob = await put(`uploads/${session.user.id}/${Date.now()}-${randomId()}.${ext}`, file, {
+        access: "public",
+        addRandomSuffix: true,
+      });
+      return NextResponse.json({ url: blob.url });
+    } catch (err) {
+      return NextResponse.json(
+        { error: "blob_put_failed", detail: String(err instanceof Error ? err.message : err) },
+        { status: 500 },
+      );
+    }
   }
 
   // 本地开发降级：写入 public/uploads
