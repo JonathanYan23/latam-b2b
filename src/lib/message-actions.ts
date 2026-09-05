@@ -27,6 +27,22 @@ export async function sendMessageAction(
   if (!parsed.success) return { ok: false, error: t.messages.errEmpty };
 
   const { body } = parsed.data;
+
+  // 附件：formData 传入 JSON 数组字符串（URLs）
+  const attachmentsRaw = formData.get("attachments");
+  let attachments: string | null = null;
+  if (typeof attachmentsRaw === "string" && attachmentsRaw.trim()) {
+    try {
+      const arr = JSON.parse(attachmentsRaw);
+      if (Array.isArray(arr)) {
+        const urls = arr.filter((x) => typeof x === "string" && x).slice(0, 10);
+        if (urls.length) attachments = JSON.stringify(urls);
+      }
+    } catch {
+      /* 忽略非法附件 */
+    }
+  }
+
   const senderRole = session.user.role;
 
   // 权限：零售商标记自己是 retailerId；批发商标记自己是 wholesalerId
@@ -52,6 +68,7 @@ export async function sendMessageAction(
       wholesalerId: finalWholesalerId,
       retailerId: finalRetailerId,
       body,
+      attachments,
     },
   });
 
@@ -89,6 +106,7 @@ export async function getConversationMessagesAction(
     messages: rows.map((m) => ({
       id: m.id,
       body: m.body,
+      attachments: m.attachments ? safeParseUrls(m.attachments) : undefined,
       createdAt: m.createdAt.toISOString(),
       mine: m.senderId === session.user.id,
       senderName: m.sender.name,
@@ -96,9 +114,19 @@ export async function getConversationMessagesAction(
   };
 }
 
+function safeParseUrls(json: string): string[] {
+  try {
+    const arr = JSON.parse(json);
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
 export interface MessageItemDto {
   id: string;
   body: string;
+  attachments?: string[];
   createdAt: string;
   mine: boolean;
   senderName: string | null;

@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState, useActionState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import type { Category, Product, SellingMode } from "@prisma/client";
 import { createProductAction, updateProductAction } from "../actions";
 import { parseImages } from "@/lib/pricing";
+import { UploadButton } from "@/components/upload-button";
 import type { Dict } from "@/i18n";
 
 export function ProductForm({
@@ -27,6 +29,7 @@ export function ProductForm({
   );
 
   const [img] = product ? parseImages(product.images) : [""];
+  const [imageUrl, setImageUrl] = useState<string>(img);
   const pf = t.productForm;
 
   return (
@@ -86,12 +89,31 @@ export function ProductForm({
           <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
             {pf.imageUrl}
           </label>
-          <input
-            name="imageUrl"
-            className="input"
-            placeholder="https://…"
-            defaultValue={img}
-          />
+          <div className="flex items-start gap-2">
+            <input
+              name="imageUrl"
+              className="input flex-1"
+              placeholder="https://…"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+            />
+            <UploadButton
+              onUploaded={(url) => setImageUrl(url)}
+              label={pf.upload}
+            />
+          </div>
+          {imageUrl && (
+            <div className="relative mt-2 h-28 w-28 overflow-hidden rounded-lg border border-[var(--color-line-2)]">
+              <Image
+                src={imageUrl}
+                alt="preview"
+                fill
+                sizes="112px"
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          )}
         </div>
 
         <div>

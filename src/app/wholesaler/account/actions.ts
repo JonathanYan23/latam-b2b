@@ -56,3 +56,26 @@ export async function confirmPaymentAction(
   revalidatePath("/wholesaler/account");
   return { ok: true };
 }
+
+/** 批发商上传/更新店铺 Logo */
+export async function updateBusinessLogoAction(
+  logoUrl: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireRole("WHOLESALER");
+  const wholesalerId = session.wholesalerId!;
+
+  const ws = await db.wholesaler.findUnique({
+    where: { id: wholesalerId },
+    select: { businessId: true },
+  });
+  if (!ws?.businessId) return { ok: false, error: "no_business" };
+
+  await db.business.update({
+    where: { id: ws.businessId },
+    data: { logo: logoUrl },
+  });
+
+  revalidatePath("/wholesaler/account");
+  revalidatePath("/retailer/suppliers");
+  return { ok: true };
+}

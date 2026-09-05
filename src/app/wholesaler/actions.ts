@@ -55,6 +55,11 @@ export async function createProductAction(
   });
   if (dup) return { error: fmt(t.productForm.errSkuExists, { sku }) };
 
+  // 订阅额度：FREE 每月 20 件，PLUS 每月 1000 件
+  if (!(await withinQuota(wholesalerId, session.plan, 1))) {
+    return { error: t.wsProducts.errQuota };
+  }
+
   try {
     const product = await db.product.create({
       data: {
@@ -361,4 +366,70 @@ function parseCsv(text: string): string[][] {
   row.push(field);
   if (row.some((c) => c.trim() !== "")) rows.push(row);
   return rows;
+}
+
+/** 批量创建商品（照片批量上传生成）：一行一个商品 */
+export async function bulkCreateProductsAction(
+  rows: { name: string; sku?: string; imageUrl?: string; price?: number; moq?: number }[],
+): Promise<{ ok: boolean; created?: number; error?: string }> {
+  const session = await requireRole("WHOLESALER");
+  const t = dictForLocale(await getActionLocale());
+  const wholesalerId = session.wholesalerId!;
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return { ok: false, error: t.productForm.errName };
+  }
+  const valid = rows.filter(
+    (r) => r && typeof r.name === "string" && r.name.trim().length >= 2,
+  );
+  if (valid.length === 0) return { ok: false, error: t.productForm.errName };
+
+  // 订阅额度：FREE 每月 20 件，PLUS 每月 1000 件
+  if (!(await withinQuota(wholesalerId, session.plan, valid.length))) {
+    return { ok: false, error: t.wsProducts.errQuota };
+  }
+
+  const base = Date.now();
+  let created = 0;
+  for (let i = 0; i < valid.length; i++) {
+    const r = valid[i];
+    let sku = r.sku && r.sku.trim() ? r.sku.trim() : "SKU-" + base + "-" + (i + 1);
+    // sku 冲突时自动加序号
+    const existing = await db.product.findUnique({
+      where: { wholesalerId_sku: { wholesalerId, sku } },
+    });
+    if (existing) sku = sku + "-" + (i + 1);
+
+    await db.product.create({
+      data: {
+        wholesalerId,
+        name: r.name.trim(),
+        sku,
+        images: r.imageUrl ? JSON.stringify([r.imageUrl]) : "[]",
+        publicPrice: typeof r.price === "number" && r.price >= 0 ? r.price : 0,
+        moq: typeof r.moq === "number" && r.moq >= 1 ? Math.floor(r.moq) : 1,
+        sellingMode: "BOTH",
+      },
+    });
+    created++;
+  }
+
+  revalidatePath("/wholesaler/products");
+  return { ok: true, created };
+}
+
+/** 订阅额度校验：FREE 每月 20 件商品，PLUS 每月 1000 件 */
+async function withinQuota(
+  wholesalerId: string,
+  plan: string | null | undefined,
+  adding: number,
+): Promise<boolean> {
+  const limit = plan === "PLUS" ? 1000 : 20;
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+  const count = await db.product.count({
+    where: { wholesalerId, createdAt: { gte: monthStart } },
+  });
+  return count + adding <= limit;
 }

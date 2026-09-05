@@ -12,7 +12,6 @@ import {
   CustomerPriceForm,
   RelationshipSettingsForm,
 } from "../customer-actions";
-import { ChatPanel } from "@/components/chat-panel";
 
 export default async function CustomerDetailPage({
   params,
@@ -45,13 +44,6 @@ export default async function CustomerDetailPage({
     include: { inventories: true },
   });
   const cpMap = new Map(rel.customerPrices.map((cp) => [cp.productId, cp]));
-
-  const messages = await db.message.findMany({
-    where: { wholesalerId, retailerId: rel.retailerId },
-    orderBy: { createdAt: "asc" },
-    take: 100,
-    include: { sender: { select: { name: true, id: true } } },
-  });
 
   const loc = [
     rel.retailer.business.city?.name,
@@ -95,13 +87,13 @@ export default async function CustomerDetailPage({
         </div>
         <div className="flex flex-wrap gap-2">
           {rel.status === "APPROVED" && (
-            <a
-              href="#chat"
+            <Link
+              href={`/wholesaler/customers/${rel.id}/chat`}
               className="btn btn-primary px-3 py-1.5 text-xs"
             >
               <MessageCircle className="size-3.5" />
               {fmt(t.wsCustomers.chatWith, { name: rel.retailer.business.tradeName ?? rel.retailer.business.legalName })}
-            </a>
+            </Link>
           )}
           {rel.paymentTerms && (
             <span className="badge badge-neutral">{rel.paymentTerms}</span>
@@ -203,27 +195,19 @@ export default async function CustomerDetailPage({
 
       </div>
 
-      {/* 消息（右侧，客户名旁即聊；可全屏展开） */}
+      {/* 进入聊天（独立整页，支持图片/PDF 附件） */}
       <div id="chat" className="scroll-mt-24 lg:sticky lg:top-20">
-        <ChatPanel
-          title={t.suppliers.messagesTitle}
-          badge={
-            <span className="badge badge-neutral max-w-[150px] truncate">
-              {rel.retailer.business.tradeName}
-            </span>
-          }
-          wholesalerId={wholesalerId}
-          retailerId={rel.retailerId}
-          locale={locale}
-          t={t}
-          messages={messages.map((m) => ({
-            id: m.id,
-            body: m.body,
-            createdAt: m.createdAt.toISOString(),
-            mine: m.senderId === session.userId,
-            senderName: m.sender.name,
-          }))}
-        />
+        <Link
+          href={`/wholesaler/customers/${rel.id}/chat`}
+          className="card flex flex-col items-center gap-2 p-6 text-center transition-shadow hover:shadow-md"
+        >
+          <span className="grid size-12 place-items-center rounded-xl bg-[var(--color-bg-muted)]">
+            <MessageCircle className="size-6 text-[var(--color-ink-2)]" strokeWidth={1.6} />
+          </span>
+          <p className="text-sm font-semibold">{t.suppliers.messagesTitle}</p>
+          <p className="text-meta text-xs">{t.suppliers.chatHint}</p>
+          <span className="btn btn-secondary mt-1 px-4 py-1.5 text-xs">{t.suppliers.openChat}</span>
+        </Link>
       </div>
       </div>
     </div>

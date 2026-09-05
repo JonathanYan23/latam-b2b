@@ -43,6 +43,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           retailerId: user.retailerId,
           wholesalerId: user.wholesalerId,
           currency: user.currency, // 注册国家决定的账户货币
+          plan: user.plan, // 订阅分级
         };
       },
     }),
@@ -58,6 +59,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.retailerId = (user as any).retailerId;
         token.wholesalerId = (user as any).wholesalerId;
         token.currency = (user as any).currency;
+        token.plan = (user as any).plan;
       }
       return token;
     },
@@ -68,6 +70,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.retailerId = token.retailerId as string | undefined;
         session.user.wholesalerId = token.wholesalerId as string | undefined;
         (session.user as any).currency = token.currency as string | undefined;
+        (session.user as any).plan = token.plan as string | undefined;
       }
       return session;
     },

@@ -11,6 +11,7 @@ import {
 import { fmt } from "@/i18n/utils";
 import { ConfirmPaymentButton } from "./confirm-payment";
 import { PolicyForm } from "./policy-form";
+import { ProfileCard } from "./profile-card";
 import { computeOutstanding } from "@/lib/payments";
 
 export const metadata = { title: "Accounts Receivable" };
@@ -24,7 +25,11 @@ export default async function WholesalerAccountPage() {
   const [wholesaler, invoices, payments, pendingPayments] = await Promise.all([
     db.wholesaler.findUnique({
       where: { id: wholesalerId },
-      select: { minOrderAmount: true },
+      select: {
+        minOrderAmount: true,
+        business: { select: { logo: true, tradeName: true } },
+        user: { select: { plan: true } },
+      },
     }),
     db.invoice.findMany({
       where: {
@@ -81,6 +86,14 @@ export default async function WholesalerAccountPage() {
     <div className="mx-auto max-w-6xl animate-fade-up">
       <h1 className="text-h1">{t.wsAccount.title}</h1>
       <p className="text-body mt-1">{t.wsAccount.desc}</p>
+
+      {/* 店铺资料（Logo + 订阅） */}
+      <ProfileCard
+        initialLogo={wholesaler?.business.logo ?? null}
+        plan={wholesaler?.user?.plan ?? null}
+        tradeName={wholesaler?.business.tradeName ?? ""}
+        t={t}
+      />
 
       {/* 订单与付款政策 */}
       <div className="card mt-8 p-5">

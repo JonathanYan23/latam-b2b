@@ -68,6 +68,7 @@ model User {
   wholesaler    Wholesaler? @relation(fields: [wholesalerId], references: [id])
   language      String     @default("en") // i18n：en / es
   currency      String     @default("USD")
+  plan          String?    // 订阅分级：FREE / PLUS（null 视为 FREE）
   active        Boolean    @default(true)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
@@ -465,6 +466,7 @@ model Message {
   retailerId    String?
   retailer      Retailer? @relation(fields: [retailerId], references: [id])
   body          String
+  attachments   String?   // JSON array of attachment URLs（图片/PDF）
   readAt        DateTime?
   createdAt     DateTime @default(now())
 

@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { db } from "@/lib/db";
 import {getDictionary} from "@/i18n";
 import { date } from "@/lib/format";
@@ -38,6 +40,27 @@ export default async function AdminHome() {
             <p className="text-lg font-semibold">{s.value}</p>
             <p className="text-meta mt-0.5">{s.label}</p>
           </div>
+        ))}
+      </div>
+
+      {/* 管理入口 */}
+      <h2 className="text-h2 mt-10 text-lg">{t.admin.title}</h2>
+      <div className="mt-3 grid gap-4 sm:grid-cols-3">
+        {[
+          { href: "/admin/wholesalers", label: t.admin.wholesalers },
+          { href: "/admin/retailers", label: t.admin.retailers },
+          { href: "/admin/products", label: t.admin.products },
+        ].map((e) => (
+          <Link
+            key={e.href}
+            href={e.href}
+            className="card card-hover group flex items-center justify-between p-5"
+          >
+            <p className="font-semibold">{e.label}</p>
+            <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-ink-3)] transition-colors group-hover:text-[var(--color-ink)]">
+              {t.admin.viewAll} <ArrowRight className="size-4" />
+            </span>
+          </Link>
         ))}
       </div>
 

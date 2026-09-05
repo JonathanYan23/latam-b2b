@@ -9,6 +9,7 @@ export interface PortalSession {
   retailerId?: string | null;
   wholesalerId?: string | null;
   currency?: string; // 账户货币（注册国家决定），默认 USD
+  plan?: string | null; // 订阅分级：FREE / PLUS
 }
 
 /** 要求已登录且为指定角色，否则重定向；返回安全会话 */
@@ -24,5 +25,6 @@ export async function requireRole(role: UserRole): Promise<PortalSession> {
     retailerId: session.user.retailerId ?? null,
     wholesalerId: session.user.wholesalerId ?? null,
     currency: (session.user as { currency?: string }).currency ?? "USD",
+    plan: (session.user as { plan?: string | null }).plan ?? null,
   };
 }

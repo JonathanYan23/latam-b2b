@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, PackageX, Pencil } from "lucide-react";
+import { Plus, PackageX, Pencil, Images } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import { getDictionary, getLocale } from "@/i18n";
@@ -35,6 +35,12 @@ export default async function WholesalerProductsPage() {
         </div>
         <div className="flex items-center gap-2">
           <ImportCsvButton t={t} />
+          <Link
+            href="/wholesaler/products/bulk"
+            className="btn btn-secondary inline-flex items-center gap-1.5 px-3 py-2 text-sm"
+          >
+            <Images className="size-4" /> {t.wsProducts.bulkUpload}
+          </Link>
           <Link
             href="/wholesaler/products/new"
             className="btn btn-primary px-4 py-2 text-sm"
