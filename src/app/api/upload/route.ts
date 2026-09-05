@@ -25,8 +25,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "too_large" }, { status: 413 });
   }
 
-  // 生产（Vercel）凭据：OIDC 或静态读写 token；本地开发两者皆无 → 降级写 public/uploads
-  const hasBlob = !!(process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_OIDC_TOKEN);
+  // 生产（Vercel）凭据：OIDC（BLOB_STORE_ID + 运行时 VERCEL_OIDC_TOKEN）或静态读写 token
+  const hasBlob = !!(
+    process.env.BLOB_READ_WRITE_TOKEN ||
+    process.env.VERCEL_OIDC_TOKEN ||
+    process.env.BLOB_STORE_ID
+  );
   if (hasBlob) {
     const { put } = await import("@vercel/blob");
     const ext = file.name.split(".").pop() || "bin";
