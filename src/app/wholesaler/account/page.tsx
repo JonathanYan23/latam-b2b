@@ -103,6 +103,7 @@ export default async function WholesalerAccountPage() {
           current={
             wholesaler?.minOrderAmount ? Number(wholesaler.minOrderAmount) : null
           }
+          cur={session.currency ?? "USD"}
           t={t}
         />
       </div>

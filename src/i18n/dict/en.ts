@@ -159,6 +159,9 @@ const en = {
     desc: "Browse every wholesaler and their catalog. Customer prices are shown only after you become their customer.",
     enter: "View store",
     notCustomer: "Not a customer yet — request pricing to see prices",
+    searchPlaceholder: "Search by wholesaler or contact person…",
+    searchBtn: "Search",
+    noResults: "No matching wholesalers found",
   },
 
   browse: {
@@ -438,7 +441,7 @@ const en = {
     termsHintNone: "No credit terms — full payment expected",
     paymentTerms: "Payment terms",
     termsExample: "e.g. NET30",
-    creditUsd: "Credit limit (USD)",
+    creditUsd: "Credit limit",
     creditExample: "e.g. 5000",
     saveTerms: "Save terms",
     saved: "Saved ✓",
@@ -451,6 +454,11 @@ const en = {
     errNotApproved: "Customer not approved",
     errProduct: "Product not found",
     errTier: "Invalid tier",
+    errNotFound: "Relationship not found",
+    errHasHistory: "This customer has orders or invoices and cannot be removed (financial records kept)",
+    deleteCustomer: "Remove customer",
+    deleteCustomerHint: "Click twice to confirm",
+    deleteConfirm: "Removing this customer deletes their custom prices and they will lose access to your customer pricing. This cannot be undone. Customers with orders or invoices cannot be removed.",
   },
 
   wsAccount: {
@@ -480,13 +488,13 @@ const en = {
     errProcessed: "Payment already processed",
     policyTitle: "Order & payment policy",
     policyDesc: "Set the minimum order value that applies to every buyer (full payment and credit orders). Leave empty for no minimum.",
-    minOrderAmount: "Minimum order value (USD)",
+    minOrderAmount: "Minimum order value",
     minOrderHint: "e.g. 500",
     policySaved: "Policy updated ✓",
   },
 
   admin: {
-    title: "Overview",
+    title: "Platform Admin",
     desc: "Platform-wide management console.",
     users: "Users",
     wholesalers: "Wholesalers",
@@ -495,6 +503,16 @@ const en = {
     orders: "Orders",
     countries: "Countries",
     recentUsers: "Recent users",
+    usersSearch: "Search users",
+    usersSearchHint: "Search by name or email",
+    countriesList: "Countries & regions",
+    noUsers: "No users found",
+    noRegions: "No registrations",
+    viewCountry: "View",
+    companies: "{n} companies",
+    pending: "Pending",
+    manageBtn: "Manage",
+
     name: "Name",
     email: "Email",
     role: "Role",

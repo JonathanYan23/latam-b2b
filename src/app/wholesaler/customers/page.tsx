@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users, ArrowRight } from "lucide-react";
+import { Users } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
@@ -8,14 +8,33 @@ import {
   relationshipStatusLabel,
   relationshipStatusTone,
   tierLabel,
+  money,
   date,
 } from "@/lib/format";
-import { ApproveRejectButtons } from "./customer-actions";
+import {
+  ApproveRejectButtons,
+  DeleteCustomerButton,
+} from "./customer-actions";
+
+/** 客户等级徽章配色 */
+function tierTone(tier: string): string {
+  switch (tier) {
+    case "VIP":
+      return "badge-warning";
+    case "GOLD":
+      return "badge";
+    case "VOLUME":
+      return "badge-info";
+    default:
+      return "badge-neutral";
+  }
+}
 
 export const metadata = { title: "Customers" };
 
 export default async function CustomersPage() {
   const session = await requireRole("WHOLESALER");
+  const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const wholesalerId = session.wholesalerId!;
 
@@ -99,71 +118,93 @@ export default async function CustomersPage() {
             <p className="text-meta">{t.wsCustomers.noApproved}</p>
           </div>
         ) : (
-          <div className="card mt-3 overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-[var(--color-line-2)] text-meta">
-                  <th className="px-5 py-3 font-medium">{t.common.customer}</th>
-                  <th className="w-32 whitespace-nowrap px-5 py-3 font-medium">{t.wsCustomers.tier}</th>
-                  <th className="hidden w-40 whitespace-nowrap px-5 py-3 font-medium sm:table-cell">
-                    {t.wsCustomers.terms}
-                  </th>
-                  <th className="hidden w-40 whitespace-nowrap px-5 py-3 font-medium md:table-cell">
-                    {t.wsCustomers.creditLimit}
-                  </th>
-                  <th className="w-32 whitespace-nowrap px-5 py-3 font-medium">{t.wsCustomers.pricesSet}</th>
-                  <th className="w-28 whitespace-nowrap px-5 py-3 text-right font-medium">
-                    {t.common.manage}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {approved.map((r) => (
-                  <tr
-                    key={r.id}
-                    className="border-b border-[var(--color-line-2)] last:border-0"
-                  >
-                    <td className="px-5 py-3.5">
-                      <p className="font-medium">
-                        {r.retailer.business.tradeName}
-                      </p>
-                      <p className="text-meta text-xs">
-                        {r.retailer.business.legalName}
-                      </p>
-                      {r.retailer.user?.name && (
-                        <p className="text-meta mt-0.5 text-xs">
-                          {t.common.contactPerson}: {r.retailer.user.name}
-                        </p>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className="badge badge-neutral">
-                        {tierLabel(r.tier, t)}
-                      </span>
-                    </td>
-                    <td className="hidden px-5 py-3.5 text-[var(--color-ink-2)] sm:table-cell">
-                      {r.paymentTerms ?? "—"}
-                    </td>
-                    <td className="hidden px-5 py-3.5 text-[var(--color-ink-2)] md:table-cell">
-                      {r.creditLimit
-                        ? `$${Number(r.creditLimit).toLocaleString()}`
-                        : "—"}
-                    </td>
-                    <td className="px-5 py-3.5 text-[var(--color-ink-2)]">
-                      {r._count.customerPrices} {t.common.products}
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <Link
-                        href={`/wholesaler/customers/${r.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-line-2)] px-3 py-1.5 text-sm font-medium text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-ink-3)] hover:text-[var(--color-ink)]"
-                      >
-                        {t.common.manage} <ArrowRight className="size-3.5" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-4 space-y-8">
+            {(["VIP", "GOLD", "VOLUME", "STANDARD"] as const)
+              .map((tier) => ({
+                tier,
+                items: approved.filter((r) => r.tier === tier),
+              }))
+              .filter((g) => g.items.length > 0)
+              .map(({ tier, items }) => (
+                <div key={tier}>
+                  <h3 className="flex items-center gap-2 text-sm font-semibold">
+                    <span className={`badge ${tierTone(tier)}`}>
+                      {tierLabel(tier, t)}
+                    </span>
+                    <span className="text-meta font-normal">
+                      {items.length} {t.common.customer}
+                    </span>
+                  </h3>
+                  <div className="card mt-2 overflow-x-auto">
+                    <table className="w-full min-w-[640px] text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-[var(--color-line-2)] text-meta">
+                          <th className="px-5 py-3 font-medium">{t.common.customer}</th>
+                          <th className="hidden w-40 whitespace-nowrap px-5 py-3 font-medium sm:table-cell">
+                            {t.wsCustomers.terms}
+                          </th>
+                          <th className="hidden w-40 whitespace-nowrap px-5 py-3 font-medium md:table-cell">
+                            {t.wsCustomers.creditLimit}
+                          </th>
+                          <th className="w-32 whitespace-nowrap px-5 py-3 font-medium">{t.wsCustomers.pricesSet}</th>
+                          <th className="w-36 whitespace-nowrap px-5 py-3 text-right font-medium">
+                            {t.common.manage}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {items.map((r) => (
+                          <tr
+                            key={r.id}
+                            className="border-b border-[var(--color-line-2)] last:border-0"
+                          >
+                            <td className="px-5 py-3.5">
+                              <p className="font-medium">
+                                {r.retailer.business.tradeName}
+                              </p>
+                              <p className="text-meta text-xs">
+                                {r.retailer.business.legalName}
+                              </p>
+                              {r.retailer.user?.name && (
+                                <p className="text-meta mt-0.5 text-xs">
+                                  {t.common.contactPerson}: {r.retailer.user.name}
+                                </p>
+                              )}
+                            </td>
+                            <td className="hidden px-5 py-3.5 text-[var(--color-ink-2)] sm:table-cell">
+                              {r.paymentTerms ?? "—"}
+                            </td>
+                            <td className="hidden px-5 py-3.5 text-[var(--color-ink-2)] md:table-cell">
+                              {r.creditLimit ? money(r.creditLimit, cur) : "—"}
+                            </td>
+                            <td className="px-5 py-3.5 text-[var(--color-ink-2)]">
+                              {r._count.customerPrices} {t.common.products}
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Link
+                                  href={`/wholesaler/customers/${r.id}`}
+                                  className="inline-flex items-center gap-1 rounded-md border border-[var(--color-line-2)] px-2.5 py-1.5 text-xs font-medium text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-ink-3)] hover:text-[var(--color-ink)]"
+                                >
+                                  {t.common.manage}
+                                </Link>
+                                <DeleteCustomerButton
+                                  relationshipId={r.id}
+                                  customerName={
+                                    r.retailer.business.tradeName ??
+                                    r.retailer.business.legalName
+                                  }
+                                  t={t}
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
           </div>
         )}
       </section>

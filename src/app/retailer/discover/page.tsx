@@ -1,22 +1,38 @@
 import Link from "next/link";
-import { Store, MapPin, Package, ArrowRight } from "lucide-react";
+import { Store, MapPin, Package, ArrowRight, Search } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
-import { getDictionary, getLocale } from "@/i18n";
+import { getDictionary } from "@/i18n";
 import { fmt } from "@/i18n/utils";
 import { relationshipStatusLabel, relationshipStatusTone } from "@/lib/format";
 
 export const metadata = { title: "Find Suppliers" };
 
-export default async function DiscoverPage() {
+export default async function DiscoverPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const session = await requireRole("RETAILER");
-  const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const t = await getDictionary();
   const retailerId = session.retailerId!;
+  const { q } = await searchParams;
+  const query = (q ?? "").trim();
 
   const [wholesalers, relationships] = await Promise.all([
     db.wholesaler.findMany({
+      where: query
+        ? {
+            OR: [
+              { business: { tradeName: { contains: query } } },
+              { business: { legalName: { contains: query } } },
+              { user: { name: { contains: query } } },
+            ],
+          }
+        : undefined,
       include: {
         business: { include: { city: true, country: true } },
+        user: { select: { name: true } },
         _count: { select: { products: true } },
       },
       orderBy: { createdAt: "asc" },
@@ -34,7 +50,33 @@ export default async function DiscoverPage() {
       <h1 className="text-h1">{t.discover.title}</h1>
       <p className="text-body mt-1">{t.discover.desc}</p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* 搜索：批发商名 / 联系人名 */}
+      <form
+        action="/retailer/discover"
+        method="get"
+        className="mt-6 flex max-w-md items-center gap-2"
+      >
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--color-ink-3)]" />
+          <input
+            name="q"
+            defaultValue={query}
+            placeholder={t.discover.searchPlaceholder}
+            className="input pl-9"
+          />
+        </div>
+        <button type="submit" className="btn btn-primary px-4 py-2 text-sm">
+          {t.discover.searchBtn}
+        </button>
+      </form>
+
+      {wholesalers.length === 0 ? (
+        <div className="card mt-8 flex flex-col items-center px-6 py-14 text-center">
+          <Store className="mb-4 size-8 text-[var(--color-ink-3)]" strokeWidth={1.5} />
+          <p className="text-sm text-[var(--color-ink-2)]">{t.discover.noResults}</p>
+        </div>
+      ) : (
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {wholesalers.map((w) => {
           const status = relMap.get(w.id);
           const location = [
@@ -58,6 +100,11 @@ export default async function DiscoverPage() {
                       </>
                     )}
                   </p>
+                  {w.user?.name && (
+                    <p className="text-meta mt-0.5 truncate text-[11px]">
+                      {t.common.contactPerson}: {w.user.name}
+                    </p>
+                  )}
                 </div>
                 {status && (
                   <span
@@ -93,6 +140,7 @@ export default async function DiscoverPage() {
           );
         })}
       </div>
+      )}
     </div>
   );
 }

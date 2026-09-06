@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Store, MapPin, Package } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
-import {getDictionary, getLocale} from "@/i18n";
+import {getDictionary} from "@/i18n";
 import { fmt } from "@/i18n/utils";
 import { relationshipStatusLabel, relationshipStatusTone } from "@/lib/format";
 import { SupplierChatButton } from "./chat-button";
@@ -11,7 +11,7 @@ export const metadata = { title: "My Suppliers" };
 
 export default async function SuppliersPage() {
   const session = await requireRole("RETAILER");
-  const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
+  const t = await getDictionary();
   const retailerId = session.retailerId!;
 
   const [wholesalers, relationships] = await Promise.all([
@@ -84,10 +84,7 @@ export default async function SuppliersPage() {
                   {status === "APPROVED" && (
                     <SupplierChatButton
                       wholesalerId={w.id}
-                      retailerId={retailerId}
                       supplierName={w.business.tradeName ?? w.business.legalName}
-                      t={t}
-                      locale={locale}
                     />
                   )}
                   {status && (

@@ -1,17 +1,81 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, X, Loader2, BadgeCheck } from "lucide-react";
+import { Check, X, Loader2, BadgeCheck, Trash2, AlertTriangle } from "lucide-react";
 import { fmt } from "@/i18n/utils";
 import { currencySymbol } from "@/lib/currency";
 import {
   approveCustomerAction,
   rejectCustomerAction,
+  deleteCustomerAction,
   setCustomerPriceAction,
   removeCustomerPriceAction,
   updateRelationshipAction,
 } from "./actions";
 import type { Dict } from "@/i18n";
+
+/** 移除客户：两步确认（第一次点击进入待确认（变红），再次点击弹后果说明后删除） */
+export function DeleteCustomerButton({
+  relationshipId,
+  customerName,
+  t,
+}: {
+  relationshipId: string;
+  customerName: string;
+  t: Dict;
+}) {
+  const [armed, setArmed] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <button
+        type="button"
+        disabled={pending}
+        title={t.wsCustomers.deleteCustomerHint}
+        onClick={() => {
+          if (!armed) {
+            setArmed(true);
+            setTimeout(() => setArmed(false), 5000);
+            return;
+          }
+          if (
+            !window.confirm(
+              `${t.wsCustomers.deleteConfirm}\n\n${customerName}`,
+            )
+          ) {
+            setArmed(false);
+            return;
+          }
+          startTransition(async () => {
+            const res = await deleteCustomerAction(relationshipId);
+            if (!res.ok) {
+              setError(res.error ?? "failed");
+              setArmed(false);
+            }
+          });
+        }}
+        className={
+          armed
+            ? "inline-flex items-center gap-1 rounded-md border border-[var(--color-danger)] bg-[var(--color-danger)] px-2.5 py-1.5 text-xs font-medium text-white"
+            : "inline-flex items-center gap-1 rounded-md border border-[var(--color-line-2)] px-2.5 py-1.5 text-xs font-medium text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-danger)] hover:text-[var(--color-danger)]"
+        }
+      >
+        {pending ? (
+          <Loader2 className="size-3.5 animate-spin" />
+        ) : armed ? (
+          <>
+            <AlertTriangle className="size-3.5" /> {t.wsCustomers.deleteCustomer}？
+          </>
+        ) : (
+          <Trash2 className="size-3.5" />
+        )}
+      </button>
+      {error && <span className="text-xs text-[var(--color-danger)]">{error}</span>}
+    </span>
+  );
+}
 
 export function ApproveRejectButtons({
   relationshipId,
@@ -139,6 +203,7 @@ export function CustomerPriceForm({
 export function RelationshipSettingsForm({
   relationshipId,
   defaultValues,
+  cur = "USD",
   t,
 }: {
   relationshipId: string;
@@ -147,6 +212,7 @@ export function RelationshipSettingsForm({
     paymentTerms: string | null;
     creditLimit: string | null;
   };
+  cur?: string;
   t: Dict;
 }) {
   const [pending, startTransition] = useTransition();
@@ -202,15 +268,23 @@ export function RelationshipSettingsForm({
       <div>
         <label className="mb-1.5 block text-xs font-medium text-[var(--color-ink-2)]">
           {t.wsCustomers.creditUsd}
+          <span className="ml-1 rounded border border-[var(--color-line-2)] bg-[var(--color-bg-subtle)] px-1 py-px text-[10px] text-[var(--color-ink-3)]">
+            {currencySymbol(cur)}
+          </span>
         </label>
-        <input
-          name="creditLimit"
-          type="number"
-          min="0"
-          placeholder={t.wsCustomers.creditExample}
-          defaultValue={defaultValues.creditLimit ?? ""}
-          className="input py-2 text-sm"
-        />
+        <div className="flex items-center gap-1.5">
+          <span className="rounded-md border border-[var(--color-line-2)] bg-[var(--color-bg-subtle)] px-1.5 py-1.5 text-xs font-medium text-[var(--color-ink-3)]">
+            {currencySymbol(cur)}
+          </span>
+          <input
+            name="creditLimit"
+            type="number"
+            min="0"
+            placeholder={t.wsCustomers.creditExample}
+            defaultValue={defaultValues.creditLimit ?? ""}
+            className="input min-w-0 flex-1 py-2 text-sm"
+          />
+        </div>
       </div>
       <div className="sm:col-span-3 flex items-center gap-3">
         <button

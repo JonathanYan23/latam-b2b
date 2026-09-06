@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShoppingCart, ArrowRight } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
@@ -105,9 +105,6 @@ export default async function WholesalerOrdersPage() {
                   <div className="flex shrink-0 flex-col items-end gap-2">
                     <p className="text-sm font-semibold">{money(o.total, cur)}</p>
                     <div className="relative z-10 flex items-center gap-1.5">
-                      <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-ink-3)]">
-                        {t.common.view} <ArrowRight className="size-3.5" />
-                      </span>
                       <DeleteOrderButton
                         supplierOrderId={o.id}
                         orderNumber={o.order.orderNumber}

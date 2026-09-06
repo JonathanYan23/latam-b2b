@@ -67,14 +67,26 @@ export default async function RetailerAccountPage() {
       <p className="text-body mt-1">{t.retailerAccount.desc}</p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <div className="card p-5">
+        <Link
+          href="#balances"
+          className="card card-hover p-5"
+        >
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <Wallet className="size-4 text-[var(--color-ink-2)]" />
           </span>
-          <p className="mt-3 text-lg font-semibold">{money(totalOutstanding, cur)}</p>
+          <p className="mt-3 flex items-baseline gap-1.5 text-lg font-semibold">
+            {Number(totalOutstanding).toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+            <span className="text-xs font-medium text-[var(--color-ink-3)]">{cur}</span>
+          </p>
           <p className="text-meta mt-0.5">{t.retailerAccount.totalOutstanding}</p>
-        </div>
-        <div className="card p-5">
+        </Link>
+        <Link
+          href="#invoices"
+          className="card card-hover p-5"
+        >
           <p className="text-meta text-xs">{t.retailerAccount.openInvoices}</p>
           <p className="mt-1 text-lg font-semibold">
             {
@@ -83,11 +95,14 @@ export default async function RetailerAccountPage() {
               ).length
             }
           </p>
-        </div>
-        <div className="card p-5">
+        </Link>
+        <Link
+          href="#payments"
+          className="card card-hover p-5"
+        >
           <p className="text-meta text-xs">{t.retailerAccount.paymentsRecorded}</p>
           <p className="mt-1 text-lg font-semibold">{payments.length}</p>
-        </div>
+        </Link>
       </div>
 
       {/* 付款（紧随概览，无需下拉即可操作） */}
@@ -108,7 +123,7 @@ export default async function RetailerAccountPage() {
           />
         </div>
 
-        <div className="card p-6">
+        <div className="card p-6" id="payments">
           <h2 className="text-h3 mb-4 text-[15px]">
             {t.retailerAccount.paymentHistory}
           </h2>
@@ -159,7 +174,7 @@ export default async function RetailerAccountPage() {
 
 
       {/* 应付明细 */}
-      <h2 className="text-h2 mt-10 text-lg">{t.retailerAccount.balanceBySupplier}</h2>
+      <h2 id="balances" className="text-h2 mt-10 scroll-mt-24 text-lg">{t.retailerAccount.balanceBySupplier}</h2>
       <div className="card mt-3 overflow-hidden">
         {wsList.size === 0 ? (
           <p className="px-5 py-8 text-center text-sm text-[var(--color-ink-3)]">
@@ -196,7 +211,7 @@ export default async function RetailerAccountPage() {
       </div>
 
       {/* 发票列表 */}
-      <h2 className="text-h2 mt-10 text-lg">{t.retailerAccount.invoices}</h2>
+      <h2 id="invoices" className="text-h2 mt-10 scroll-mt-24 text-lg">{t.retailerAccount.invoices}</h2>
       {invoices.length === 0 ? (
         <div className="card mt-3 px-5 py-8 text-center text-sm text-[var(--color-ink-3)]">
           {t.common.noResults}

@@ -161,6 +161,9 @@ const es = {
     desc: "Explora todos los mayoristas y su catálogo. Los precios de cliente se muestran solo después de ser su cliente.",
     enter: "Ver tienda",
     notCustomer: "Aún no eres cliente — solicita precio para ver precios",
+    searchPlaceholder: "Busca por mayorista o persona de contacto…",
+    searchBtn: "Buscar",
+    noResults: "No se encontraron mayoristas",
   },
 
   browse: {
@@ -442,7 +445,7 @@ const es = {
     termsHintNone: "Sin términos de crédito — pago completo requerido",
     paymentTerms: "Términos de pago",
     termsExample: "ej. NET30",
-    creditUsd: "Límite de crédito (USD)",
+    creditUsd: "Límite de crédito",
     creditExample: "ej. 5000",
     saveTerms: "Guardar términos",
     saved: "Guardado ✓",
@@ -455,6 +458,11 @@ const es = {
     errNotApproved: "Cliente no aprobado",
     errProduct: "Producto no encontrado",
     errTier: "Nivel inválido",
+    errNotFound: "Relación no encontrada",
+    errHasHistory: "Este cliente tiene pedidos o facturas y no puede eliminarse (se conserva el registro financiero)",
+    deleteCustomer: "Eliminar cliente",
+    deleteCustomerHint: "Haz clic dos veces para confirmar",
+    deleteConfirm: "Eliminar este cliente borra sus precios personalizados y perderá el acceso a tus precios de cliente. No se puede deshacer. Los clientes con pedidos o facturas no pueden eliminarse.",
   },
 
   wsAccount: {
@@ -484,13 +492,13 @@ const es = {
     errProcessed: "El pago ya fue procesado",
     policyTitle: "Política de pedidos y pagos",
     policyDesc: "Define el valor mínimo de pedido para todos los compradores (pedidos de pago completo y a crédito). Déjalo vacío si no hay mínimo.",
-    minOrderAmount: "Valor mínimo de pedido (USD)",
+    minOrderAmount: "Valor mínimo de pedido",
     minOrderHint: "ej. 500",
     policySaved: "Política actualizada ✓",
   },
 
   admin: {
-    title: "Resumen",
+    title: "Administración",
     desc: "Consola de gestión de la plataforma.",
     users: "Usuarios",
     wholesalers: "Mayoristas",
@@ -499,6 +507,16 @@ const es = {
     orders: "Pedidos",
     countries: "Países",
     recentUsers: "Usuarios recientes",
+    usersSearch: "Buscar usuarios",
+    usersSearchHint: "Busca por nombre o correo",
+    countriesList: "Países y regiones",
+    noUsers: "No se encontraron usuarios",
+    noRegions: "Sin registros",
+    viewCountry: "Ver",
+    companies: "{n} empresas",
+    pending: "Pendiente",
+    manageBtn: "Gestionar",
+
     name: "Nombre",
     email: "Correo",
     role: "Rol",

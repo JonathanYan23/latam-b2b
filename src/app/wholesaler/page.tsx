@@ -37,7 +37,7 @@ export default async function WholesalerHome() {
     db.inventory.count({
       where: { warehouse: { wholesalerId }, stock: { lte: 0 } },
     }),
-    db.product.count({ where: { wholesalerId } }),
+    db.product.count({ where: { wholesalerId, active: true } }),
     db.customerRelationship.count({
       where: { wholesalerId, status: "APPROVED" },
     }),
@@ -104,7 +104,10 @@ export default async function WholesalerHome() {
         {t.wholesalerHome.overview}
       </h2>
       <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="card p-5">
+        <Link
+          href="/wholesaler/account"
+          className="card card-hover p-5"
+        >
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <DollarSign className="size-4 text-[var(--color-ink-2)]" />
           </span>
@@ -112,28 +115,37 @@ export default async function WholesalerHome() {
             {money(receivables._sum?.amount, cur)}
           </p>
           <p className="text-meta mt-0.5">{t.wholesalerHome.receivables}</p>
-        </div>
-        <div className="card p-5">
+        </Link>
+        <Link
+          href="/wholesaler/products"
+          className="card card-hover p-5"
+        >
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <Package className="size-4 text-[var(--color-ink-2)]" />
           </span>
           <p className="mt-3 text-[15px] font-semibold">{productCount}</p>
           <p className="text-meta mt-0.5">{t.wholesalerHome.activeProducts}</p>
-        </div>
-        <div className="card p-5">
+        </Link>
+        <Link
+          href="/wholesaler/customers"
+          className="card card-hover p-5"
+        >
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <Users className="size-4 text-[var(--color-ink-2)]" />
           </span>
           <p className="mt-3 text-[15px] font-semibold">{activeCustomers}</p>
           <p className="text-meta mt-0.5">{t.wholesalerHome.activeCustomers}</p>
-        </div>
-        <div className="card p-5">
+        </Link>
+        <Link
+          href="/wholesaler/orders"
+          className="card card-hover p-5"
+        >
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <ShoppingCart className="size-4 text-[var(--color-ink-2)]" />
           </span>
           <p className="mt-3 text-[15px] font-semibold">{newOrders}</p>
           <p className="text-meta mt-0.5">{t.wholesalerHome.awaitingReview}</p>
-        </div>
+        </Link>
       </div>
 
       <div className="mt-10 grid gap-3 sm:grid-cols-2">

@@ -3,13 +3,16 @@
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { updatePolicyAction } from "./actions";
+import { currencySymbol } from "@/lib/currency";
 import type { Dict } from "@/i18n";
 
 export function PolicyForm({
   current,
+  cur,
   t,
 }: {
   current: number | null;
+  cur?: string;
   t: Dict;
 }) {
   const [pending, startTransition] = useTransition();
@@ -26,9 +29,12 @@ export function PolicyForm({
       }
       className="mt-4 flex flex-wrap items-end gap-3"
     >
-      <div className="w-48">
-        <label className="mb-1.5 block text-xs font-medium text-[var(--color-ink-2)]">
+      <div className="w-52">
+        <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--color-ink-2)]">
           {t.wsAccount.minOrderAmount}
+          <span className="rounded border border-[var(--color-line-2)] bg-[var(--color-bg-subtle)] px-1 py-px text-[10px] text-[var(--color-ink-3)]">
+            {currencySymbol(cur)}
+          </span>
         </label>
         <input
           name="minOrderAmount"

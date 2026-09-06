@@ -101,7 +101,7 @@ export default async function CustomerDetailPage({
           {rel.creditLimit && (
             <span className="badge badge-neutral">
               {fmt(t.wsCustomers.credit, {
-                amount: `$${Number(rel.creditLimit).toLocaleString()}`,
+                amount: money(rel.creditLimit, cur),
               })}
             </span>
           )}
@@ -125,6 +125,7 @@ export default async function CustomerDetailPage({
         <p className="text-meta mt-1 text-xs">{t.wsCustomers.termsHint}</p>
         <RelationshipSettingsForm
           relationshipId={rel.id}
+          cur={cur}
           t={t}
           defaultValues={{
             tier: rel.tier,

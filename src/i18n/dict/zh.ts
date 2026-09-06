@@ -159,6 +159,9 @@ const zh = {
     desc: "浏览全部批发商与货盘。想看到客户专属价，需先申请成为对方的客户。",
     enter: "进店看货",
     notCustomer: "还不是客户 — 申请报价后可查看价格",
+    searchPlaceholder: "搜索批发商或联系人…",
+    searchBtn: "搜索",
+    noResults: "没有找到匹配的批发商",
   },
 
   browse: {
@@ -426,7 +429,7 @@ const zh = {
     termsHintNone: "无账期 — 需全额付款",
     paymentTerms: "付款条款",
     termsExample: "例如 NET30",
-    creditUsd: "信用额度（美元）",
+    creditUsd: "信用额度",
     creditExample: "例如 5000",
     saveTerms: "保存条款",
     saved: "已保存 ✓",
@@ -439,6 +442,11 @@ const zh = {
     errNotApproved: "客户尚未批准",
     errProduct: "商品不存在",
     errTier: "客户等级无效",
+    errNotFound: "客户关系不存在",
+    errHasHistory: "该客户已有订单或发票记录，无法移除（财务留档）",
+    deleteCustomer: "移除客户",
+    deleteCustomerHint: "点两下确认移除",
+    deleteConfirm: "移除该客户关系将同时删除其专属价格，客户将无法再查看你的客户专属价；此操作不可恢复。已产生订单或发票的客户无法移除。",
   },
 
   wsAccount: {
@@ -468,13 +476,13 @@ const zh = {
     errProcessed: "该付款已处理",
     policyTitle: "订单与付款政策",
     policyDesc: "设置适用于所有买家（全款与赊账订单）的最低订单金额，留空表示不限。",
-    minOrderAmount: "最低订单金额（美元）",
+    minOrderAmount: "最低订单金额",
     minOrderHint: "例如 500",
     policySaved: "政策已更新 ✓",
   },
 
   admin: {
-    title: "总览",
+    title: "平台管理",
     desc: "平台级管理控制台。",
     users: "用户",
     wholesalers: "批发商",
@@ -483,6 +491,16 @@ const zh = {
     orders: "订单",
     countries: "国家",
     recentUsers: "最近用户",
+    usersSearch: "用户查询",
+    usersSearchHint: "按姓名或邮箱搜索用户",
+    countriesList: "国家与地区",
+    noUsers: "没有找到用户",
+    noRegions: "暂无注册",
+    viewCountry: "进入查看",
+    companies: "{n} 家企业",
+    pending: "待处理",
+    manageBtn: "管理",
+
     name: "姓名",
     email: "邮箱",
     role: "角色",

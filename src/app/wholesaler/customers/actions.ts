@@ -46,6 +46,34 @@ export async function rejectCustomerAction(relationshipId: string) {
   return { ok: true };
 }
 
+/**
+ * 移除客户关系（完整删除）：带业务守卫。
+ * 已产生订单/发票的客户不可移除（保留财务记录）；无业务的可连专属价一并清除。
+ */
+export async function deleteCustomerAction(
+  relationshipId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const rel = await ownRelationship(relationshipId);
+  const t = await dict();
+  if (!rel) return { ok: false, error: t.wsCustomers.errNotFound };
+
+  const [orderCount, invoiceCount] = await Promise.all([
+    db.supplierOrder.count({ where: { relationshipId } }),
+    db.invoice.count({ where: { wholesalerId: rel.wholesalerId, retailerId: rel.retailerId } }),
+  ]);
+  if (orderCount > 0 || invoiceCount > 0) {
+    return { ok: false, error: t.wsCustomers.errHasHistory };
+  }
+
+  await db.$transaction([
+    db.customerPrice.deleteMany({ where: { relationshipId } }),
+    db.customerRelationship.delete({ where: { id: relationshipId } }),
+  ]);
+
+  revalidatePath("/wholesaler/customers");
+  return { ok: true };
+}
+
 const relSettingsSchema = z.object({
   tier: z.enum(["STANDARD", "VIP", "GOLD", "VOLUME"]),
   paymentTerms: z.string().optional().default(""),
