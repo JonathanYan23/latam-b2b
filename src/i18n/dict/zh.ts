@@ -139,6 +139,7 @@ const zh = {
 
   retailerHome: {
     welcome: "欢迎回来",
+    welcomeName: "欢迎回来，{name}",
     subtitleNamed: "{name} 的批发采购动态。",
     subtitle: "你的批发采购动态。",
     browseTitle: "浏览商品",
@@ -178,7 +179,7 @@ const zh = {
     noProductsTitle: "没有找到商品",
     noProductsDesc: "试试调整搜索词或分类筛选。",
     requestPricing: "申请报价",
-    yourPrice: "你的价格",
+    yourPrice: "专享价",
   },
 
   product: {

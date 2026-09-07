@@ -19,11 +19,11 @@
 
   --color-primary: #18181b; /* 主按钮：近黑 */
   --color-primary-hover: #27272a;
-  --color-accent: #2563eb; /* 强调：克制蓝 */
-  --color-accent-soft: #eff6ff;
-  --color-success: #16a34a;
+  --color-accent: #f59e0b; /* 强调色（规范 v1.0）：琥珀橙 — 金额/待付款/重点标签/状态提醒 */
+  --color-accent-soft: #fef3c7;
+  --color-success: #10b981;
   --color-warning: #d97706;
-  --color-danger: #dc2626;
+  --color-danger: #ef4444;
 
   /* 圆角 */
   --radius-sm: 6px;
@@ -137,7 +137,7 @@ body {
 .input:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
 }
 .input::placeholder {
   color: var(--color-ink-3);
@@ -180,6 +180,17 @@ body {
   color: #52525b;
   background: #f4f4f5;
   border-color: #e4e4e7;
+}
+
+/* 强调金额：琥珀橙加粗（UI 规范：金额/待付款突出） */
+.amount {
+  color: #d97706;
+  font-weight: 600;
+}
+/* 状态语义色底（规范：待付款 #fef3c7 橙底橙字） */
+.amount-accent {
+  color: #f59e0b;
+  font-weight: 700;
 }
 
 /* 文本层级 */

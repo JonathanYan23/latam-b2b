@@ -1,12 +1,5 @@
 import Link from "next/link";
-import {
-  Search,
-  ShoppingBag,
-  Store,
-  ArrowRight,
-  CreditCard,
-  AlertTriangle,
-} from "lucide-react";
+import { ShoppingBag, ArrowRight, AlertTriangle } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import { getDictionary } from "@/i18n";
@@ -20,12 +13,19 @@ export default async function RetailerHome() {
   const t = await getDictionary();
   const retailerId = session.retailerId!;
 
-  const [supplierCount, recentOrders, approvedRels, openInvoices, receivedPayments] =
-    await Promise.all([
-      db.customerRelationship.count({
-        where: { retailerId, status: "APPROVED" },
-      }),
-      db.order.findMany({
+  const [
+    supplierCount,
+    orderCount,
+    recentOrders,
+    approvedRels,
+    openInvoices,
+    receivedPayments,
+  ] = await Promise.all([
+    db.customerRelationship.count({
+      where: { retailerId, status: "APPROVED" },
+    }),
+    db.order.count({ where: { retailerId } }),
+    db.order.findMany({
         where: { retailerId },
         orderBy: { createdAt: "desc" },
         take: 5,
@@ -111,100 +111,65 @@ export default async function RetailerHome() {
 
   return (
     <div className="mx-auto max-w-5xl animate-fade-up">
-      <h1 className="text-h1">{t.retailerHome.welcome}</h1>
-      <p className="text-body mt-1">
+      {/* 欢迎（精简：只保留问候） */}
+      <h1 className="text-h1">
         {session.name
-          ? fmt(t.retailerHome.subtitleNamed, { name: session.name })
-          : t.retailerHome.subtitle}
-      </p>
+          ? fmt(t.retailerHome.welcomeName, { name: session.name })
+          : t.retailerHome.welcome}
+      </h1>
 
-      {/* 四个快速入口 */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* 核心数据栏：待付款 / 订单 / 供应商 */}
+      <div className="mt-6 grid grid-cols-3 gap-3">
         <Link
-          href="/retailer/browse"
-          className="card card-hover flex items-start gap-4 p-5"
+          href="/retailer/account"
+          className="card card-hover flex flex-col p-4"
         >
-          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
-            <Search className="size-5" strokeWidth={1.8} />
-          </span>
-          <span>
-            <span className="block text-[15px] font-medium">
-              {t.retailerHome.browseTitle}
-            </span>
-            <span className="text-meta mt-1 block text-sm leading-relaxed">
-              {t.retailerHome.browseDesc}
-            </span>
+          <span className="text-meta text-xs">{t.retailerAccount.totalOutstanding}</span>
+          <span className="mt-1 truncate text-lg font-semibold">
+            {totalOutstanding > 0 ? (
+              <span className="amount">{money(totalOutstanding, cur)}</span>
+            ) : (
+              <span className="text-[var(--color-ink-2)]">
+                {money(0, cur)}
+              </span>
+            )}
           </span>
         </Link>
         <Link
           href="/retailer/orders"
-          className="card card-hover flex items-start gap-4 p-5"
+          className="card card-hover flex flex-col p-4"
         >
-          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
-            <ShoppingBag className="size-5" strokeWidth={1.8} />
-          </span>
-          <span>
-            <span className="block text-[15px] font-medium">
-              {t.retailerHome.ordersTitle}
-            </span>
-            <span className="text-meta mt-1 block text-sm leading-relaxed">
-              {t.retailerHome.ordersDesc}
-            </span>
-          </span>
+          <span className="text-meta text-xs">{t.nav.orders}</span>
+          <span className="mt-1 text-lg font-semibold">{orderCount}</span>
         </Link>
         <Link
           href="/retailer/suppliers"
-          className="card card-hover flex items-start gap-4 p-5"
+          className="card card-hover flex flex-col p-4"
         >
-          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
-            <Store className="size-5" strokeWidth={1.8} />
-          </span>
-          <span>
-            <span className="block text-[15px] font-medium">
-              {t.retailerHome.suppliersTitle}
-            </span>
-            <span className="text-meta mt-1 block text-sm leading-relaxed">
-              {supplierCount > 0
-                ? fmt(t.retailerHome.suppliersDescCount, { n: supplierCount })
-                : t.retailerHome.suppliersDescEmpty}
-            </span>
-          </span>
-        </Link>
-        <Link
-          href="/retailer/account"
-          className="card card-hover flex items-start gap-4 p-5"
-        >
-          <span
-            className={`grid size-10 shrink-0 place-items-center rounded-lg ${
-              totalOutstanding > 0
-                ? "bg-[#fef3c7] text-[#92400e]"
-                : "bg-[var(--color-bg-muted)]"
-            }`}
-          >
-            <CreditCard className="size-5" strokeWidth={1.8} />
-          </span>
-          <span className="min-w-0">
-            <span className="block text-[15px] font-medium">
-              {t.retailerHome.payTitle}
-            </span>
-            <span
-              className={`mt-1 block text-sm leading-relaxed ${
-                totalOutstanding > 0
-                  ? "font-medium text-[#b45309]"
-                  : "text-[var(--color-ink-3)]"
-              }`}
-            >
-              {totalOutstanding > 0
-                ? fmt(t.retailerHome.payDue, {
-                    amount: money(totalOutstanding, cur),
-                  })
-                : t.retailerHome.payNoBalance}
-            </span>
-          </span>
+          <span className="text-meta text-xs">{t.nav.suppliers}</span>
+          <span className="mt-1 text-lg font-semibold">{supplierCount}</span>
         </Link>
       </div>
 
-      {/* 各供应商应付明细（账期 + 待付 + 到期） */}
+      {/* 快捷入口（极简文字入口） */}
+      <div className="mt-6 flex flex-wrap items-center gap-x-1 gap-y-2">
+        {[
+          { href: "/retailer/browse", label: t.retailerHome.browseTitle },
+          { href: "/retailer/orders", label: t.nav.orders },
+          { href: "/retailer/account", label: t.retailerAccount.title },
+        ].map((e) => (
+          <Link
+            key={e.href}
+            href={e.href}
+            className="group inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm text-[var(--color-ink-2)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)]"
+          >
+            {e.label}
+            <ArrowRight className="size-3.5 text-[var(--color-ink-3)] transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        ))}
+      </div>
+
+      {/* 应付账款 · 各供应商应付明细 */}
       <div className="mt-8">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-h2 text-lg">{t.retailerHome.payHeader}</h2>
@@ -256,7 +221,7 @@ export default async function RetailerHome() {
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
-                    <p className="text-sm font-semibold">{money(b.amount, cur)}</p>
+                    <p className="amount text-sm">{money(b.amount, cur)}</p>
                     <ArrowRight className="size-4 text-[var(--color-ink-3)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--color-ink)]" />
                   </div>
                 </Link>
@@ -295,48 +260,82 @@ export default async function RetailerHome() {
             </Link>
           </div>
         ) : (
-          <div className="card overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-[var(--color-line-2)] text-meta">
-                  <th className="whitespace-nowrap px-5 py-3 font-medium">{t.orders.orderNumber}</th>
-                  <th className="px-5 py-3 font-medium">{t.orders.suppliers}</th>
-                  <th className="hidden whitespace-nowrap px-5 py-3 font-medium sm:table-cell">
-                    {t.common.date}
-                  </th>
-                  <th className="whitespace-nowrap px-5 py-3 font-medium">{t.common.total}</th>
-                  <th className="whitespace-nowrap px-5 py-3 font-medium">{t.common.status}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((o) => {
-                  const so = o.supplierOrders[0];
-                  return (
-                    <tr
-                      key={o.id}
-                      className="border-b border-[var(--color-line-2)] last:border-0"
-                    >
-                      <td className="whitespace-nowrap px-5 py-3.5 font-medium">#{o.orderNumber}</td>
-                      <td className="max-w-[200px] truncate px-5 py-3.5 text-[var(--color-ink-2)]">
-                        {so?.wholesaler.business.tradeName ?? "—"}
-                      </td>
-                      <td className="hidden whitespace-nowrap px-5 py-3.5 text-[var(--color-ink-3)] sm:table-cell">
-                        {date(o.createdAt)}
-                      </td>
-                      <td className="whitespace-nowrap px-5 py-3.5 font-medium">
+          <>
+            {/* 桌面：表格 */}
+            <div className="card hidden overflow-x-auto md:block">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--color-line-2)] text-meta">
+                    <th className="whitespace-nowrap px-5 py-3 font-medium">{t.orders.orderNumber}</th>
+                    <th className="px-5 py-3 font-medium">{t.orders.suppliers}</th>
+                    <th className="hidden whitespace-nowrap px-5 py-3 font-medium sm:table-cell">
+                      {t.common.date}
+                    </th>
+                    <th className="whitespace-nowrap px-5 py-3 font-medium">{t.common.total}</th>
+                    <th className="whitespace-nowrap px-5 py-3 font-medium">{t.common.status}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentOrders.map((o) => {
+                    const so = o.supplierOrders[0];
+                    return (
+                      <tr
+                        key={o.id}
+                        className="border-b border-[var(--color-line-2)] last:border-0"
+                      >
+                        <td className="whitespace-nowrap px-5 py-3.5 font-medium">#{o.orderNumber}</td>
+                        <td className="max-w-[200px] truncate px-5 py-3.5 text-[var(--color-ink-2)]">
+                          {so?.wholesaler.business.tradeName ?? "—"}
+                        </td>
+                        <td className="hidden whitespace-nowrap px-5 py-3.5 text-[var(--color-ink-3)] sm:table-cell">
+                          {date(o.createdAt)}
+                        </td>
+                        <td className="whitespace-nowrap px-5 py-3.5 font-medium">
+                          {money(so?.total, o.currency)}
+                        </td>
+                        <td className="whitespace-nowrap px-5 py-3.5">
+                          <span className={`badge ${orderStatusTone(o.status)}`}>
+                            {orderStatusLabel(o.status, t)}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* 手机：卡片式（无需横向拖动） */}
+            <div className="grid gap-2.5 md:hidden">
+              {recentOrders.map((o) => {
+                const so = o.supplierOrders[0];
+                return (
+                  <Link
+                    key={o.id}
+                    href={`/retailer/orders/${o.id}`}
+                    className="card card-hover flex items-center justify-between gap-3 px-4 py-3"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium">
+                        #{o.orderNumber}
+                      </span>
+                      <span className="text-meta mt-0.5 block truncate text-xs">
+                        {so?.wholesaler.business.tradeName ?? "—"} · {date(o.createdAt)}
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 flex-col items-end gap-1">
+                      <span className="text-sm font-semibold">
                         {money(so?.total, o.currency)}
-                      </td>
-                      <td className="whitespace-nowrap px-5 py-3.5">
-                        <span className={`badge ${orderStatusTone(o.status)}`}>
-                          {orderStatusLabel(o.status, t)}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </span>
+                      <span className={`badge ${orderStatusTone(o.status)}`}>
+                        {orderStatusLabel(o.status, t)}
+                      </span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
     </div>

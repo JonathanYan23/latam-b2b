@@ -139,6 +139,7 @@ const en = {
 
   retailerHome: {
     welcome: "Welcome back",
+    welcomeName: "Welcome back, {name}",
     subtitleNamed: "Here's what's happening with {name}'s wholesale purchases.",
     subtitle: "Here's what's happening with your wholesale purchases.",
     browseTitle: "Browse products",
@@ -178,7 +179,7 @@ const en = {
     noProductsTitle: "No products found",
     noProductsDesc: "Try adjusting your search or category filter.",
     requestPricing: "Request pricing",
-    yourPrice: "Your price",
+    yourPrice: "Exclusive price",
   },
 
   product: {

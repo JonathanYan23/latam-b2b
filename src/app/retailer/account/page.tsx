@@ -74,7 +74,7 @@ export default async function RetailerAccountPage() {
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <Wallet className="size-4 text-[var(--color-ink-2)]" />
           </span>
-          <p className="mt-3 flex items-baseline gap-1.5 text-lg font-semibold">
+          <p className="amount mt-3 flex items-baseline gap-1.5 text-lg">
             {Number(totalOutstanding).toLocaleString("en-US", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -202,7 +202,7 @@ export default async function RetailerAccountPage() {
                       {w.name}
                     </Link>
                   </td>
-                  <td className="px-5 py-3.5 font-semibold">{money(w.outstanding, cur)}</td>
+                  <td className="amount px-5 py-3.5">{money(w.outstanding, cur)}</td>
                 </tr>
               ))}
             </tbody>
@@ -233,7 +233,7 @@ export default async function RetailerAccountPage() {
                 </p>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
-                <p className="text-base font-semibold">{money(inv.amount, cur)}</p>
+                <p className="amount text-base">{money(inv.amount, cur)}</p>
                 <a
                   href={`/retailer/invoices/${inv.id}/pdf`}
                   className="btn btn-ghost px-2 py-1 text-xs"

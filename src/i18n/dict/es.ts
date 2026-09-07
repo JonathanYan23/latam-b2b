@@ -140,6 +140,7 @@ const es = {
 
   retailerHome: {
     welcome: "Bienvenido de nuevo",
+    welcomeName: "Bienvenido de nuevo, {name}",
     subtitleNamed: "Esto es lo que sucede con las compras mayoristas de {name}.",
     subtitle: "Esto es lo que sucede con tus compras mayoristas.",
     browseTitle: "Explorar productos",
@@ -180,7 +181,7 @@ const es = {
     noProductsTitle: "No se encontraron productos",
     noProductsDesc: "Ajusta tu búsqueda o el filtro de categoría.",
     requestPricing: "Solicitar precio",
-    yourPrice: "Tu precio",
+    yourPrice: "Precio exclusivo",
   },
 
   product: {
