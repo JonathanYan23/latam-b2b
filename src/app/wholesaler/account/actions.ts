@@ -79,3 +79,33 @@ export async function updateBusinessLogoAction(
   revalidatePath("/retailer/suppliers");
   return { ok: true };
 }
+
+/** 保存店铺资料：名称/地址/电话/网站/税号 */
+export async function saveBusinessProfileAction(
+  formData: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireRole("WHOLESALER");
+  const wholesalerId = session.wholesalerId!;
+  const ws = await db.wholesaler.findUnique({
+    where: { id: wholesalerId },
+    select: { businessId: true },
+  });
+  if (!ws?.businessId) return { ok: false, error: "no_business" };
+
+  const g = (k: string) => (formData.get(k) as string | null)?.trim() ?? null;
+  await db.business.update({
+    where: { id: ws.businessId },
+    data: {
+      tradeName: g("tradeName") ?? undefined,
+      legalName: g("legalName") ?? undefined,
+      phone: g("phone") || null,
+      address: g("address") || null,
+      website: g("website") || null,
+      taxId: g("taxId") || null,
+    },
+  });
+  revalidatePath("/wholesaler/account");
+  revalidatePath("/retailer/discover");
+  revalidatePath("/retailer/suppliers");
+  return { ok: true };
+}

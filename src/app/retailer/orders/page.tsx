@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShoppingBag, ArrowRight } from "lucide-react";
+import { ShoppingBag, ArrowRight, FileDown } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
@@ -43,8 +43,21 @@ export default async function RetailerOrdersPage() {
   return (
     <div className="mx-auto max-w-6xl animate-fade-up">
         <AutoRefresh />
-      <h1 className="text-h1">{t.orders.title}</h1>
-      <p className="text-body mt-1">{t.orders.desc}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-h1">{t.orders.title}</h1>
+          <p className="text-body mt-1">{t.orders.desc}</p>
+        </div>
+        {settled.length > 0 && (
+          <a
+            href={`/retailer/orders/export?ids=${settled.map((o) => o.id).join(",")}`}
+            target="_blank"
+            className="btn btn-secondary px-3.5 py-2 text-sm"
+          >
+            <FileDown className="size-4" /> {t.common.exportPdf}
+          </a>
+        )}
+      </div>
 
       {orders.length === 0 ? (
         <div className="card mt-8 flex flex-col items-center px-6 py-16 text-center">

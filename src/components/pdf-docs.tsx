@@ -400,3 +400,101 @@ export function StatementPdfDocument({
     </Document>
   );
 }
+
+
+
+// =============================================================
+// 订单列表批量导出（合并 PDF）：每订单一页，买家/卖家/明细/合计
+// 同时供 零售商订单导出 与 批发商订单/发货单导出 使用
+// =============================================================
+
+export interface ExportOrderDoc {
+  orderNumber: string;
+  date: string;
+  status?: string;
+  buyerName: string;
+  sellerName: string;
+  sellerLegal?: string | null;
+  items: PdfItem[];
+  total: number;
+  currency?: string;
+}
+
+export function OrdersExportPdfDocument({
+  docs,
+  t,
+}: {
+  docs: ExportOrderDoc[];
+  t: Dict["pdf"];
+}) {
+  return (
+    <Document>
+      {docs.map((o, i) => (
+        <Page key={i} size="A4" style={styles.page}>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.brand}>{t.brand}</Text>
+              <Text style={styles.docMeta}>{t.brandTag}</Text>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={styles.docTitle}>{t.purchaseOrder}</Text>
+              <Text style={styles.docMeta}>#{o.orderNumber}</Text>
+              <Text style={styles.docMeta}>
+                {t.date}: {o.date}
+              </Text>
+              {o.status && <Text style={styles.docMeta}>{o.status}</Text>}
+            </View>
+          </View>
+
+          <View style={styles.parties}>
+            <View style={styles.partyBlock}>
+              <Text style={styles.partyLabel}>{t.buyer}</Text>
+              <Text style={styles.partyName}>{o.buyerName}</Text>
+            </View>
+            <View style={styles.partyBlock}>
+              <Text style={styles.partyLabel}>{t.seller}</Text>
+              <Text style={styles.partyName}>{o.sellerName}</Text>
+              {o.sellerLegal && (
+                <Text style={styles.partyLine}>{o.sellerLegal}</Text>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.table}>
+            <View style={styles.tableRow}>
+              <Text style={[styles.th, { flex: 2 }]}>{t.item}</Text>
+              <Text style={styles.th}>{t.sku}</Text>
+              <Text style={styles.thRight}>{t.qty}</Text>
+              <Text style={styles.thRight}>{t.unitPrice}</Text>
+              <Text style={styles.thRight}>{t.amount}</Text>
+            </View>
+            {o.items.map((it, j) => (
+              <View key={j} style={styles.tableRow}>
+                <Text style={[styles.td, { flex: 2 }]}>{it.name}</Text>
+                <Text style={styles.td}>{it.sku}</Text>
+                <Text style={styles.tdRight}>{it.quantity}</Text>
+                <Text style={styles.tdRight}>
+                  {fmt$(it.unitPrice, o.currency)}
+                </Text>
+                <Text style={styles.tdRight}>{fmt$(it.subtotal, o.currency)}</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.totals}>
+            <View style={styles.totalRowBold}>
+              <Text style={{ fontSize: 9, fontWeight: "bold" }}>{t.total}</Text>
+              <Text style={{ fontSize: 10, fontWeight: "bold" }}>
+                {fmt$(o.total, o.currency)}
+              </Text>
+            </View>
+          </View>
+
+          <Text style={styles.footer}>
+            <Text>{t.brand} · {fmt(t.generatedAt, { d: new Date().toLocaleString() })}</Text>
+          </Text>
+        </Page>
+      ))}
+    </Document>
+  );
+}

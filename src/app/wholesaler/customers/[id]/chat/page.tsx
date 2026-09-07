@@ -6,6 +6,9 @@ import { requireRole } from "@/lib/require";
 import { ReadMarker } from "@/components/read-marker";
 import { getDictionary, getLocale } from "@/i18n";
 import { MessageBox } from "@/components/message-box";
+import type { PickCatalog } from "@/components/message-box";
+import { parseImages } from "@/lib/pricing";
+import { money } from "@/lib/format";
 
 export default async function WholesalerChatPage({
   params,
@@ -30,6 +33,42 @@ export default async function WholesalerChatPage({
     take: 200,
     include: { sender: { select: { name: true, id: true } } },
   });
+
+  // 快捷发送候选：我的商品（公开价） + 与该客户的订单
+  const cur = session.currency ?? "USD";
+  const myProducts = await db.product.findMany({
+    where: { wholesalerId, active: true },
+    orderBy: { createdAt: "desc" },
+    take: 12,
+  });
+  const productsOut = myProducts.map((pr) => {
+    const [img] = parseImages(pr.images);
+    return {
+      id: pr.id,
+      title: pr.name,
+      sub: `${money(pr.publicPrice, cur)} · ${t.common.moq} ${pr.moq}`,
+      href: `/wholesaler/products`,
+    };
+  });
+  const relOrders = await db.supplierOrder.findMany({
+    where: { wholesalerId, status: { not: "DRAFT" }, order: { retailerId } },
+    orderBy: { createdAt: "desc" },
+    take: 8,
+    include: {
+      order: { select: { orderNumber: true, currency: true } },
+      items: true,
+    },
+  });
+  const ordersOut = relOrders.map((so) => {
+    const sum = so.items.reduce((acc, it) => acc + Number(it.subtotal), 0);
+    return {
+      id: so.id,
+      title: so.order.orderNumber,
+      sub: money(sum, so.order.currency ?? cur),
+      href: `/wholesaler/orders/${so.id}`,
+    };
+  });
+  const cards: PickCatalog = { products: productsOut, orders: ordersOut };
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-3xl flex-col animate-fade-up">
@@ -63,6 +102,7 @@ export default async function WholesalerChatPage({
             mine: m.senderId === session.userId,
             senderName: m.sender.name,
           }))}
+          cards={cards}
         />
       </div>
     </div>

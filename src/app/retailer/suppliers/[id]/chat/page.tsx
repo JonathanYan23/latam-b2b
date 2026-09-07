@@ -6,6 +6,9 @@ import { requireRole } from "@/lib/require";
 import { ReadMarker } from "@/components/read-marker";
 import { getDictionary, getLocale } from "@/i18n";
 import { MessageBox } from "@/components/message-box";
+import type { PickCatalog } from "@/components/message-box";
+import { priceView } from "@/lib/pricing";
+import { money } from "@/lib/format";
 
 export default async function RetailerChatPage({
   params,
@@ -29,6 +32,68 @@ export default async function RetailerChatPage({
     take: 200,
     include: { sender: { select: { name: true, id: true } } },
   });
+
+  // 快捷发送候选：本供应商商品 + 我的订单（价格按当前可见价）
+  const cur = session.currency ?? "USD";
+  const rel = await db.customerRelationship.findUnique({
+    where: { wholesalerId_retailerId: { wholesalerId: id, retailerId } },
+    select: { id: true, status: true },
+  });
+  const products = await db.product.findMany({
+    where: { wholesalerId: id, active: true },
+    orderBy: { createdAt: "desc" },
+    take: 12,
+  });
+  const cpMap = new Map<string, { price: import("@prisma/client/runtime/library").Decimal }>();
+  if (rel?.status === "APPROVED") {
+    const cps = await db.customerPrice.findMany({
+      where: { relationshipId: rel.id, productId: { in: products.map((x) => x.id) } },
+      select: { productId: true, price: true },
+    });
+    for (const c of cps) cpMap.set(c.productId, { price: c.price });
+  }
+  const productsOut = products.map((pr) => {
+    const relS = rel?.status === "APPROVED" ? rel : undefined;
+    const cpEntry = cpMap.get(pr.id) ?? null;
+    const view = priceView(
+      pr,
+      relS,
+      cpEntry ? { price: cpEntry.price } : null,
+    );
+    const price = view.price ? money(view.price, cur) : null;
+    return {
+      id: pr.id,
+      title: pr.name,
+      sub: `${price ? price + " · " : ""}${t.common.moq} ${pr.moq}`,
+      href: `/retailer/products/${pr.id}`,
+    };
+  });
+  const myOrders = await db.order.findMany({
+    where: { retailerId, status: { not: "DRAFT" } },
+    orderBy: { createdAt: "desc" },
+    take: 8,
+    select: {
+      id: true,
+      orderNumber: true,
+      status: true,
+      supplierOrders: {
+        select: { items: { select: { subtotal: true } } },
+      },
+    },
+  });
+  const ordersOut = myOrders.map((o) => {
+    const sum = o.supplierOrders.reduce(
+      (acc, so) => acc + so.items.reduce((x, it) => x + Number(it.subtotal), 0),
+      0,
+    );
+    return {
+      id: o.id,
+      title: o.orderNumber,
+      sub: `${money(sum, cur)}`,
+      href: `/retailer/orders/${o.id}`,
+    };
+  });
+  const cards: PickCatalog = { products: productsOut, orders: ordersOut };
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-3xl flex-col animate-fade-up">
@@ -60,6 +125,7 @@ export default async function RetailerChatPage({
             mine: m.senderId === session.userId,
             senderName: m.sender.name,
           }))}
+          cards={cards}
         />
       </div>
     </div>

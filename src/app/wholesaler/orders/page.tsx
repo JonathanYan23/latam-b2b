@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, FileDown } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
@@ -57,8 +57,9 @@ export default async function WholesalerOrdersPage({
       <h1 className="text-h1">{t.wsOrders.title}</h1>
       <p className="text-body mt-1">{t.wsOrders.desc}</p>
 
-      {/* 状态筛选 */}
-      <div className="mt-5 flex flex-wrap gap-1.5">
+      {/* 状态筛选 + 导出 */}
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-1.5">
         {STATUSES.map((st) => {
           const n = st === "ALL" ? allCount : counts[st] ?? 0;
           const active = activeStatus === st;
@@ -77,6 +78,16 @@ export default async function WholesalerOrdersPage({
             </Link>
           );
         })}
+        </div>
+        {shown.length > 0 && (
+          <a
+            href={`/wholesaler/orders/export?ids=${shown.map((o) => o.id).join(",")}`}
+            target="_blank"
+            className="btn btn-secondary shrink-0 px-3.5 py-2 text-sm"
+          >
+            <FileDown className="size-4" /> {t.common.exportPdf}
+          </a>
+        )}
       </div>
 
       {shown.length === 0 ? (

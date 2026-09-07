@@ -12,6 +12,7 @@ import { fmt } from "@/i18n/utils";
 import { ConfirmPaymentButton } from "./confirm-payment";
 import { PolicyForm } from "./policy-form";
 import { ProfileCard } from "./profile-card";
+import { BusinessProfileForm } from "./business-profile-form";
 import { computeOutstanding } from "@/lib/payments";
 
 export const metadata = { title: "Accounts Receivable" };
@@ -27,7 +28,17 @@ export default async function WholesalerAccountPage() {
       where: { id: wholesalerId },
       select: {
         minOrderAmount: true,
-        business: { select: { logo: true, tradeName: true } },
+        business: {
+          select: {
+            logo: true,
+            tradeName: true,
+            legalName: true,
+            phone: true,
+            address: true,
+            website: true,
+            taxId: true,
+          },
+        },
         user: { select: { plan: true } },
       },
     }),
@@ -94,6 +105,29 @@ export default async function WholesalerAccountPage() {
         tradeName={wholesaler?.business.tradeName ?? ""}
         t={t}
       />
+
+      {/* 店铺资料编辑 */}
+      <div className="card mt-8 p-5">
+        <h2 className="text-h3 text-[15px]">{t.wsAccount.businessProfile}</h2>
+        <p className="text-meta mt-1 text-sm">
+          {t.wsAccount.businessProfileDesc}
+        </p>
+        <BusinessProfileForm
+          business={
+            wholesaler?.business
+              ? {
+                  tradeName: wholesaler.business.tradeName,
+                  legalName: wholesaler.business.legalName,
+                  phone: wholesaler.business.phone,
+                  address: wholesaler.business.address,
+                  website: wholesaler.business.website,
+                  taxId: wholesaler.business.taxId,
+                }
+              : undefined
+          }
+          t={t}
+        />
+      </div>
 
       {/* 订单与付款政策 */}
       <div className="card mt-8 p-5">

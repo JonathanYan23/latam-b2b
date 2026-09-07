@@ -259,3 +259,22 @@ body {
 .animate-fade-in {
   animation: fadeIn 0.25s ease both;
 }
+
+/* 触摸目标：触屏设备关键操作按钮/输入最小 44px（体验标准 5.点击与反馈） */
+@media (hover: none) and (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+  }
+  .input {
+    min-height: 44px;
+  }
+  header button,
+  header a,
+  nav a {
+    min-height: 40px;
+  }
+  a.badge,
+  button.badge {
+    min-height: 28px;
+  }
+}
