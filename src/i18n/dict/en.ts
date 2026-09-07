@@ -137,6 +137,29 @@ const en = {
     wholesalerBrand: "Wholesaler Portal",
   },
 
+  security: {
+    title: "Account & Security",
+    desc: "Manage your login credentials and security settings.",
+    profile: "Profile",
+    business: "Business",
+    accountCurrency: "Account currency",
+    changePassword: "Change password",
+    currentPassword: "Current password",
+    newPassword: "New password",
+    confirmPassword: "Confirm new password",
+    passwordChanged: "Password updated",
+    passwordTooShort: "New password must be at least 6 characters",
+    wrongPassword: "Current password is incorrect",
+    mismatch: "Passwords do not match",
+    twoFactor: "Two-factor authentication (2FA)",
+    twoFactorDesc: "Require a one-time code on sign-in for extra protection.",
+    comingSoon: "Coming soon",
+    phoneBinding: "Phone number",
+    phoneDesc: "Bind your phone for password recovery and security alerts.",
+    menuAccount: "Account & payments",
+    menuSecurity: "Account security",
+  },
+
   retailerHome: {
     welcome: "Welcome back",
     welcomeName: "Welcome back, {name}",
@@ -425,6 +448,7 @@ const en = {
 
   wsCustomers: {
     title: "Customers",
+    searchPlaceholder: "Search by company or contact person…",
     desc: "Approve retailer requests, set terms and manage customer pricing.",
     requests: "Customer requests ({n})",
     requestedAt: "requested {date}",

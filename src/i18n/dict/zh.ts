@@ -137,6 +137,29 @@ const zh = {
     wholesalerBrand: "批发商门户",
   },
 
+  security: {
+    title: "账户与安全",
+    desc: "管理你的登录凭据与安全设置。",
+    profile: "个人资料",
+    business: "所属企业",
+    accountCurrency: "账户货币",
+    changePassword: "修改密码",
+    currentPassword: "当前密码",
+    newPassword: "新密码",
+    confirmPassword: "确认新密码",
+    passwordChanged: "密码已更新",
+    passwordTooShort: "新密码至少需要 6 位",
+    wrongPassword: "当前密码不正确",
+    mismatch: "两次输入的新密码不一致",
+    twoFactor: "双重验证 (2FA)",
+    twoFactorDesc: "登录时额外输入一次性验证码，进一步保护账户安全。",
+    comingSoon: "即将推出",
+    phoneBinding: "手机号绑定",
+    phoneDesc: "绑定手机号，用于找回密码与安全提醒。",
+    menuAccount: "账户与账款",
+    menuSecurity: "账户安全",
+  },
+
   retailerHome: {
     welcome: "欢迎回来",
     welcomeName: "欢迎回来，{name}",
@@ -414,6 +437,7 @@ const zh = {
 
   wsCustomers: {
     title: "客户",
+    searchPlaceholder: "搜索客户公司或联系人…",
     desc: "审批零售商申请、设置条款并管理客户专属价。",
     requests: "客户申请（{n}）",
     requestedAt: "申请于 {date}",

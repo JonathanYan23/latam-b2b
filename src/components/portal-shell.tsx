@@ -19,6 +19,7 @@ import {
 import { signOut } from "next-auth/react";
 import type { Dict } from "@/i18n";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
+import { AccountMenu } from "./account-menu";
 import type { Locale } from "@/i18n/config";
 
 interface NavItem {
@@ -88,16 +89,12 @@ export function PortalShell({
 
           <div className="flex items-center gap-2">
             <LanguageSwitcher current={locale} />
-            <span className="hidden text-sm text-[var(--color-ink-3)] lg:block">
-              {userName ?? userEmail}
-            </span>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex size-8 items-center justify-center rounded-md text-[var(--color-ink-3)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)]"
-              title={t.common.signOut}
-            >
-              <LogOut className="size-4" />
-            </button>
+            <AccountMenu
+              role={role}
+              name={userName ?? userEmail}
+              email={userEmail}
+              t={t}
+            />
           </div>
         </div>
       </header>

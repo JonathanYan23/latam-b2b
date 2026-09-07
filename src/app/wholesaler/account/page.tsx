@@ -135,7 +135,7 @@ export default async function WholesalerAccountPage() {
             <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)] text-[var(--color-ink-2)]">
               {c.icon}
             </span>
-            <p className="mt-3 text-lg font-semibold leading-tight">{c.value}</p>
+            <p className={`mt-3 text-lg font-semibold leading-tight ${i === 0 ? "amount" : ""}`}>{c.value}</p>
             <p className="text-meta mt-1 text-xs">{c.label}</p>
           </div>
         ))}
@@ -209,7 +209,7 @@ export default async function WholesalerAccountPage() {
                     </p>
                   )}
                 </div>
-                <p className="shrink-0 text-base font-semibold">{money(owes, cur)}</p>
+                <p className="amount shrink-0 text-base">{money(owes, cur)}</p>
               </div>
             );
           })}

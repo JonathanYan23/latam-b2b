@@ -138,6 +138,29 @@ const es = {
     wholesalerBrand: "Portal Mayorista",
   },
 
+  security: {
+    title: "Cuenta y seguridad",
+    desc: "Gestiona tus credenciales y ajustes de seguridad.",
+    profile: "Perfil",
+    business: "Negocio",
+    accountCurrency: "Moneda de cuenta",
+    changePassword: "Cambiar contraseña",
+    currentPassword: "Contraseña actual",
+    newPassword: "Nueva contraseña",
+    confirmPassword: "Confirmar nueva contraseña",
+    passwordChanged: "Contraseña actualizada",
+    passwordTooShort: "La nueva contraseña debe tener al menos 6 caracteres",
+    wrongPassword: "La contraseña actual es incorrecta",
+    mismatch: "Las contraseñas no coinciden",
+    twoFactor: "Autenticación en dos pasos (2FA)",
+    twoFactorDesc: "Requiere un código único al iniciar sesión para mayor protección.",
+    comingSoon: "Próximamente",
+    phoneBinding: "Número de teléfono",
+    phoneDesc: "Vincula tu teléfono para recuperación y alertas de seguridad.",
+    menuAccount: "Cuenta y pagos",
+    menuSecurity: "Seguridad de cuenta",
+  },
+
   retailerHome: {
     welcome: "Bienvenido de nuevo",
     welcomeName: "Bienvenido de nuevo, {name}",
@@ -429,6 +452,7 @@ const es = {
 
   wsCustomers: {
     title: "Clientes",
+    searchPlaceholder: "Busca por empresa o contacto…",
     desc: "Aprueba solicitudes, configura términos y gestiona precios por cliente.",
     requests: "Solicitudes de clientes ({n})",
     requestedAt: "solicitado el {date}",

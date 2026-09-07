@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users, MessageCircle } from "lucide-react";
+import { Users, MessageCircle, Search } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
@@ -32,14 +32,33 @@ function tierTone(tier: string): string {
 
 export const metadata = { title: "Customers" };
 
-export default async function CustomersPage() {
+export default async function CustomersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const session = await requireRole("WHOLESALER");
   const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const wholesalerId = session.wholesalerId!;
+  const { q } = await searchParams;
+  const query = (q ?? "").trim();
 
   const relationships = await db.customerRelationship.findMany({
-    where: { wholesalerId },
+    where: {
+      wholesalerId,
+      ...(query
+        ? {
+            retailer: {
+              OR: [
+                { business: { tradeName: { contains: query } } },
+                { business: { legalName: { contains: query } } },
+                { user: { name: { contains: query } } },
+              ],
+            },
+          }
+        : {}),
+    },
     orderBy: { createdAt: "desc" },
     include: {
       retailer: {
@@ -72,6 +91,22 @@ export default async function CustomersPage() {
     <div className="mx-auto max-w-6xl animate-fade-up">
       <h1 className="text-h1">{t.wsCustomers.title}</h1>
       <p className="text-body mt-1">{t.wsCustomers.desc}</p>
+
+      {/* 搜索客户：公司/联系人 */}
+      <form action="/wholesaler/customers" method="get" className="mt-5 flex max-w-sm items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--color-ink-3)]" />
+          <input
+            name="q"
+            defaultValue={query}
+            placeholder={t.wsCustomers.searchPlaceholder}
+            className="input pl-9"
+          />
+        </div>
+        <button type="submit" className="btn btn-primary px-4 py-2 text-sm">
+          {t.common.search}
+        </button>
+      </form>
 
       {pending.length > 0 && (
         <section className="mt-8">

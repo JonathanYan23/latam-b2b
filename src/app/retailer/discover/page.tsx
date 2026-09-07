@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Store, MapPin, Package, ArrowRight, Search } from "lucide-react";
+import { Store, MapPin, Package, ArrowRight, Search, MessageCircle } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import { getDictionary } from "@/i18n";
@@ -128,12 +128,24 @@ export default async function DiscoverPage({
                     </span>
                   )}
                   {!status && <span className="flex-1" />}
-                  <Link
-                    href={`/retailer/suppliers/${w.id}`}
-                    className="btn btn-secondary px-3 py-1.5 text-xs"
-                  >
-                    {t.discover.enter} <ArrowRight className="size-3.5" />
-                  </Link>
+                  <div className="flex items-center gap-1.5">
+                    {status === "APPROVED" && (
+                      <Link
+                        href={`/retailer/suppliers/${w.id}/chat`}
+                        title={t.common.chat}
+                        aria-label={t.common.chat}
+                        className="grid size-8 place-items-center rounded-full border border-[var(--color-line-2)] bg-[var(--color-bg)] text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white"
+                      >
+                        <MessageCircle className="size-4" />
+                      </Link>
+                    )}
+                    <Link
+                      href={`/retailer/suppliers/${w.id}`}
+                      className="btn btn-secondary px-3 py-1.5 text-xs"
+                    >
+                      {t.discover.enter} <ArrowRight className="size-3.5" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
