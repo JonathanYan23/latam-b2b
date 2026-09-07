@@ -4,6 +4,7 @@
 
 const es = {
   common: {
+    selected: "Seleccionados",
     chat: "Chat",
     itemNo: "Código",
     brand: "Latam B2B",
@@ -192,6 +193,7 @@ const es = {
     enter: "Ver tienda",
     notCustomer: "Aún no eres cliente — solicita precio para ver precios",
     searchPlaceholder: "Busca por mayorista o persona de contacto…",
+    filterRegion: "Región:",
     searchBtn: "Buscar",
     noResults: "No se encontraron mayoristas",
   },
@@ -358,6 +360,15 @@ const es = {
   wsProducts: {
     title: "Productos",
     countDesc: "{n} productos en tu catálogo.",
+    selectNone: "Selecciona productos primero",
+    bulkSelectHint: "Marca productos para gestión masiva",
+    activate: "Activar",
+    deactivate: "Desactivar",
+    bulkSetPrice: "Fijar precio",
+    bulkDelete: "Eliminar",
+    bulkDeleteConfirm: "¿Eliminar los productos seleccionados? Los vinculados a pedidos/cotizaciones se desactivarán.",
+    bulkPricePrompt: "Introduce el nuevo precio público:",
+    errPrice: "Precio inválido",
     importCsv: "Importar CSV",
     addProduct: "Agregar producto",
     emptyTitle: "Aún no hay productos",
@@ -452,6 +463,8 @@ const es = {
 
   wsCustomers: {
     title: "Clientes",
+    inviteCustomer: "Invitar cliente",
+    inviteCopied: "Enlace de invitación copiado — compártelo con minoristas para que soliciten colaborar",
     searchPlaceholder: "Busca por empresa o contacto…",
     desc: "Aprueba solicitudes, configura términos y gestiona precios por cliente.",
     requests: "Solicitudes de clientes ({n})",

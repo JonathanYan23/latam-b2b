@@ -11,25 +11,35 @@ export const metadata = { title: "Find Suppliers" };
 export default async function DiscoverPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; country?: string }>;
 }) {
   const session = await requireRole("RETAILER");
   const t = await getDictionary();
   const retailerId = session.retailerId!;
-  const { q } = await searchParams;
+  const { q, country } = await searchParams;
   const query = (q ?? "").trim();
+  const countryCode = country?.trim() || "";
 
   const [wholesalers, relationships] = await Promise.all([
     db.wholesaler.findMany({
-      where: query
-        ? {
-            OR: [
-              { business: { tradeName: { contains: query } } },
-              { business: { legalName: { contains: query } } },
-              { user: { name: { contains: query } } },
-            ],
-          }
-        : undefined,
+      where: {
+        AND: [
+          ...(query
+            ? [
+                {
+                  OR: [
+                    { business: { tradeName: { contains: query } } },
+                    { business: { legalName: { contains: query } } },
+                    { user: { name: { contains: query } } },
+                  ],
+                },
+              ]
+            : []),
+          ...(countryCode
+            ? [{ business: { country: { code: countryCode } } }]
+            : []),
+        ],
+      },
       include: {
         business: { include: { city: true, country: true } },
         user: { select: { name: true } },
@@ -50,11 +60,54 @@ export default async function DiscoverPage({
       <h1 className="text-h1">{t.discover.title}</h1>
       <p className="text-body mt-1">{t.discover.desc}</p>
 
+      {/* 地区筛选：按国家 */}
+      {(() => {
+        const seen = new Map<string, string>();
+        for (const w of wholesalers) {
+          const c = w.business.country;
+          if (c && !seen.has(c.code)) seen.set(c.code, c.name);
+        }
+        const codes = [...seen.entries()];
+        if (codes.length < 2) return null;
+        return (
+          <div className="mt-4 flex flex-wrap items-center gap-1.5">
+            <span className="text-meta mr-1 text-xs">{t.discover.filterRegion}</span>
+            <Link
+              href={query ? `/retailer/discover?q=${encodeURIComponent(query)}` : "/retailer/discover"}
+              className={
+                !countryCode
+                  ? "rounded-full bg-[var(--color-ink)] px-3 py-1 text-xs font-medium text-white"
+                  : "rounded-full border border-[var(--color-line-2)] px-3 py-1 text-xs text-[var(--color-ink-2)] hover:text-[var(--color-ink)]"
+              }
+            >
+              {t.common.all}
+            </Link>
+            {codes.map(([code, name]) => {
+              const base = query ? `q=${encodeURIComponent(query)}&` : "";
+              const active = countryCode === code;
+              return (
+                <Link
+                  key={code}
+                  href={`/retailer/discover?${base}country=${code}`}
+                  className={
+                    active
+                      ? "rounded-full bg-[var(--color-ink)] px-3 py-1 text-xs font-medium text-white"
+                      : "rounded-full border border-[var(--color-line-2)] px-3 py-1 text-xs text-[var(--color-ink-2)] hover:text-[var(--color-ink)]"
+                  }
+                >
+                  {name}
+                </Link>
+              );
+            })}
+          </div>
+        );
+      })()}
+
       {/* 搜索：批发商名 / 联系人名 */}
       <form
         action="/retailer/discover"
         method="get"
-        className="mt-6 flex max-w-md items-center gap-2"
+        className="mt-4 flex max-w-md items-center gap-2"
       >
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--color-ink-3)]" />
@@ -65,6 +118,7 @@ export default async function DiscoverPage({
             className="input pl-9"
           />
         </div>
+        {countryCode && <input type="hidden" name="country" value={countryCode} />}
         <button type="submit" className="btn btn-primary px-4 py-2 text-sm">
           {t.discover.searchBtn}
         </button>

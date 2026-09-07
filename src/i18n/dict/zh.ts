@@ -4,6 +4,7 @@
 
 const zh = {
   common: {
+    selected: "已选",
     chat: "聊天",
     itemNo: "货号",
     brand: "Latam B2B",
@@ -190,6 +191,7 @@ const zh = {
     enter: "进店看货",
     notCustomer: "还不是客户 — 申请报价后可查看价格",
     searchPlaceholder: "搜索批发商或联系人…",
+    filterRegion: "地区：",
     searchBtn: "搜索",
     noResults: "没有找到匹配的批发商",
   },
@@ -348,6 +350,15 @@ const zh = {
   wsProducts: {
     title: "商品",
     countDesc: "商品库共 {n} 件商品。",
+    selectNone: "请先勾选商品",
+    bulkSelectHint: "勾选商品后可批量管理",
+    activate: "批量上架",
+    deactivate: "批量下架",
+    bulkSetPrice: "批量设价",
+    bulkDelete: "批量删除",
+    bulkDeleteConfirm: "删除所选商品？有订单/报价关联的商品将自动转为停用。",
+    bulkPricePrompt: "请输入新的公开单价：",
+    errPrice: "价格无效",
     importCsv: "导入 CSV",
     addProduct: "添加商品",
     emptyTitle: "还没有商品",
@@ -437,6 +448,8 @@ const zh = {
 
   wsCustomers: {
     title: "客户",
+    inviteCustomer: "邀请新客户",
+    inviteCopied: "邀请链接已复制，发给零售商完成注册后即可建立合作申请",
     searchPlaceholder: "搜索客户公司或联系人…",
     desc: "审批零售商申请、设置条款并管理客户专属价。",
     requests: "客户申请（{n}）",

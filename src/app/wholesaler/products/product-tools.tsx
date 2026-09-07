@@ -4,7 +4,12 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { Loader2, Trash2, Upload, X, CheckCircle2, AlertCircle } from "lucide-react";
-import { updateStockAction, importProductsAction, deleteProductAction } from "../actions";
+import {
+  updateStockAction,
+  importProductsAction,
+  deleteProductAction,
+  bulkProductsAction,
+} from "../actions";
 import type { Dict } from "@/i18n";
 
 /** 列表页内联库存更新（0 库存不显示数字，留空待填） */
@@ -205,5 +210,78 @@ export function DeleteProductButton({
       )}
       {t.wsProducts.deleteProduct}
     </button>
+  );
+}
+
+/** 批量商品管理工具条：收集 .bulk-ck 勾选项执行 上下架/设价/删除 */
+export function BulkBar({ t }: { t: Dict }) {
+  const [count, setCount] = useState(0);
+  const [busy, setBusy] = useState(false);
+
+  const refresh = () =>
+    setCount(
+      document.querySelectorAll<HTMLInputElement>("input.bulk-ck:checked").length,
+    );
+
+  useEffect(() => {
+    refresh();
+    document.addEventListener("change", refresh);
+    return () => document.removeEventListener("change", refresh);
+  }, []);
+
+  const collect = () =>
+    Array.from(
+      document.querySelectorAll<HTMLInputElement>("input.bulk-ck:checked"),
+    ).map((i) => i.value);
+
+  const run = async (op: "delete" | "activate" | "deactivate" | "price") => {
+    const ids = collect();
+    if (ids.length === 0) return;
+    let value: number | undefined;
+    if (op === "price") {
+      const raw = window.prompt(t.wsProducts.bulkPricePrompt);
+      if (raw === null) return;
+      value = Number(raw);
+      if (Number.isNaN(value) || value < 0) return;
+    }
+    if (op === "delete") {
+      if (!window.confirm(t.wsProducts.bulkDeleteConfirm)) return;
+    }
+    setBusy(true);
+    const res = await bulkProductsAction(ids, op, value);
+    setBusy(false);
+    if (!res.ok) {
+      alert(res.error ?? "error");
+      return;
+    }
+    window.location.reload();
+  };
+
+  const btn =
+    "inline-flex items-center gap-1 rounded-md border border-[var(--color-line-2)] px-2.5 py-1.5 text-xs font-medium text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-ink-3)] hover:text-[var(--color-ink)] disabled:pointer-events-none disabled:opacity-40";
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-meta text-xs">
+        {count > 0 ? `${count} ${t.common.selected}` : t.wsProducts.bulkSelectHint}
+      </span>
+      <button type="button" disabled={busy || count === 0} onClick={() => run("activate")} className={btn}>
+        {t.wsProducts.activate}
+      </button>
+      <button type="button" disabled={busy || count === 0} onClick={() => run("deactivate")} className={btn}>
+        {t.wsProducts.deactivate}
+      </button>
+      <button type="button" disabled={busy || count === 0} onClick={() => run("price")} className={btn}>
+        {t.wsProducts.bulkSetPrice}
+      </button>
+      <button
+        type="button"
+        disabled={busy || count === 0}
+        onClick={() => run("delete")}
+        className="inline-flex items-center gap-1 rounded-md border border-[var(--color-danger)] px-2.5 py-1.5 text-xs font-medium text-[var(--color-danger)] transition-colors hover:bg-[var(--color-danger)] hover:text-white disabled:pointer-events-none disabled:opacity-40"
+      >
+        {t.wsProducts.bulkDelete}
+      </button>
+    </div>
   );
 }

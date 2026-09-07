@@ -4,6 +4,7 @@
 
 const en = {
   common: {
+    selected: "Selected",
     chat: "Chat",
     itemNo: "Item No.",
     brand: "Latam B2B",
@@ -190,6 +191,7 @@ const en = {
     enter: "View store",
     notCustomer: "Not a customer yet — request pricing to see prices",
     searchPlaceholder: "Search by wholesaler or contact person…",
+    filterRegion: "Region:",
     searchBtn: "Search",
     noResults: "No matching wholesalers found",
   },
@@ -354,6 +356,15 @@ const en = {
   wsProducts: {
     title: "Products",
     countDesc: "{n} products in your catalog.",
+    selectNone: "Select products first",
+    bulkSelectHint: "Tick products to batch-manage",
+    activate: "Activate",
+    deactivate: "Deactivate",
+    bulkSetPrice: "Set price",
+    bulkDelete: "Delete",
+    bulkDeleteConfirm: "Delete selected products? Items linked to orders/quotes will be deactivated instead.",
+    bulkPricePrompt: "Enter new public price:",
+    errPrice: "Invalid price",
     importCsv: "Import CSV",
     addProduct: "Add product",
     emptyTitle: "No products yet",
@@ -448,6 +459,8 @@ const en = {
 
   wsCustomers: {
     title: "Customers",
+    inviteCustomer: "Invite customer",
+    inviteCopied: "Invite link copied — share it with retailers so they can request to work with you",
     searchPlaceholder: "Search by company or contact person…",
     desc: "Approve retailer requests, set terms and manage customer pricing.",
     requests: "Customer requests ({n})",

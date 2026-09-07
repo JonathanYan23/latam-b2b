@@ -456,6 +456,65 @@ export async function bulkCreateProductsAction(
   return { ok: true, created };
 }
 
+/** 批量商品管理：上架 / 下架 / 设价 / 删除（删除带引用守卫） */
+export async function bulkProductsAction(
+  ids: string[],
+  op: "delete" | "activate" | "deactivate" | "price",
+  value?: number,
+): Promise<{ ok: boolean; error?: string; removed?: number; hidden?: number }> {
+  const session = await requireRole("WHOLESALER");
+  const t = dictForLocale(await getActionLocale());
+  const wholesalerId = session.wholesalerId!;
+  const list = [...new Set(ids)];
+  if (list.length === 0) return { ok: false, error: t.wsProducts.selectNone ?? "none" };
+
+  const products = await db.product.findMany({
+    where: { id: { in: list }, wholesalerId },
+  });
+  if (products.length === 0) return { ok: false, error: t.productForm.errNotFound };
+
+  if (op === "activate") {
+    await db.product.updateMany({
+      where: { id: { in: products.map((p) => p.id) } },
+      data: { active: true },
+    });
+  } else if (op === "deactivate") {
+    await db.product.updateMany({
+      where: { id: { in: products.map((p) => p.id) } },
+      data: { active: false },
+    });
+  } else if (op === "price") {
+    const v = Number(value);
+    if (Number.isNaN(v) || v < 0) return { ok: false, error: t.wsProducts.errPrice };
+    await db.product.updateMany({
+      where: { id: { in: products.map((p) => p.id) } },
+      data: { publicPrice: v },
+    });
+  } else if (op === "delete") {
+    let removed = 0;
+    let hidden = 0;
+    for (const prod of products) {
+      const [refOrders, refPrices] = await Promise.all([
+        db.orderItem.count({ where: { productId: prod.id } }),
+        db.customerPrice.count({ where: { productId: prod.id } }),
+      ]);
+      if (refOrders > 0 || refPrices > 0) {
+        await db.product.update({ where: { id: prod.id }, data: { active: false } });
+        hidden++;
+      } else {
+        await db.inventory.deleteMany({ where: { productId: prod.id } });
+        await db.product.delete({ where: { id: prod.id } });
+        removed++;
+      }
+    }
+    revalidatePath("/wholesaler/products");
+    return { ok: true, removed, hidden };
+  }
+
+  revalidatePath("/wholesaler/products");
+  return { ok: true };
+}
+
 /** 订阅额度校验：FREE 每月 20 件商品，PLUS 每月 1000 件 */
 async function withinQuota(
   wholesalerId: string,

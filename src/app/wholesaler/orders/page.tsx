@@ -14,11 +14,18 @@ import { DeleteOrderButton } from "./delete-order-button";
 
 export const metadata = { title: "Orders" };
 
-export default async function WholesalerOrdersPage() {
+export default async function WholesalerOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ s?: string }>;
+}) {
   const session = await requireRole("WHOLESALER");
   const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const wholesalerId = session.wholesalerId!;
+  const { s } = await searchParams;
+  const STATUSES = ["ALL", "DRAFT", "SUBMITTED", "CONFIRMED", "PREPARING", "READY", "COMPLETED", "CANCELLED"] as const;
+  const activeStatus = STATUSES.includes(s as (typeof STATUSES)[number]) ? (s as (typeof STATUSES)[number]) : "ALL";
 
   const orders = await db.supplierOrder.findMany({
     where: { wholesalerId },
@@ -39,21 +46,38 @@ export default async function WholesalerOrdersPage() {
     acc[o.status] = (acc[o.status] ?? 0) + 1;
     return acc;
   }, {});
+  const allCount = orders.length;
+  const shown =
+    activeStatus === "ALL" ? orders : orders.filter((o) => o.status === activeStatus);
 
   return (
     <div className="mx-auto max-w-6xl animate-fade-up">
       <h1 className="text-h1">{t.wsOrders.title}</h1>
-      <p className="text-body mt-1">
-        {t.wsOrders.desc}{" "}
-        {Object.entries(counts)
-          .map(
-            ([s, n]) =>
-              `${orderStatusLabel(s as keyof typeof t.statusOrder, t)}: ${n}`,
-          )
-          .join(" · ")}
-      </p>
+      <p className="text-body mt-1">{t.wsOrders.desc}</p>
 
-      {orders.length === 0 ? (
+      {/* 状态筛选 */}
+      <div className="mt-5 flex flex-wrap gap-1.5">
+        {STATUSES.map((st) => {
+          const n = st === "ALL" ? allCount : counts[st] ?? 0;
+          const active = activeStatus === st;
+          const label = st === "ALL" ? t.common.all : orderStatusLabel(st as never, t);
+          return (
+            <Link
+              key={st}
+              href={st === "ALL" ? "/wholesaler/orders" : `/wholesaler/orders?s=${st}`}
+              className={
+                active
+                  ? "rounded-full bg-[var(--color-ink)] px-3 py-1.5 text-xs font-medium text-white"
+                  : "rounded-full border border-[var(--color-line-2)] px-3 py-1.5 text-xs font-medium text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-ink-3)] hover:text-[var(--color-ink)]"
+              }
+            >
+              {label} {n > 0 && <span className="opacity-70">{n}</span>}
+            </Link>
+          );
+        })}
+      </div>
+
+      {shown.length === 0 ? (
         <div className="card mt-8 flex flex-col items-center px-6 py-16 text-center">
           <ShoppingCart className="mb-4 size-8 text-[var(--color-ink-3)]" strokeWidth={1.5} />
           <p className="text-h3 text-base">{t.wsOrders.emptyTitle}</p>
@@ -61,7 +85,7 @@ export default async function WholesalerOrdersPage() {
         </div>
       ) : (
         <div className="mt-8 grid gap-4 lg:grid-cols-2">
-          {orders.map((o) => {
+          {shown.map((o) => {
             // 可删判定：草稿/未处理/已取消，且无发票/无收款（与 server action 守卫一致）
             const deletable =
               ["DRAFT", "SUBMITTED", "CANCELLED"].includes(o.status) &&

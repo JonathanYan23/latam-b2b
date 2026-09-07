@@ -8,7 +8,12 @@ import { catName } from "@/lib/cat";
 import { fmt } from "@/i18n/utils";
 import { money, sellingModeLabel } from "@/lib/format";
 import { parseImages } from "@/lib/pricing";
-import { StockUpdater, ImportCsvButton, DeleteProductButton } from "./product-tools";
+import {
+  StockUpdater,
+  ImportCsvButton,
+  DeleteProductButton,
+  BulkBar,
+} from "./product-tools";
 
 export const metadata = { title: "Products" };
 
@@ -66,9 +71,12 @@ export default async function WholesalerProductsPage() {
         </div>
       ) : (
         <>
-          <p className="text-meta mt-8 text-sm">
-            {fmt(t.wsProducts.countDesc, { n: products.length })}
-          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-meta text-sm">
+              {fmt(t.wsProducts.countDesc, { n: products.length })}
+            </p>
+            <BulkBar t={t} />
+          </div>
           <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {products.map((p) => {
             const [img] = parseImages(p.images);
@@ -76,6 +84,12 @@ export default async function WholesalerProductsPage() {
             return (
               <div key={p.id} className="card flex flex-col p-5">
                 <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    value={p.id}
+                    aria-label={p.name}
+                    className="bulk-ck mt-1 size-4 shrink-0 accent-[var(--color-ink)]"
+                  />
                   <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-[var(--color-bg-muted)]">
                     {img && (
                       <Image src={img} alt={p.name} fill sizes="48px" className="object-cover" unoptimized />

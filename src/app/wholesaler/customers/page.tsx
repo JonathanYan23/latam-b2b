@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Users, MessageCircle, Search } from "lucide-react";
+import { InviteCustomerButton } from "./invite-button";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
@@ -89,8 +90,17 @@ export default async function CustomersPage({
 
   return (
     <div className="mx-auto max-w-6xl animate-fade-up">
-      <h1 className="text-h1">{t.wsCustomers.title}</h1>
-      <p className="text-body mt-1">{t.wsCustomers.desc}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-h1">{t.wsCustomers.title}</h1>
+          <p className="text-body mt-1">{t.wsCustomers.desc}</p>
+        </div>
+        <InviteCustomerButton
+          wholesalerId={wholesalerId}
+          label={t.wsCustomers.inviteCustomer}
+          copiedLabel={t.wsCustomers.inviteCopied}
+        />
+      </div>
 
       {/* 搜索客户：公司/联系人 */}
       <form action="/wholesaler/customers" method="get" className="mt-5 flex max-w-sm items-center gap-2">
