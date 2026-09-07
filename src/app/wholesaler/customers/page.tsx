@@ -147,87 +147,83 @@ export default async function CustomersPage() {
                       {items.length} {t.common.customer}
                     </span>
                   </h3>
-                  <div className="card mt-2 overflow-x-auto">
-                    <table className="w-full min-w-[640px] text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-[var(--color-line-2)] text-meta">
-                          <th className="px-5 py-3 font-medium">{t.common.customer}</th>
-                          <th className="hidden w-40 whitespace-nowrap px-5 py-3 font-medium sm:table-cell">
-                            {t.wsCustomers.terms}
-                          </th>
-                          <th className="hidden w-40 whitespace-nowrap px-5 py-3 font-medium md:table-cell">
-                            {t.wsCustomers.creditLimit}
-                          </th>
-                          <th className="w-32 whitespace-nowrap px-5 py-3 font-medium">{t.wsCustomers.pricesSet}</th>
-                          <th className="w-36 whitespace-nowrap px-5 py-3 text-right font-medium">
-                            {t.common.manage}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {items.map((r) => (
-                          <tr
-                            key={r.id}
-                            className="border-b border-[var(--color-line-2)] last:border-0"
-                          >
-                            <td className="px-5 py-3.5">
-                              <p className="font-medium">
+                  <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                    {items.map((r) => {
+                      const unread = unreadMap.get(r.retailerId) ?? 0;
+                      return (
+                        <div
+                          key={r.id}
+                          className="card flex flex-col gap-3 p-4"
+                        >
+                          {/* 头部：名称 + 操作 */}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <Link
+                                href={`/wholesaler/customers/${r.id}`}
+                                className="block truncate font-medium hover:underline"
+                              >
                                 {r.retailer.business.tradeName}
-                              </p>
-                              <p className="text-meta text-xs">
+                              </Link>
+                              <p className="text-meta truncate text-xs">
                                 {r.retailer.business.legalName}
                               </p>
                               {r.retailer.user?.name && (
-                                <p className="text-meta mt-0.5 text-xs">
+                                <p className="text-meta mt-0.5 truncate text-[11px]">
                                   {t.common.contactPerson}: {r.retailer.user.name}
                                 </p>
                               )}
-                            </td>
-                            <td className="hidden px-5 py-3.5 text-[var(--color-ink-2)] sm:table-cell">
-                              {r.paymentTerms ?? "—"}
-                            </td>
-                            <td className="hidden px-5 py-3.5 text-[var(--color-ink-2)] md:table-cell">
-                              {r.creditLimit ? money(r.creditLimit, cur) : "—"}
-                            </td>
-                            <td className="px-5 py-3.5 text-[var(--color-ink-2)]">
+                            </div>
+                            <DeleteCustomerButton
+                              relationshipId={r.id}
+                              customerName={
+                                r.retailer.business.tradeName ??
+                                r.retailer.business.legalName
+                              }
+                              t={t}
+                            />
+                          </div>
+
+                          {/* 条款行 */}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {r.paymentTerms && (
+                              <span className="badge badge-neutral text-[11px]">
+                                {r.paymentTerms}
+                              </span>
+                            )}
+                            {r.creditLimit != null && (
+                              <span className="badge badge-neutral text-[11px]">
+                                {money(r.creditLimit, cur)}
+                              </span>
+                            )}
+                            <span className="text-meta ml-auto text-[11px]">
                               {r._count.customerPrices} {t.common.products}
-                            </td>
-                            <td className="px-5 py-3.5">
-                              <div className="flex items-center justify-end gap-1.5">
-                                <Link
-                                  href={`/wholesaler/customers/${r.id}/chat`}
-                                  title={t.common.chat}
-                                  className="relative grid size-8 place-items-center rounded-full border border-[var(--color-line-2)] bg-[var(--color-bg)] text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white"
-                                >
-                                  <MessageCircle className="size-4" />
-                                  {(unreadMap.get(r.retailerId) ?? 0) > 0 && (
-                                    <span className="absolute -right-1 -top-1 grid min-w-3.5 place-items-center rounded-full bg-[var(--color-danger)] px-1 text-[9px] font-semibold leading-tight text-white">
-                                      {(unreadMap.get(r.retailerId) ?? 0) > 9
-                                        ? "9+"
-                                        : unreadMap.get(r.retailerId)}
-                                    </span>
-                                  )}
-                                </Link>
-                                <Link
-                                  href={`/wholesaler/customers/${r.id}`}
-                                  className="inline-flex items-center gap-1 rounded-md border border-[var(--color-line-2)] px-2.5 py-1.5 text-xs font-medium text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-ink-3)] hover:text-[var(--color-ink)]"
-                                >
-                                  {t.common.manage}
-                                </Link>
-                                <DeleteCustomerButton
-                                  relationshipId={r.id}
-                                  customerName={
-                                    r.retailer.business.tradeName ??
-                                    r.retailer.business.legalName
-                                  }
-                                  t={t}
-                                />
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                            </span>
+                          </div>
+
+                          {/* 底部：聊天 + 管理 */}
+                          <div className="flex items-center gap-1.5 border-t border-[var(--color-line-2)] pt-2.5">
+                            <Link
+                              href={`/wholesaler/customers/${r.id}/chat`}
+                              title={t.common.chat}
+                              className="relative grid size-8 place-items-center rounded-full border border-[var(--color-line-2)] bg-[var(--color-bg)] text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white"
+                            >
+                              <MessageCircle className="size-4" />
+                              {unread > 0 && (
+                                <span className="absolute -right-1 -top-1 grid min-w-3.5 place-items-center rounded-full bg-[var(--color-danger)] px-1 text-[9px] font-semibold leading-tight text-white">
+                                  {unread > 9 ? "9+" : unread}
+                                </span>
+                              )}
+                            </Link>
+                            <Link
+                              href={`/wholesaler/customers/${r.id}`}
+                              className="inline-flex flex-1 items-center justify-center gap-1 rounded-md border border-[var(--color-line-2)] px-2.5 py-1.5 text-xs font-medium text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-ink-3)] hover:text-[var(--color-ink)]"
+                            >
+                              {t.common.manage} →
+                            </Link>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ))}

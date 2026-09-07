@@ -85,7 +85,6 @@ export async function getConversationMessagesAction(
 ): Promise<{ ok: boolean; messages?: MessageItemDto[]; error?: string }> {
   const session = await auth();
   if (!session?.user) return { ok: false, error: "Unauthorized" };
-
   const role = session.user.role;
   if (role === "RETAILER" && retailerId !== session.user.retailerId) {
     return { ok: false, error: "Forbidden" };
@@ -112,6 +111,45 @@ export async function getConversationMessagesAction(
       senderName: m.sender.name,
     })),
   };
+}
+
+/** 打开会话标记已读（server action + revalidate，确保返回后导航红点消失） */
+export async function markConversationReadAction(
+  wholesalerId: string,
+  retailerId: string,
+): Promise<{ ok: boolean }> {
+  const session = await auth();
+  const u = session?.user as
+    | {
+        id: string;
+        role: string;
+        retailerId?: string | null;
+        wholesalerId?: string | null;
+      }
+    | undefined;
+  if (!u) return { ok: false };
+
+  if (u.role === "RETAILER" && retailerId !== u.retailerId) return { ok: false };
+  if (u.role === "WHOLESALER" && wholesalerId !== u.wholesalerId) return { ok: false };
+  if (u.role !== "RETAILER" && u.role !== "WHOLESALER") return { ok: false };
+
+  await db.message.updateMany({
+    where: {
+      wholesalerId,
+      retailerId,
+      senderId: { not: u.id },
+      readAt: null,
+    },
+    data: { readAt: new Date() },
+  });
+  // 让布局与列表缓存失效 → 客户端导航返回后红点即时消失
+  revalidatePath("/retailer", "layout");
+  revalidatePath("/wholesaler", "layout");
+  revalidatePath("/retailer/messages");
+  revalidatePath("/wholesaler/messages");
+  revalidatePath("/retailer/suppliers");
+  revalidatePath("/wholesaler/customers");
+  return { ok: true };
 }
 
 function safeParseUrls(json: string): string[] {

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
-import { markConversationRead } from "@/lib/unread";
+import { ReadMarker } from "@/components/read-marker";
 import { getDictionary, getLocale } from "@/i18n";
 import { MessageBox } from "@/components/message-box";
 
@@ -23,9 +23,6 @@ export default async function RetailerChatPage({
   });
   if (!ws) notFound();
 
-  // 打开会话即标记对方消息已读（幂等）
-  await markConversationRead(id, retailerId, session.userId);
-
   const messages = await db.message.findMany({
     where: { wholesalerId: id, retailerId },
     orderBy: { createdAt: "asc" },
@@ -35,6 +32,7 @@ export default async function RetailerChatPage({
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-3xl flex-col animate-fade-up">
+      <ReadMarker wholesalerId={id} retailerId={retailerId} />
       <div className="flex shrink-0 items-center gap-2 border-b border-[var(--color-line-2)] py-3">
         <Link
           href={`/retailer/suppliers/${id}`}
