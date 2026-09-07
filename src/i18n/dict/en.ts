@@ -4,6 +4,7 @@
 
 const en = {
   common: {
+    chat: "Chat",
     itemNo: "Item No.",
     brand: "Latam B2B",
     signIn: "Sign in",
@@ -128,6 +129,10 @@ const en = {
     account: "Account",
     products: "Products",
     customers: "Customers",
+    messages: "Messages",
+    messagesHint: "All conversations in one place — tap to reply",
+    noMessages: "No messages yet",
+
     retailerBrand: "Retailer Portal",
     wholesalerBrand: "Wholesaler Portal",
   },

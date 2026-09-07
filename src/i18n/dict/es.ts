@@ -4,6 +4,7 @@
 
 const es = {
   common: {
+    chat: "Chat",
     itemNo: "Código",
     brand: "Latam B2B",
     signIn: "Iniciar sesión",
@@ -129,6 +130,10 @@ const es = {
     account: "Cuenta",
     products: "Productos",
     customers: "Clientes",
+    messages: "Mensajes",
+    messagesHint: "Todas las conversaciones aquí — toca para responder",
+    noMessages: "Aún no hay mensajes",
+
     retailerBrand: "Portal Minorista",
     wholesalerBrand: "Portal Mayorista",
   },

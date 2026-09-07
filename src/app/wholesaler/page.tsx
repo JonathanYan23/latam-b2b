@@ -23,6 +23,7 @@ export default async function WholesalerHome() {
   const [
     newOrders,
     pendingRequests,
+    outOfStockCount,
     lowStockCount,
     productCount,
     activeCustomers,
@@ -36,6 +37,14 @@ export default async function WholesalerHome() {
     }),
     db.inventory.count({
       where: { warehouse: { wholesalerId }, stock: { lte: 0 } },
+    }),
+    // 库存趋近 0（1..19 件）的低库存商品数
+    db.product.count({
+      where: {
+        wholesalerId,
+        active: true,
+        inventories: { some: { stock: { gt: 0, lt: 20 } } },
+      },
     }),
     db.product.count({ where: { wholesalerId, active: true } }),
     db.customerRelationship.count({
@@ -62,8 +71,13 @@ export default async function WholesalerHome() {
       href: "/wholesaler/customers",
     },
     {
-      label: t.wholesalerHome.outOfStock,
+      label: t.common.lowStock,
       count: lowStockCount,
+      href: "/wholesaler/products",
+    },
+    {
+      label: t.wholesalerHome.outOfStock,
+      count: outOfStockCount,
       href: "/wholesaler/products",
     },
   ].filter((a) => a.count > 0);

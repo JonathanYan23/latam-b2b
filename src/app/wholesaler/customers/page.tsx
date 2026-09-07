@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users } from "lucide-react";
+import { Users, MessageCircle } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
@@ -51,6 +51,18 @@ export default async function CustomersPage() {
       _count: { select: { customerPrices: true } },
     },
   });
+
+  // 每个客户会话的未读数（对方发来未读）
+  const unreadGroups = await db.message.groupBy({
+    by: ["retailerId"],
+    where: {
+      wholesalerId,
+      senderId: { not: session.userId },
+      readAt: null,
+    },
+    _count: { _all: true },
+  });
+  const unreadMap = new Map(unreadGroups.map((g) => [g.retailerId, g._count._all]));
 
   const pending = relationships.filter((r) => r.status === "PENDING");
   const approved = relationships.filter((r) => r.status === "APPROVED");
@@ -182,6 +194,20 @@ export default async function CustomersPage() {
                             </td>
                             <td className="px-5 py-3.5">
                               <div className="flex items-center justify-end gap-1.5">
+                                <Link
+                                  href={`/wholesaler/customers/${r.id}/chat`}
+                                  title={t.common.chat}
+                                  className="relative grid size-8 place-items-center rounded-full border border-[var(--color-line-2)] bg-[var(--color-bg)] text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white"
+                                >
+                                  <MessageCircle className="size-4" />
+                                  {(unreadMap.get(r.retailerId) ?? 0) > 0 && (
+                                    <span className="absolute -right-1 -top-1 grid min-w-3.5 place-items-center rounded-full bg-[var(--color-danger)] px-1 text-[9px] font-semibold leading-tight text-white">
+                                      {(unreadMap.get(r.retailerId) ?? 0) > 9
+                                        ? "9+"
+                                        : unreadMap.get(r.retailerId)}
+                                    </span>
+                                  )}
+                                </Link>
                                 <Link
                                   href={`/wholesaler/customers/${r.id}`}
                                   className="inline-flex items-center gap-1 rounded-md border border-[var(--color-line-2)] px-2.5 py-1.5 text-xs font-medium text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-ink-3)] hover:text-[var(--color-ink)]"

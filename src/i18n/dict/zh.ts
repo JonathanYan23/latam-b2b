@@ -4,6 +4,7 @@
 
 const zh = {
   common: {
+    chat: "聊天",
     itemNo: "货号",
     brand: "Latam B2B",
     signIn: "登录",
@@ -128,6 +129,10 @@ const zh = {
     account: "账户",
     products: "商品",
     customers: "客户",
+    messages: "消息",
+    messagesHint: "所有会话集中在这里，点击即可回复",
+    noMessages: "暂无消息",
+
     retailerBrand: "零售商门户",
     wholesalerBrand: "批发商门户",
   },

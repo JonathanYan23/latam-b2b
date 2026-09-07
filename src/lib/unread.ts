@@ -22,13 +22,13 @@ export async function navUnread(opts: {
     const n = await db.message.count({
       where: { retailerId, senderId: { not: userId }, readAt: null },
     });
-    return n > 0 ? { "/retailer/suppliers": n } : {};
+    return n > 0 ? { "/retailer/suppliers": n, "/retailer/messages": n } : {};
   }
   if (role === "WHOLESALER" && wholesalerId) {
     const n = await db.message.count({
       where: { wholesalerId, senderId: { not: userId }, readAt: null },
     });
-    return n > 0 ? { "/wholesaler/customers": n } : {};
+    return n > 0 ? { "/wholesaler/customers": n, "/wholesaler/messages": n } : {};
   }
   return {};
 }

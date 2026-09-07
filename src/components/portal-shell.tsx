@@ -14,6 +14,7 @@ import {
   Users,
   Compass,
   type LucideIcon,
+  MessageCircle,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import type { Dict } from "@/i18n";
@@ -154,6 +155,7 @@ function buildNav(role: "retailer" | "wholesaler", t: Dict): NavItem[] {
       { href: "/retailer/discover", label: n.discover, icon: Compass },
       { href: "/retailer/orders", label: n.orders, icon: ShoppingBag },
       { href: "/retailer/suppliers", label: n.suppliers, icon: Store },
+      { href: "/retailer/messages", label: n.messages, icon: MessageCircle },
       { href: "/retailer/account", label: n.account, icon: UserCircle },
     ];
   }
@@ -167,6 +169,7 @@ function buildNav(role: "retailer" | "wholesaler", t: Dict): NavItem[] {
     },
     { href: "/wholesaler/orders", label: n.orders, icon: ShoppingCart },
     { href: "/wholesaler/customers", label: n.customers, icon: Users },
+    { href: "/wholesaler/messages", label: n.messages, icon: MessageCircle },
     { href: "/wholesaler/account", label: n.account, icon: UserCircle },
   ];
 }

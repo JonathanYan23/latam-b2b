@@ -30,6 +30,14 @@ export default async function SuppliersPage() {
 
   const relMap = new Map(relationships.map((r) => [r.wholesalerId, r.status]));
 
+  // 每个供应商的未读数（对方发来未读）
+  const unreadGroups = await db.message.groupBy({
+    by: ["wholesalerId"],
+    where: { retailerId, senderId: { not: session.userId }, readAt: null },
+    _count: { _all: true },
+  });
+  const unreadMap = new Map(unreadGroups.map((g) => [g.wholesalerId, g._count._all]));
+
   return (
     <div className="mx-auto max-w-5xl animate-fade-up">
       <h1 className="text-h1">{t.suppliers.title}</h1>
@@ -85,6 +93,7 @@ export default async function SuppliersPage() {
                     <SupplierChatButton
                       wholesalerId={w.id}
                       supplierName={w.business.tradeName ?? w.business.legalName}
+                      unread={unreadMap.get(w.id) ?? 0}
                     />
                   )}
                   {status && (
