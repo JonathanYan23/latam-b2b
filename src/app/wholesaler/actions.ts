@@ -157,7 +157,7 @@ export async function updateProductAction(
     },
   });
 
-  // 更新主仓库库存
+  // 更新主仓库库存（无库存记录则自动补建，兼容批量导入商品）
   const inventory = await db.inventory.findFirst({
     where: { productId },
     orderBy: { updatedAt: "desc" },
@@ -167,6 +167,8 @@ export async function updateProductAction(
       where: { id: inventory.id },
       data: { stock },
     });
+  } else {
+    await ensureInventory(wholesalerId, productId, stock);
   }
 
   revalidatePath("/wholesaler/products");
@@ -187,18 +189,52 @@ export async function updateStockAction(
   if (!product || product.wholesalerId !== wholesalerId)
     return { ok: false, error: t.productForm.errNotFound };
 
+  const value = Math.max(0, Math.floor(stock));
   const inventory = await db.inventory.findFirst({
     where: { productId },
     orderBy: { updatedAt: "desc" },
   });
-  if (!inventory) return { ok: false, error: t.productForm.errNotFound };
+  if (inventory) {
+    await db.inventory.update({
+      where: { id: inventory.id },
+      data: { stock: value },
+    });
+  } else {
+    // 无库存记录（批量照片/CSV 导入的商品）：自动补建默认仓库存
+    await ensureInventory(wholesalerId, productId, value);
+  }
 
-  await db.inventory.update({
-    where: { id: inventory.id },
-    data: { stock: Math.max(0, Math.floor(stock)) },
-  });
   revalidatePath("/wholesaler/products");
   return { ok: true };
+}
+
+/** 确保商品有默认仓库存记录（无仓库自动创建 Main Warehouse），无则建、有则更新 */
+async function ensureInventory(
+  wholesalerId: string,
+  productId: string,
+  stock: number,
+): Promise<void> {
+  let wid =
+    (
+      await db.warehouse.findFirst({
+        where: { wholesalerId },
+        orderBy: { createdAt: "asc" },
+      })
+    )?.id ?? null;
+  if (!wid) {
+    const w = await db.warehouse.create({
+      data: { wholesalerId, name: "Main Warehouse" },
+    });
+    wid = w.id;
+  }
+  const inv = await db.inventory.findUnique({
+    where: { productId_warehouseId: { productId, warehouseId: wid } },
+  });
+  if (inv) {
+    await db.inventory.update({ where: { id: inv.id }, data: { stock } });
+  } else {
+    await db.inventory.create({ data: { productId, warehouseId: wid, stock } });
+  }
 }
 
 /** 批量导入 CSV（PRD 20 节：第一版优先 CSV） */
@@ -400,7 +436,7 @@ export async function bulkCreateProductsAction(
     });
     if (existing) sku = sku + "-" + (i + 1);
 
-    await db.product.create({
+    const product = await db.product.create({
       data: {
         wholesalerId,
         name: r.name.trim(),
@@ -411,6 +447,8 @@ export async function bulkCreateProductsAction(
         sellingMode: "BOTH",
       },
     });
+    // 批量照片商品：默认 0 库存（缺货），批发商在列表填量后再售卖
+    await ensureInventory(wholesalerId, product.id, 0);
     created++;
   }
 

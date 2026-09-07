@@ -87,7 +87,7 @@ export default async function WholesalerOrderDetailPage({
           <thead>
             <tr className="border-b border-[var(--color-line-2)] text-meta">
               <th className="px-5 py-3 font-medium">{t.common.product}</th>
-              <th className="px-5 py-3 font-medium">SKU</th>
+              <th className="px-5 py-3 font-medium">{t.common.itemNo}</th>
               <th className="px-5 py-3 text-right font-medium">
                 {t.wsOrders.unitPrice}
               </th>

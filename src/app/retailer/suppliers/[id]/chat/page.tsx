@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
+import { markConversationRead } from "@/lib/unread";
 import { getDictionary, getLocale } from "@/i18n";
 import { MessageBox } from "@/components/message-box";
 
@@ -21,6 +22,9 @@ export default async function RetailerChatPage({
     select: { business: { select: { tradeName: true } } },
   });
   if (!ws) notFound();
+
+  // 打开会话即标记对方消息已读（幂等）
+  await markConversationRead(id, retailerId, session.userId);
 
   const messages = await db.message.findMany({
     where: { wholesalerId: id, retailerId },

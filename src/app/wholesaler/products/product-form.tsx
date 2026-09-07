@@ -144,17 +144,20 @@ export function ProductForm({
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
+          <label className="mb-1.5 flex items-center gap-1 text-sm font-medium text-[var(--color-ink-2)]">
             {pf.stock}
+            <span className="text-[var(--color-danger)]">*</span>
           </label>
           <input
             name="stock"
             type="number"
             min="0"
+            required
             className="input"
             defaultValue={undefined}
-            placeholder="0"
+            placeholder={pf.stockHint}
           />
+          <p className="mt-1 text-[11px] text-[var(--color-ink-3)]">{pf.stockHint}</p>
         </div>
 
         <div>

@@ -35,6 +35,7 @@ export function PortalShell({
   t,
   locale,
   children,
+  unread,
 }: {
   role: "retailer" | "wholesaler";
   brand: string;
@@ -43,6 +44,7 @@ export function PortalShell({
   t: Dict;
   locale: Locale;
   children: React.ReactNode;
+  unread?: Record<string, number>;
 }) {
   const pathname = usePathname();
   const nav = buildNav(role, t);
@@ -74,6 +76,11 @@ export function PortalShell({
               >
                 <item.icon className="size-4" />
                 {item.label}
+                {unread?.[item.href] ? (
+                  <span className="ml-0.5 grid min-w-4 place-items-center rounded-full bg-[var(--color-danger)] px-1 py-px text-[10px] font-semibold leading-tight text-white">
+                    {unread[item.href] > 99 ? "99+" : unread[item.href]}
+                  </span>
+                ) : null}
               </Link>
             ))}
           </nav>
@@ -113,10 +120,17 @@ export function PortalShell({
                   : "text-[var(--color-ink-3)]"
               }`}
             >
-              <item.icon
-                className="size-5 shrink-0"
-                strokeWidth={isActive(item) ? 2.2 : 1.8}
-              />
+              <span className="relative">
+                <item.icon
+                  className="size-5 shrink-0"
+                  strokeWidth={isActive(item) ? 2.2 : 1.8}
+                />
+                {unread?.[item.href] ? (
+                  <span className="absolute -right-2 -top-1.5 grid min-w-3.5 place-items-center rounded-full bg-[var(--color-danger)] px-1 text-[9px] font-semibold leading-tight text-white">
+                    {unread[item.href] > 9 ? "9+" : unread[item.href]}
+                  </span>
+                ) : null}
+              </span>
               <span className="w-full truncate text-center">{item.label}</span>
             </Link>
           ))}

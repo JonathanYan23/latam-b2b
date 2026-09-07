@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { Loader2, Trash2, Upload, X } from "lucide-react";
+import { Loader2, Trash2, Upload, X, CheckCircle2, AlertCircle } from "lucide-react";
 import { updateStockAction, importProductsAction, deleteProductAction } from "../actions";
 import type { Dict } from "@/i18n";
 
-/** 列表页内联库存更新 */
+/** 列表页内联库存更新（0 库存不显示数字，留空待填） */
 export function StockUpdater({
   productId,
   initial,
@@ -16,29 +17,53 @@ export function StockUpdater({
   initial: number;
   t: Dict;
 }) {
-  const [value, setValue] = useState(initial);
+  // 缺货(0)时输入框置空，由批发商自行填量
+  const [value, setValue] = useState<string>(initial > 0 ? String(initial) : "");
   const [pending, startTransition] = useTransition();
+  const [err, setErr] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const router = useRouter();
+
+  const parsed = value === "" ? NaN : Number(value);
+  const changed = !Number.isNaN(parsed) && parsed !== initial;
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5">
       <input
         type="number"
         min={0}
         value={value}
-        onChange={(e) => setValue(Number(e.target.value))}
+        onChange={(e) => {
+          setValue(e.target.value);
+          setErr(null);
+        }}
+        placeholder={initial > 0 ? String(initial) : "0"}
         className="input w-20 px-2 py-1 text-center text-sm"
       />
       <button
-        disabled={pending || value === initial}
+        disabled={pending || !changed}
         onClick={() =>
           startTransition(async () => {
-            await updateStockAction(productId, value);
+            setErr(null);
+            const res = await updateStockAction(productId, parsed);
+            if (!res.ok) setErr(res.error ?? "error");
+            else {
+              setSaved(true);
+              setTimeout(() => setSaved(false), 2000);
+              router.refresh();
+            }
           })
         }
         className="btn btn-secondary px-2.5 py-1 text-xs"
       >
         {pending ? <Loader2 className="size-3.5 animate-spin" /> : t.common.update}
       </button>
+      {saved && <CheckCircle2 className="size-4 text-[var(--color-success)]" />}
+      {err && (
+        <span className="inline-flex items-center gap-1 text-xs text-[var(--color-danger)]">
+          <AlertCircle className="size-3.5" /> {err}
+        </span>
+      )}
     </div>
   );
 }

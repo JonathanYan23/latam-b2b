@@ -128,7 +128,7 @@ export default async function RetailerOrderDetailPage({
               <thead>
                 <tr className="border-b border-[var(--color-line-2)] text-meta">
                   <th className="px-5 py-2.5 font-medium">{t.common.product}</th>
-                  <th className="px-5 py-2.5 font-medium">SKU</th>
+                  <th className="px-5 py-2.5 font-medium">{t.common.itemNo}</th>
                   <th className="hidden px-5 py-2.5 text-right font-medium sm:table-cell">
                     {t.wsOrders.unitPrice}
                   </th>
