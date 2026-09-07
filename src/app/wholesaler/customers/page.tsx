@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
 import { fmt } from "@/i18n/utils";
+import { AutoRefresh } from "@/components/auto-refresh";
 import {
   relationshipStatusLabel,
   relationshipStatusTone,
@@ -90,6 +91,7 @@ export default async function CustomersPage({
 
   return (
     <div className="mx-auto max-w-6xl animate-fade-up">
+        <AutoRefresh />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-h1">{t.wsCustomers.title}</h1>

@@ -321,7 +321,8 @@ export async function submitDraftAction(
     });
   });
 
-  revalidatePath("/retailer/orders");
+  // 注意：不 revalidate /retailer/orders* —— 前缀命中 draft 页会触发 RSC 自动刷新，
+  // 把刚提交的草稿页刷成空态并卸载提交成功面板。列表刷新由 AutoRefresh(15s) 与导航承担。
   return { ok: true, orderId: order.id };
 }
 /** 购物车面板快照：分组/行/合计/总件数（与草稿页同源） */

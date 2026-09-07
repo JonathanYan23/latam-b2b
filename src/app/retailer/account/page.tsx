@@ -12,6 +12,7 @@ import {
 } from "@/lib/format";
 import { PaymentForm } from "./payment-form";
 import { computeOutstanding } from "@/lib/payments";
+import { AutoRefresh } from "@/components/auto-refresh";
 
 export const metadata = { title: "Payments & Accounts" };
 
@@ -63,6 +64,7 @@ export default async function RetailerAccountPage() {
 
   return (
     <div className="mx-auto max-w-5xl animate-fade-up">
+        <AutoRefresh />
       <h1 className="text-h1">{t.retailerAccount.title}</h1>
       <p className="text-body mt-1">{t.retailerAccount.desc}</p>
 

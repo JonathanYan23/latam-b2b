@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
 import { fmt } from "@/i18n/utils";
 import { money, date, orderStatusLabel, orderStatusTone } from "@/lib/format";
+import { AutoRefresh } from "@/components/auto-refresh";
 
 export const metadata = { title: "Orders" };
 
@@ -41,6 +42,7 @@ export default async function RetailerOrdersPage() {
 
   return (
     <div className="mx-auto max-w-6xl animate-fade-up">
+        <AutoRefresh />
       <h1 className="text-h1">{t.orders.title}</h1>
       <p className="text-body mt-1">{t.orders.desc}</p>
 

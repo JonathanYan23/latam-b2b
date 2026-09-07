@@ -10,7 +10,7 @@ const es = {
     brand: "Latam B2B",
     signIn: "Iniciar sesión",
     signOut: "Cerrar sesión",
-    getStarted: "Comenzar",
+    getStarted: "Empieza gratis",
     register: "Registrarse",
     cancel: "Cancelar",
     save: "Guardar",
@@ -59,23 +59,25 @@ const es = {
   },
 
   landing: {
-    tagline: "Comercio mayorista para América Latina",
-    title: "¿Qué vienes a hacer?",
-    subtitle:
-      "Una plataforma para la compra y venta al por mayor en América Latina. Elige la experiencia creada para ti.",
+    tagline: "Comercio mayorista B2B para LatAm",
+    title:
+      "Plataforma B2B integral que conecta mayoristas y compradores de Latinoamérica",
+    subtitle: "Elige tu rol y entra a tu portal con un clic",
     retailerTitle: "Soy minorista",
-    retailerDesc: "Descubre productos y gestiona tus compras al por mayor.",
-    retailerCta: "Entrar al portal de minoristas",
+    retailerDesc: "Encuentra proveedores, compara precios, compra y gestiona cuentas",
+    retailerCta: "Ir a comprar",
     wholesalerTitle: "Soy mayorista",
-    wholesalerDesc:
-      "Vende productos, gestiona clientes y haz crecer tu negocio mayorista.",
-    wholesalerCta: "Entrar al portal de mayoristas",
-    feat1Title: "Precios mayoristas",
-    feat1Desc: "Precios públicos, precios solo para clientes y términos por cliente.",
-    feat2Title: "Hecho para B2B",
-    feat2Desc: "Cantidades mínimas, plazos de pago, saldos y historial de pedidos.",
+    wholesalerDesc: "Vende productos, gestiona stock, capta clientes y recibe pedidos",
+    wholesalerCta: "Ir a vender",
+    valueRow: "Precios flexibles · Plazos de crédito · Multimoneda e idiomas · Cobertura LatAm",
+    valueSub:
+      "Precios públicos / de cliente / a medida · MOQ, plazos y cuentas · Pagos y logística locales",
+    feat1Title: "Precios flexibles",
+    feat1Desc: "Precios públicos, solo para clientes y a medida.",
+    feat2Title: "Plazos de crédito",
+    feat2Desc: "MOQ, plazos, saldos e historial de pedidos.",
     feat3Title: "Hecho para LatAm",
-    feat3Desc: "Listo para múltiples países, monedas e idiomas.",
+    feat3Desc: "Multipaís, multimoneda y multiidioma.",
     footerTag: "Marketplace · Gestión · Logística · Abastecimiento",
   },
 
@@ -306,6 +308,9 @@ const es = {
     clearConfirm: "¿Vaciar todo el carrito?",
     cartTotal: "Total",
     checkoutBack: "Volver al proveedor anterior para seguir comprando",
+    submittedTitle: "Pedido enviado",
+    submittedDesc: "Tu pedido fue enviado al proveedor y está pendiente de confirmación.",
+    viewOrder: "Ver pedido",
   },
 
   retailerAccount: {
@@ -347,6 +352,10 @@ const es = {
   },
 
   wholesalerHome: {
+    processOrders: "Procesar pedidos",
+    processOrdersDesc: "Revisa nuevos pedidos y confirma",
+    recentActivity: "Actividad reciente",
+    noActivity: "Sin actividad aún",
     title: "Panel",
     desc: "Resumen de tu negocio mayorista.",
     attention: "¿Qué necesita tu atención?",

@@ -10,7 +10,7 @@ const en = {
     brand: "Latam B2B",
     signIn: "Sign in",
     signOut: "Sign out",
-    getStarted: "Get started",
+    getStarted: "Start free",
     register: "Register",
     cancel: "Cancel",
     save: "Save",
@@ -59,23 +59,26 @@ const en = {
   },
 
   landing: {
-    tagline: "Wholesale commerce for Latin America",
-    title: "What are you here to do?",
-    subtitle:
-      "One platform for wholesale buying and selling across Latin America. Choose the experience built for you.",
-    retailerTitle: "I'm a Retailer",
-    retailerDesc: "Discover products and manage your wholesale purchases.",
-    retailerCta: "Enter Retailer Portal",
-    wholesalerTitle: "I'm a Wholesaler",
-    wholesalerDesc: "Sell products, manage customers and grow your wholesale business.",
-    wholesalerCta: "Enter Wholesaler Portal",
-    feat1Title: "Wholesale pricing",
-    feat1Desc: "Public prices, customer-only prices, and per-customer terms.",
-    feat2Title: "Built for B2B",
-    feat2Desc: "MOQ, net terms, account balances, and order history.",
+    tagline: "LatAm B2B wholesale e-commerce",
+    title:
+      "One-stop B2B platform connecting Latin America's wholesalers and buyers",
+    subtitle: "Pick your role and step into your portal in one click",
+    retailerTitle: "I'm a retailer",
+    retailerDesc: "Find suppliers, compare prices, order & manage payables",
+    retailerCta: "Start buying",
+    wholesalerTitle: "I'm a wholesaler",
+    wholesalerDesc: "Sell products, manage stock, grow customers, take orders",
+    wholesalerCta: "Start selling",
+    valueRow: "Flexible pricing · Credit terms · Multi-currency & language · LatAm-wide",
+    valueSub:
+      "Public / customer / custom pricing · MOQ, terms & receivables · Local payments & logistics",
+    feat1Title: "Flexible pricing",
+    feat1Desc: "Public, customer-only and per-customer custom pricing.",
+    feat2Title: "Credit terms",
+    feat2Desc: "MOQ, net terms, balances and order history.",
     feat3Title: "Made for LatAm",
-    feat3Desc: "Multi-country, multi-currency and multi-language ready.",
-    footerTag: "Marketplace · Business Management · Logistics · Sourcing",
+    feat3Desc: "Multi-country, multi-currency and multi-language.",
+    footerTag: "Marketplace · Business · Logistics · Sourcing",
   },
 
   auth: {
@@ -302,6 +305,9 @@ const en = {
     clearConfirm: "Clear the entire cart?",
     cartTotal: "Total",
     checkoutBack: "Back to previous supplier to keep shopping",
+    submittedTitle: "Order submitted",
+    submittedDesc: "Your order has been sent to the supplier and is awaiting confirmation.",
+    viewOrder: "View order",
   },
 
   retailerAccount: {
@@ -343,6 +349,10 @@ const en = {
   },
 
   wholesalerHome: {
+    processOrders: "Process orders",
+    processOrdersDesc: "Review new orders and confirm",
+    recentActivity: "Recent activity",
+    noActivity: "No activity yet",
     title: "Dashboard",
     desc: "Overview of your wholesale business.",
     attention: "What needs your attention?",

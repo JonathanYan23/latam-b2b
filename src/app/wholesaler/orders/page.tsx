@@ -11,6 +11,7 @@ import {
   date,
 } from "@/lib/format";
 import { DeleteOrderButton } from "./delete-order-button";
+import { AutoRefresh } from "@/components/auto-refresh";
 
 export const metadata = { title: "Orders" };
 
@@ -52,6 +53,7 @@ export default async function WholesalerOrdersPage({
 
   return (
     <div className="mx-auto max-w-6xl animate-fade-up">
+        <AutoRefresh />
       <h1 className="text-h1">{t.wsOrders.title}</h1>
       <p className="text-body mt-1">{t.wsOrders.desc}</p>
 

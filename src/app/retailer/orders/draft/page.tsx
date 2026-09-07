@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShoppingBag, ArrowLeft } from "lucide-react";
+import { ShoppingBag, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import { getDictionary } from "@/i18n";
@@ -8,10 +8,15 @@ import { DraftManager } from "./draft-manager";
 
 export const metadata = { title: "Your Order" };
 
-export default async function DraftOrderPage() {
+export default async function DraftOrderPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ done?: string }>;
+}) {
   const session = await requireRole("RETAILER");
   const t = await getDictionary();
   const retailerId = session.retailerId!;
+  const { done } = await searchParams;
 
   const draft = await db.order.findFirst({
     where: { retailerId, status: "DRAFT" },
@@ -97,6 +102,26 @@ export default async function DraftOrderPage() {
       <h1 className="text-h1">{t.cart.title}</h1>
       <p className="text-body mt-1">{t.cart.desc}</p>
 
+      {done && !draft ? (
+        <div className="card mt-8 flex flex-col items-center px-6 py-14 text-center">
+          <span className="grid size-14 place-items-center rounded-full bg-[var(--color-success)]/10 text-[var(--color-success)]">
+            <Check className="size-7" />
+          </span>
+          <h2 className="text-h2 mt-5">{t.cart.submittedTitle}</h2>
+          <p className="text-body mt-2 max-w-sm">{t.cart.submittedDesc}</p>
+          <div className="mt-7 flex flex-wrap justify-center gap-2.5">
+            <Link
+              href={`/retailer/orders/${done}`}
+              className="btn btn-primary px-5 py-2.5 text-sm"
+            >
+              {t.cart.viewOrder} <ArrowRight className="size-4" />
+            </Link>
+            <Link href="/retailer/browse" className="btn btn-secondary px-5 py-2.5 text-sm">
+              <ShoppingBag className="size-4" /> {t.cart.continueShopping}
+            </Link>
+          </div>
+        </div>
+      ) : (
       <div className="mt-8">
         {!draft || groups.length === 0 ? (
           <div className="card flex flex-col items-center px-6 py-16 text-center">
@@ -123,6 +148,7 @@ export default async function DraftOrderPage() {
           />
         )}
       </div>
+      )}
     </div>
   );
 }

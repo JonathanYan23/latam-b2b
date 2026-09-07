@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n";
 import { fmt } from "@/i18n/utils";
 import { date, money, orderStatusLabel, orderStatusTone } from "@/lib/format";
 import { computeOutstanding } from "@/lib/payments";
+import { AutoRefresh } from "@/components/auto-refresh";
 
 export default async function RetailerHome() {
   const session = await requireRole("RETAILER");
@@ -111,6 +112,7 @@ export default async function RetailerHome() {
 
   return (
     <div className="mx-auto max-w-5xl animate-fade-up">
+        <AutoRefresh />
       {/* 欢迎（精简：只保留问候） */}
       <h1 className="text-h1">
         {session.name

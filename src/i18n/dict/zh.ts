@@ -10,7 +10,7 @@ const zh = {
     brand: "Latam B2B",
     signIn: "登录",
     signOut: "退出登录",
-    getStarted: "开始使用",
+    getStarted: "免费入驻",
     register: "注册",
     cancel: "取消",
     save: "保存",
@@ -59,22 +59,24 @@ const zh = {
   },
 
   landing: {
-    tagline: "拉美批发电商平台",
-    title: "你来到这里想做什么？",
-    subtitle:
-      "一个连接拉美市场批发与采购的平台。选择为你打造的入口。",
+    tagline: "拉美 B2B 批发电商平台",
+    title: "连接拉美批发与采购，一站式 B2B 交易平台",
+    subtitle: "选择你的身份，一键进入对应入口",
     retailerTitle: "我是零售商",
-    retailerDesc: "发现商品，管理你的批发采购。",
-    retailerCta: "进入零售商门户",
+    retailerDesc: "发现货源、对比价格、采购下单、管理账款",
+    retailerCta: "去采购",
     wholesalerTitle: "我是批发商",
-    wholesalerDesc: "销售商品、管理客户、发展批发业务。",
-    wholesalerCta: "进入批发商门户",
-    feat1Title: "批发定价",
+    wholesalerDesc: "销售商品、管理库存、发展客户、在线接单",
+    wholesalerCta: "去销售",
+    valueRow: "灵活定价 · 信用账期 · 多币种多语言 · 覆盖拉美多国",
+    valueSub:
+      "公开价 / 专属价 / 定制条款 · 起订量 / 账期 / 应收管理 · 本地支付与物流支持",
+    feat1Title: "灵活定价",
     feat1Desc: "公开价、客户专属价、按客户定制条款。",
-    feat2Title: "为 B2B 而生",
+    feat2Title: "信用账期",
     feat2Desc: "起订量、账期、应付余额与订单历史。",
     feat3Title: "面向拉美",
-    feat3Desc: "支持多国家、多货币与多语言。",
+    feat3Desc: "多国家、多货币、多语言。",
     footerTag: "市场 · 经营管理 · 物流 · 采购",
   },
 
@@ -297,6 +299,9 @@ const zh = {
     clearConfirm: "确定要清空购物车吗？",
     cartTotal: "合计",
     checkoutBack: "返回上一供应商继续选购",
+    submittedTitle: "订单已提交",
+    submittedDesc: "订单已提交给供应商，等待确认。可随时在订单中查看进度。",
+    viewOrder: "查看订单",
   },
 
   retailerAccount: {
@@ -337,6 +342,10 @@ const zh = {
   },
 
   wholesalerHome: {
+    processOrders: "处理订单",
+    processOrdersDesc: "查看新订单，确认接单",
+    recentActivity: "最近动态",
+    noActivity: "暂无动态",
     title: "工作台",
     desc: "批发业务总览。",
     attention: "需要你处理的事项",

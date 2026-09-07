@@ -1,9 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, Trash2, Loader2, ArrowRight } from "lucide-react";
+import { Minus, Plus, Trash2, Loader2, ArrowRight, Check, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import {
   adjustDraftItemAction,
@@ -11,6 +11,7 @@ import {
   submitDraftAction,
 } from "../../draft-actions";
 import { fmt } from "@/i18n/utils";
+import { CART_EVENT } from "@/components/cart/cart-shell";
 import type { Dict } from "@/i18n";
 import { money } from "@/lib/format";
 
@@ -67,9 +68,12 @@ export function DraftManager({
         alert(res.error ?? t.orders.errCancel);
         return;
       }
-      router.push(`/retailer/orders/${res.orderId}`);
-      router.refresh();
+      // 提交成功：跳到结果页（服务端渲染成功面板 + 查看订单/继续采购）
+      // 不 revalidate/refresh —— server action 会自动刷新当前 RSC，直接导航最稳
+      window.dispatchEvent(new Event(CART_EVENT)); // 同步顶栏购物车角标归零
+      router.push(`/retailer/orders/draft?done=${res.orderId ?? orderId}`);
     });
+
 
   return (
     <div className="space-y-6">

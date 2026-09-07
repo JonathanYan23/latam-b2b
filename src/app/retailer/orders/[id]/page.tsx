@@ -13,6 +13,7 @@ import {
   invoiceStatusLabel,
 } from "@/lib/format";
 import { CancelOrderButton } from "../cancel-order-button";
+import { AutoRefresh } from "@/components/auto-refresh";
 
 export default async function RetailerOrderDetailPage({
   params,
@@ -55,6 +56,7 @@ export default async function RetailerOrderDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl animate-fade-up">
+        <AutoRefresh />
       <Link
         href="/retailer/orders"
         className="text-meta mb-5 inline-flex items-center gap-1.5 hover:text-[var(--color-ink)]"
