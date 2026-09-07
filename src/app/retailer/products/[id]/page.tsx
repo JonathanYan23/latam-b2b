@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, BadgeCheck } from "lucide-react";
+import { MapPin, BadgeCheck, ArrowLeft } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import { priceView, parseImages } from "@/lib/pricing";
@@ -81,11 +81,20 @@ export default async function ProductPage({
   return (
     <div className="mx-auto max-w-6xl animate-fade-up">
       <p className="text-meta mb-5">
-        <Link href="/retailer/browse" className="hover:text-[var(--color-ink)]">
-          {t.browse.title}
+        <Link
+          href={`/retailer/suppliers/${product.wholesalerId}`}
+          className="inline-flex max-w-[240px] items-center gap-1 truncate hover:text-[var(--color-ink)]"
+        >
+          <ArrowLeft className="size-3.5 shrink-0" />
+          <span className="truncate">
+            {product.wholesaler.business.tradeName ??
+              product.wholesaler.business.legalName}
+          </span>
         </Link>
-        <span className="mx-1.5">/</span>
-        <span className="text-[var(--color-ink-2)]">{product.name}</span>
+        <span className="mx-1.5 shrink-0">/</span>
+        <span className="min-w-0 truncate text-[var(--color-ink-2)]">
+          {product.name}
+        </span>
       </p>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_420px]">

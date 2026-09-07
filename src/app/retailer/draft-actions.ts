@@ -14,7 +14,10 @@ async function activeDraft(retailerId: string) {
     where: { retailerId, status: "DRAFT" },
     include: {
       supplierOrders: {
-        include: { items: true, wholesaler: { include: { business: true } } },
+        include: {
+          items: true,
+          wholesaler: { include: { business: true, user: { select: { name: true } } } },
+        },
       },
     },
     orderBy: { updatedAt: "desc" },
@@ -320,4 +323,111 @@ export async function submitDraftAction(
 
   revalidatePath("/retailer/orders");
   return { ok: true, orderId: order.id };
+}
+/** 购物车面板快照：分组/行/合计/总件数（与草稿页同源） */
+export interface CartSnapshot {
+  orderId: string;
+  groups: {
+    id: string;
+    wholesalerId: string;
+    wholesalerName: string;
+    contact?: string | null;
+    subtotal: number;
+    items: {
+      id: string;
+      productId: string;
+      name: string;
+      image?: string | null;
+      unitPrice: number;
+      quantity: number;
+      subtotal: number;
+      moq: number;
+      stock: number;
+    }[];
+  }[];
+  total: number;
+  count: number;
+}
+
+export async function getCartSnapshotAction(): Promise<CartSnapshot | null> {
+  const session = await requireRole("RETAILER");
+  const retailerId = session.retailerId!;
+  const draft = await activeDraft(retailerId);
+  if (!draft || draft.supplierOrders.length === 0) return null;
+
+  const productIds = draft.supplierOrders.flatMap((so) =>
+    so.items.map((i) => i.productId),
+  );
+  const products = productIds.length
+    ? await db.product.findMany({
+        where: { id: { in: productIds } },
+        select: { id: true, images: true, moq: true, inventories: true },
+      })
+    : [];
+  const infoMap = new Map(
+    products.map((p) => [
+      p.id,
+      {
+        image: safeImg(p.images),
+        moq: p.moq,
+        stock: p.inventories.reduce((sum, i) => sum + i.stock, 0),
+      },
+    ]),
+  );
+
+  const groups = draft.supplierOrders.map((so) => ({
+    id: so.id,
+    wholesalerId: so.wholesalerId,
+    wholesalerName: so.wholesaler.business.tradeName ?? so.wholesaler.business.legalName,
+    contact: so.wholesaler.user?.name ?? null,
+    items: so.items.map((item) => ({
+      id: item.id,
+      productId: item.productId,
+      name: item.productName,
+      image: infoMap.get(item.productId)?.image ?? null,
+      unitPrice: Number(item.unitPrice),
+      quantity: item.quantity,
+      subtotal: Number(item.subtotal),
+      moq: infoMap.get(item.productId)?.moq ?? 1,
+      stock: infoMap.get(item.productId)?.stock ?? 0,
+    })),
+    subtotal: Number(so.subtotal),
+  }));
+  const total = groups.reduce((sum, g) => sum + g.subtotal, 0);
+  const count = groups.reduce(
+    (sum, g) => sum + g.items.reduce((x, i) => x + i.quantity, 0),
+    0,
+  );
+  return { orderId: draft.id, groups, total, count };
+}
+
+function safeImg(raw: string | null): string | null {
+  if (!raw) return null;
+  try {
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? (arr[0] ?? null) : null;
+  } catch {
+    return raw;
+  }
+}
+
+/** 清空购物车：删除草稿单全部内容（DRAFT 未提交，无业务引用） */
+export async function clearDraftAction(orderId: string): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireRole("RETAILER");
+  const t = dictForLocale(await getActionLocale());
+  const order = await db.order.findFirst({
+    where: { id: orderId, retailerId: session.retailerId!, status: "DRAFT" },
+    include: { supplierOrders: { include: { items: true } } },
+  });
+  if (!order) return { ok: false, error: t.orders.errNotFound };
+
+  await db.$transaction(async (tx) => {
+    for (const so of order.supplierOrders) {
+      await tx.orderItem.deleteMany({ where: { supplierOrderId: so.id } });
+    }
+    await tx.supplierOrder.deleteMany({ where: { orderId: order.id } });
+    await tx.order.delete({ where: { id: order.id } });
+  });
+  revalidatePath("/retailer/orders/draft");
+  return { ok: true };
 }

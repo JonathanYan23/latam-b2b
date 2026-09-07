@@ -20,6 +20,7 @@ import { signOut } from "next-auth/react";
 import type { Dict } from "@/i18n";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { AccountMenu } from "./account-menu";
+import { CartButton } from "./cart/cart-shell";
 import type { Locale } from "@/i18n/config";
 
 interface NavItem {
@@ -38,6 +39,8 @@ export function PortalShell({
   locale,
   children,
   unread,
+  cartCount,
+  currency,
 }: {
   role: "retailer" | "wholesaler";
   brand: string;
@@ -47,6 +50,8 @@ export function PortalShell({
   locale: Locale;
   children: React.ReactNode;
   unread?: Record<string, number>;
+  cartCount?: number;
+  currency?: string;
 }) {
   const pathname = usePathname();
   const nav = buildNav(role, t);
@@ -87,7 +92,14 @@ export function PortalShell({
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {role === "retailer" && (
+              <CartButton
+                initialCount={cartCount ?? 0}
+                t={t}
+                currency={currency}
+              />
+            )}
             <LanguageSwitcher current={locale} />
             <AccountMenu
               role={role}

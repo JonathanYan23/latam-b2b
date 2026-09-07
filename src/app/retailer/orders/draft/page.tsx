@@ -54,6 +54,7 @@ export default async function DraftOrderPage() {
   const groups =
     draft?.supplierOrders.map((so) => ({
       id: so.id,
+      wholesalerId: so.wholesalerId,
       wholesalerName: so.wholesaler.business.tradeName ?? t.common.supplier,
       contact: so.wholesaler.user?.name ?? null,
       items: so.items.map((item) => ({
@@ -73,12 +74,26 @@ export default async function DraftOrderPage() {
 
   return (
     <div className="mx-auto max-w-4xl animate-fade-up">
-      <Link
-        href="/retailer/orders"
-        className="text-meta mb-5 inline-flex items-center gap-1.5 hover:text-[var(--color-ink)]"
-      >
-        <ArrowLeft className="size-4" /> {t.orders.backToOrders}
-      </Link>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+        <Link
+          href="/retailer/orders"
+          className="text-meta inline-flex items-center gap-1.5 hover:text-[var(--color-ink)]"
+        >
+          <ArrowLeft className="size-4" /> {t.orders.backToOrders}
+        </Link>
+        {groups.length > 0 && (
+          <Link
+            href={
+              groups.length === 1 && groups[0].wholesalerId
+                ? `/retailer/suppliers/${groups[0].wholesalerId}`
+                : "/retailer/browse"
+            }
+            className="btn btn-secondary px-3.5 py-1.5 text-xs"
+          >
+            {t.cart.continueShopping}
+          </Link>
+        )}
+      </div>
       <h1 className="text-h1">{t.cart.title}</h1>
       <p className="text-body mt-1">{t.cart.desc}</p>
 
