@@ -4,6 +4,10 @@
 > 面向零售/批发双门户；Vercel + Neon(pgvector) 免费基础设施；模型全部开源、本地部署、无 API 调用费。
 > 状态：方案全文 + 本仓库已落地非推理部分（前端/数据/规则层）；推理服务部署后即刻点亮。
 
+> **✅ 2026-09-08 更新：已接入 SiliconFlow 云 API（零部署方案），AI 识别/向量开箱即用**
+> 详见文末「附录 A：SiliconFlow 快速点亮」。自托管推理服务仍为可选项（数据不出第三方时采用）。
+
+
 ---
 
 ## 0. 总体架构
@@ -214,3 +218,27 @@ CMD ["--model-id","Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4","--quantize","gptq"]
 
 > 后续迭代候选：/api/ai/extract 与 /api/ai/similar 路由、商品列表行内 ⚠、每日巡检 Cron、
 > 推理服务 Docker 编排、采购量/相关性权重调参。全部待用户确认后推进。
+
+
+---
+
+## 附录 A：SiliconFlow 快速点亮（零部署，推荐）
+
+注册 https://cloud.siliconflow.cn → 控制台「API 密钥」→ 创建 `sk-...` Key。
+然后在 **本地 `.env.local`** 与 **Vercel 环境变量** 各加一项（代码已就绪，无需改动）：
+
+```bash
+SILICONFLOW_API_KEY=sk-xxxx
+# 可选覆盖（默认值已可直接用）：
+# AI_VISION_MODEL=Qwen/Qwen3-VL-8B-Instruct    # 看图直读（默认）；复杂报价单用 Qwen/Qwen3-VL-32B-Instruct 或 zai-org/GLM-4.5V
+# AI_MODEL=deepseek-ai/DeepSeek-V3.1            # 文本字段规范化
+# AI_EMBED_MODEL=BAAI/bge-m3                    # 语义向量 1024 维
+```
+
+点亮后行为：
+- **商品图/报价单上传**（批量智能上架）：`POST /api/ai/extract`（批发商鉴权）→ Qwen2.5-VL
+  看图直读 → 回填 名称/货号/价格/MOQ → 行内显示「AI 已自动填写，可修改」，全程可手动改
+- **搜索**：向量/embedding 函数就绪（BGE-M3），pgvector 语义检索在 Neon 按需启用
+- **降级**：未配置 Key 时 `ENABLED=false`，界面照常手动填写/关键词搜索，无任何报错
+
+费用：约 $0.05 / 百万 token 级；演示与日常使用消耗可忽略（注册通常赠送免费额度）。

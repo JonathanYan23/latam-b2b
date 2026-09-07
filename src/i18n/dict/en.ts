@@ -412,6 +412,8 @@ const en = {
     bulkHint:
       "Upload product photos, price lists, Excel or screenshots — AI reads and fills the fields; review and create in one batch. Editable at any time.",
     dupWarn: "Likely duplicate found in your catalog: {name}",
+    aiDetecting: "AI reading image…",
+    aiDone: "AI filled the fields — editable",
     dupSkipped: "Skipped (not adding)",
     skipDup: "Skip this one",
     mergeDup: "Keep both (add anyway)",

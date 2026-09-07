@@ -415,6 +415,8 @@ const es = {
     bulkHint:
       "Sube fotos de productos, listas de precios, Excel o capturas: la IA lee y rellena los datos; revisa y crea en lote. Todo editable.",
     dupWarn: "Posible duplicado en tu catálogo: {name}",
+    aiDetecting: "La IA lee la imagen…",
+    aiDone: "La IA completó los datos: editable",
     dupSkipped: "Omitido (no se añade)",
     skipDup: "Omitir esta",
     mergeDup: "Mantener ambas (añadir igual)",

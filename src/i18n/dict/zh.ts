@@ -403,6 +403,8 @@ const zh = {
     bulkTitle: "批量智能上架",
     bulkHint: "上传商品照片、报价单、Excel、截图，AI 自动识别并填写商品信息；补正后勾选批量上架。识别结果可手动修改。",
     dupWarn: "在您的商品库中发现疑似重复商品：{name}",
+    aiDetecting: "AI 识别中…",
+    aiDone: "AI 已自动填写，可修改",
     dupSkipped: "已跳过（不新增）",
     skipDup: "跳过不新增",
     mergeDup: "保留两件（都可入库）",

@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ImagePlus, Loader2, Trash2, ArrowLeft } from "lucide-react";
+import { ImagePlus, Loader2, Trash2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { bulkCreateProductsAction } from "../actions";
 import { isLikelyDuplicate } from "@/lib/normalize";
 import { fmt } from "@/i18n/utils";
@@ -17,6 +17,7 @@ interface Row {
   price: string;
   moq: string;
   selected: boolean;
+  ai?: "loading" | "done";
 }
 
 let uid = 0;
@@ -67,9 +68,57 @@ export function BulkProductForm({
     setRows((prev) => [...prev, ...newRows]);
     setUploading(false);
     if (newRows.length === 0) setError(t.messages.errEmpty);
+    // AI 自动识别：每张图并发请求，成功后回填字段（未配置 AI 时接口直接返回 disabled，静默跳过）
+    for (const r of newRows) void aiRecognize(r.id, r.imageUrl);
   }
 
-  function update(id: number, field: keyof Row, value: string | boolean) {
+  /** 上传后 AI 看图直读商品字段 → 回填行（可手动修改；失败不打扰） */
+  async function aiRecognize(id: number, url: string) {
+    update(id, "ai", "loading");
+    try {
+      const res = await fetch("/api/ai/extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        disabled?: boolean;
+        fields?: {
+          name?: string;
+          sku?: string;
+          publicPrice?: number;
+          moq?: number;
+          brand?: string;
+        };
+      };
+      if (!res.ok || !data?.ok) {
+        update(id, "ai", undefined);
+        return;
+      }
+      const f = data.fields ?? {};
+      const patch: Partial<Row> = { ai: "done" };
+      if (typeof f.name === "string" && f.name.trim().length >= 2) {
+        patch.name = f.name.trim();
+      }
+      if (typeof f.sku === "string" && f.sku.trim()) {
+        patch.sku = f.sku.trim();
+      }
+      if (typeof f.publicPrice === "number" && f.publicPrice >= 0) {
+        patch.price = String(f.publicPrice);
+      }
+      if (typeof f.moq === "number" && f.moq >= 1) {
+        patch.moq = String(f.moq);
+      }
+      setRows((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+      );
+    } catch {
+      update(id, "ai", undefined);
+    }
+  }
+
+  function update(id: number, field: keyof Row, value: string | boolean | undefined) {
     setRows((prev) =>
       prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)),
     );
@@ -240,6 +289,18 @@ export function BulkProductForm({
                 {dupName && !r.selected && (
                   <span className="badge badge-warning shrink-0">
                     {t.wsProducts.dupSkipped}
+                  </span>
+                )}
+                {r.ai === "loading" && (
+                  <span className="badge badge-info shrink-0">
+                    <Loader2 className="size-3 animate-spin" />{" "}
+                    {t.wsProducts.aiDetecting}
+                  </span>
+                )}
+                {r.ai === "done" && (
+                  <span className="inline-flex shrink-0 items-center gap-1 text-xs text-[var(--color-success)]">
+                    <CheckCircle2 className="size-3.5" />
+                    {t.wsProducts.aiDone}
                   </span>
                 )}
 
