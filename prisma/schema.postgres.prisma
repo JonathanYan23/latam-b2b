@@ -197,6 +197,8 @@ model Product {
   description String?
   keywords    String? // 多语言搜索关键词（逗号分隔），如 "无线耳机,audifonos,earbuds"
   sku         String
+  barcode     String? // 商品条形码（商家内部查重用）
+  boxSize     String? // 箱规/包装规格，如 "24瓶/箱"（录入时标准化）
   images      String // JSON array of image URLs
   sellingMode SellingMode @default(BOTH)
 

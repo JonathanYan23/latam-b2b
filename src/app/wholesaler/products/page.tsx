@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, PackageX, Pencil, Images } from "lucide-react";
+import { Plus, PackageX, Pencil, Images, CheckCircle2 } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import { getDictionary, getLocale } from "@/i18n";
@@ -36,6 +36,9 @@ export default async function WholesalerProductsPage() {
           <h1 className="text-h1">{t.wsProducts.title}</h1>
           <p className="text-body mt-1">
             {fmt(t.wsProducts.countDesc, { n: products.length })}
+          </p>
+          <p className="mt-1 inline-flex items-center gap-1 text-xs text-[var(--color-success)]">
+            <CheckCircle2 className="size-3.5" /> {t.wsProducts.stdNote}
           </p>
         </div>
         <div className="flex items-center gap-2">

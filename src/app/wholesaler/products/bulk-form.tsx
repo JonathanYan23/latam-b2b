@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Loader2, Trash2, ArrowLeft } from "lucide-react";
 import { bulkCreateProductsAction } from "../actions";
+import { isLikelyDuplicate } from "@/lib/normalize";
+import { fmt } from "@/i18n/utils";
 import type { Dict } from "@/i18n";
 
 interface Row {
@@ -19,7 +21,13 @@ interface Row {
 
 let uid = 0;
 
-export function BulkProductForm({ t }: { t: Dict }) {
+export function BulkProductForm({
+  t,
+  existing = [],
+}: {
+  t: Dict;
+  existing?: { name: string; barcode: string | null }[];
+}) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<Row[]>([]);
@@ -70,6 +78,21 @@ export function BulkProductForm({ t }: { t: Dict }) {
   function toggleAll() {
     const v = !allSelected;
     setRows((prev) => prev.map((r) => ({ ...r, selected: v })));
+  }
+
+  /** 商家内部查重（名称相似 ≥85% 或条码一致），仅对库内+本页草稿；只提示不自动删 */
+  function dupNameOf(r: Row): string | null {
+    const name = r.name.trim();
+    if (name.length < 2) return null;
+    for (const e of existing) {
+      if (e.barcode && e.barcode === r.sku) return e.name;
+      if (isLikelyDuplicate(name, null, { name: e.name })) return e.name;
+    }
+    for (const o of rows) {
+      if (o.id === r.id || !o.name.trim()) continue;
+      if (isLikelyDuplicate(name, null, { name: o.name })) return o.name;
+    }
+    return null;
   }
 
   function submit() {
@@ -168,8 +191,34 @@ export function BulkProductForm({ t }: { t: Dict }) {
           </div>
 
           <div className="space-y-3">
-            {rows.map((r) => (
-              <div key={r.id} className="card flex flex-wrap items-center gap-3 p-3">
+            {rows.map((r) => {
+              const dupName = dupNameOf(r);
+              return (
+              <div
+                key={r.id}
+                className={`card flex flex-wrap items-center gap-3 p-3 ${
+                  dupName && r.selected ? "!border-[var(--color-warning)]" : ""
+                } ${r.selected ? "" : "opacity-60"}`}
+              >
+                {dupName && (
+                  <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-md bg-[#fef3c7] px-3 py-2 text-xs text-[#92400e]">
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <span aria-hidden>⚠</span>
+                      <span className="truncate">
+                        {fmt(t.wsProducts.dupWarn, { name: dupName })}
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => update(r.id, "selected", false)}
+                        className="rounded-md border border-[#d97706] px-2 py-1 font-medium text-[#92400e] transition-colors hover:bg-[#92400e] hover:text-white"
+                      >
+                        {t.wsProducts.skipDup}
+                      </button>
+                    </span>
+                  </div>
+                )}
                 <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-xs">
                   <input
                     type="checkbox"
@@ -188,6 +237,11 @@ export function BulkProductForm({ t }: { t: Dict }) {
                     />
                   </span>
                 </label>
+                {dupName && !r.selected && (
+                  <span className="badge badge-warning shrink-0">
+                    {t.wsProducts.dupSkipped}
+                  </span>
+                )}
 
                 <div className="grid min-w-0 flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
                   <input
@@ -218,7 +272,8 @@ export function BulkProductForm({ t }: { t: Dict }) {
                   />
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

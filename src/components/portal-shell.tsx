@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   Package,
   LogOut,
@@ -54,6 +55,8 @@ export function PortalShell({
   currency?: string;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [searchQ, setSearchQ] = useState("");
   const nav = buildNav(role, t);
   const isActive = (item: NavItem) =>
     (item.match ?? [item.href]).some((p) => pathname.startsWith(p) && p !== "/");
@@ -92,6 +95,25 @@ export function PortalShell({
             ))}
           </nav>
 
+          {role === "retailer" && (
+            <form
+              className="relative hidden md:block"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = searchQ.trim();
+                router.push(q ? `/retailer/browse?q=${encodeURIComponent(q)}` : "/retailer/browse");
+              }}
+            >
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--color-ink-3)]" />
+              <input
+                value={searchQ}
+                onChange={(e) => setSearchQ(e.target.value)}
+                placeholder={t.nav.searchProducts}
+                aria-label={t.nav.searchProducts}
+                className="input h-9 w-44 pl-9 py-0 text-sm lg:w-56"
+              />
+            </form>
+          )}
           <div className="flex items-center gap-1.5">
             {role === "retailer" && (
               <CartButton

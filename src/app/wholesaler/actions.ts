@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {dictForLocale, getActionLocale} from "@/i18n";
 import { fmt } from "@/i18n/utils";
+import { normalizeSpecText } from "@/lib/normalize";
 
 const productSchema = z.object({
   name: z.string().min(2, "name"),
@@ -66,7 +67,7 @@ export async function createProductAction(
         wholesalerId,
         categoryId: categoryId || null,
         name,
-        description: description || null,
+        description: normalizeSpecText(description) ?? null,
         sku: sku.trim(),
         images: JSON.stringify(imageUrl ? [imageUrl] : []),
         sellingMode,
@@ -148,7 +149,7 @@ export async function updateProductAction(
     data: {
       name,
       sku: sku.trim(),
-      description: description || null,
+      description: normalizeSpecText(description) ?? null,
       categoryId: categoryId || null,
       images: JSON.stringify(imageUrl ? [imageUrl] : []),
       sellingMode,
