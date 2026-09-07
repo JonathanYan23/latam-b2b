@@ -35,7 +35,6 @@ export default async function WholesalerAccountPage() {
             legalName: true,
             phone: true,
             address: true,
-            website: true,
             taxId: true,
           },
         },
@@ -120,7 +119,6 @@ export default async function WholesalerAccountPage() {
                   legalName: wholesaler.business.legalName,
                   phone: wholesaler.business.phone,
                   address: wholesaler.business.address,
-                  website: wholesaler.business.website,
                   taxId: wholesaler.business.taxId,
                 }
               : undefined

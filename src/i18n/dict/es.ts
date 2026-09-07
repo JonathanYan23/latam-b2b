@@ -200,6 +200,7 @@ const es = {
     filterRegion: "Región:",
     searchBtn: "Buscar",
     noResults: "No se encontraron mayoristas",
+    categoryLine: "Líneas principales: ",
   },
 
   browse: {
@@ -540,7 +541,6 @@ const es = {
     legalName: "Razón social",
     phone: "Teléfono",
     address: "Dirección",
-    website: "Sitio web",
     taxId: "NIF",
     profileSaved: "Perfil de tienda guardado",
     title: "Cuentas por cobrar",

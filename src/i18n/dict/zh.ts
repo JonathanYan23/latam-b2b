@@ -198,6 +198,7 @@ const zh = {
     filterRegion: "地区：",
     searchBtn: "搜索",
     noResults: "没有找到匹配的批发商",
+    categoryLine: "主营：",
   },
 
   browse: {
@@ -524,7 +525,6 @@ const zh = {
     legalName: "法定全称",
     phone: "联系电话",
     address: "营业地址",
-    website: "官网",
     taxId: "税号",
     profileSaved: "店铺资料已保存",
     title: "应收账款",

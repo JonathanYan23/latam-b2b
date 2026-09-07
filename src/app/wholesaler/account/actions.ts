@@ -100,7 +100,6 @@ export async function saveBusinessProfileAction(
       legalName: g("legalName") ?? undefined,
       phone: g("phone") || null,
       address: g("address") || null,
-      website: g("website") || null,
       taxId: g("taxId") || null,
     },
   });

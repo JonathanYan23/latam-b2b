@@ -109,6 +109,7 @@ model Business {
   phone        String?
   website      String?
   logo         String?
+  categorySummary String? // 主营品类一句话（找批发商卡片展示）
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

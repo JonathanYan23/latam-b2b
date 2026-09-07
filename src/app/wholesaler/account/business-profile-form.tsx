@@ -11,7 +11,6 @@ export interface BusinessDraft {
   legalName: string | null;
   phone: string | null;
   address: string | null;
-  website: string | null;
   taxId: string | null;
 }
 
@@ -74,18 +73,6 @@ export function BusinessProfileForm({
         <input
           name="phone"
           defaultValue={business?.phone ?? ""}
-          className="input py-2 text-sm"
-        />
-      </div>
-      <div>
-        <label className="mb-1.5 block text-xs font-medium text-[var(--color-ink-2)]">
-          {k.website}
-        </label>
-        <input
-          name="website"
-          type="url"
-          defaultValue={business?.website ?? ""}
-          placeholder="https://"
           className="input py-2 text-sm"
         />
       </div>

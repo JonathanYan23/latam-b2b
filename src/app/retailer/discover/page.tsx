@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Store, MapPin, Package, ArrowRight, Search, MessageCircle } from "lucide-react";
 import { db } from "@/lib/db";
@@ -44,6 +45,12 @@ export default async function DiscoverPage({
         business: { include: { city: true, country: true } },
         user: { select: { name: true } },
         _count: { select: { products: true } },
+        products: {
+          where: { active: true },
+          orderBy: { createdAt: "desc" },
+          take: 6,
+          select: { images: true, category: { select: { name: true } } },
+        },
       },
       orderBy: { createdAt: "asc" },
     }),
@@ -139,6 +146,23 @@ export default async function DiscoverPage({
           ]
             .filter(Boolean)
             .join(", ");
+          // 3–5 张代表性商品预览图（有图商品，去重，无价格无库存）
+          const previewUrls: string[] = [];
+          for (const prod of w.products) {
+            try {
+              const arr = JSON.parse(prod.images || "[]");
+              if (Array.isArray(arr)) {
+                for (const u of arr) {
+                  if (typeof u === "string" && u && !previewUrls.includes(u)) {
+                    previewUrls.push(u);
+                  }
+                  if (previewUrls.length >= 4) break;
+                }
+              }
+            } catch { /* ignore */ }
+            if (previewUrls.length >= 4) break;
+          }
+          const summary = w.business.categorySummary?.trim();
           return (
             <div key={w.id} className="card flex flex-col p-5">
               <div className="flex items-start gap-3">
@@ -169,6 +193,31 @@ export default async function DiscoverPage({
                 )}
               </div>
 
+              {summary && (
+                <p className="mt-3 truncate text-xs text-[var(--color-ink-2)]">
+                  <span className="font-medium">{t.discover.categoryLine}</span>
+                  {summary}
+                </p>
+              )}
+              {previewUrls.length > 0 && (
+                <div className="mt-2.5 flex gap-1.5">
+                  {previewUrls.map((u, i) => (
+                    <span
+                      key={u}
+                      className="relative block size-12 shrink-0 overflow-hidden rounded-md border border-[var(--color-line-2)] bg-[var(--color-bg-muted)]"
+                    >
+                      <Image
+                        src={u}
+                        alt=""
+                        fill
+                        sizes="48px"
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </span>
+                  ))}
+                </div>
+              )}
               <p className="text-meta mt-3 flex items-center gap-1 text-xs">
                 <Package className="size-3.5" />{" "}
                 {fmt(t.suppliers.productsCount, { n: w._count.products })}

@@ -199,6 +199,7 @@ const en = {
     filterRegion: "Region:",
     searchBtn: "Search",
     noResults: "No matching wholesalers found",
+    categoryLine: "Main lines: ",
   },
 
   browse: {
@@ -537,7 +538,6 @@ const en = {
     legalName: "Legal name",
     phone: "Phone",
     address: "Address",
-    website: "Website",
     taxId: "Tax ID",
     profileSaved: "Store profile saved",
     title: "Accounts Receivable",
