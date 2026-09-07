@@ -65,7 +65,11 @@ export default async function WholesalerProductsPage() {
           </div>
         </div>
       ) : (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <>
+          <p className="text-meta mt-8 text-sm">
+            {fmt(t.wsProducts.countDesc, { n: products.length })}
+          </p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {products.map((p) => {
             const [img] = parseImages(p.images);
             const stock = p.inventories.reduce((x, i) => x + i.stock, 0);
@@ -122,7 +126,8 @@ export default async function WholesalerProductsPage() {
               </div>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
