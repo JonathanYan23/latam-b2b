@@ -175,9 +175,7 @@ export default async function BrowsePage({
                   <div className="mt-auto flex items-end justify-between pt-2">
                     {view.price ? (
                       <div>
-                        <p className="text-sm font-semibold">
-                          {money(view.price, cur)}
-                        </p>
+                        <p className="text-base font-bold">{money(view.price, cur)}</p>
                         {view.priceType === "CUSTOMER" && (
                           <p className="text-[11px] font-medium text-[var(--color-accent)]">
                             {t.browse.yourPrice}

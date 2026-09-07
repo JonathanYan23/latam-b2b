@@ -103,7 +103,7 @@ export default async function WholesalerOrdersPage() {
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-2">
-                    <p className="text-sm font-semibold">{money(o.total, cur)}</p>
+                    <p className="amount text-sm">{money(o.total, cur)}</p>
                     <div className="relative z-10 flex items-center gap-1.5">
                       <DeleteOrderButton
                         supplierOrderId={o.id}

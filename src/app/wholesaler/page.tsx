@@ -125,9 +125,7 @@ export default async function WholesalerHome() {
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <DollarSign className="size-4 text-[var(--color-ink-2)]" />
           </span>
-          <p className="mt-3 text-[15px] font-semibold">
-            {money(receivables._sum?.amount, cur)}
-          </p>
+          <p className="amount mt-3 text-[15px]">{money(receivables._sum?.amount, cur)}</p>
           <p className="text-meta mt-0.5">{t.wholesalerHome.receivables}</p>
         </Link>
         <Link

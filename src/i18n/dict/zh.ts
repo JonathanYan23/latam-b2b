@@ -208,6 +208,7 @@ const zh = {
     title: "我的供应商",
     desc: "与你合作的批发商。每段合作关系独立管理。",
     emptyTitle: "还没有供应商",
+    partnerSince: "合作开始",
     emptyDesc: "去逛市场，向批发商申请报价，开始合作吧。",
     productsCount: "{n} 件商品",
     approved: "已批准",

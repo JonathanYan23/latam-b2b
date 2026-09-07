@@ -210,6 +210,7 @@ const en = {
     title: "My Suppliers",
     desc: "Wholesalers you work with. Each relationship is managed independently.",
     emptyTitle: "No suppliers yet",
+    partnerSince: "Partner since",
     emptyDesc:
       "Browse the marketplace and request pricing from wholesalers to start working together.",
     productsCount: "{n} products",

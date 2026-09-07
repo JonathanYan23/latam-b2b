@@ -4,7 +4,12 @@ import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
 import { fmt } from "@/i18n/utils";
-import { relationshipStatusLabel, relationshipStatusTone } from "@/lib/format";
+import {
+  relationshipStatusLabel,
+  relationshipStatusTone,
+  date,
+} from "@/lib/format";
+import type { RelationshipStatus } from "@prisma/client";
 import { SupplierChatButton } from "./chat-button";
 
 export const metadata = { title: "My Suppliers" };
@@ -24,11 +29,25 @@ export default async function SuppliersPage() {
     }),
     db.customerRelationship.findMany({
       where: { retailerId },
-      select: { wholesalerId: true, status: true },
+      select: {
+        wholesalerId: true,
+        status: true,
+        approvedAt: true,
+        paymentTerms: true,
+      },
     }),
   ]);
 
-  const relMap = new Map(relationships.map((r) => [r.wholesalerId, r.status]));
+  const relMap = new Map(
+    relationships.map((r) => [
+      r.wholesalerId,
+      {
+        status: r.status,
+        approvedAt: r.approvedAt,
+        paymentTerms: r.paymentTerms,
+      },
+    ]),
+  );
 
   // 每个供应商的未读数（对方发来未读）
   const unreadGroups = await db.message.groupBy({
@@ -52,7 +71,12 @@ export default async function SuppliersPage() {
           </div>
         ) : (
           wholesalers.map((w) => {
-            const status = relMap.get(w.id);
+            const meta = relMap.get(w.id) ?? {
+              status: undefined,
+              approvedAt: null,
+              paymentTerms: null,
+            };
+            const status = meta.status as unknown as RelationshipStatus | undefined;
             const location = [
               w.business.city?.name,
               w.business.country?.name,
@@ -86,6 +110,20 @@ export default async function SuppliersPage() {
                         </span>
                       )}
                     </span>
+                    {status === "APPROVED" && (
+                      <span className="text-meta mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                        {meta.approvedAt && (
+                          <span>
+                            {t.suppliers.partnerSince}: {date(meta.approvedAt)}
+                          </span>
+                        )}
+                        {meta.paymentTerms && (
+                          <span className="badge badge-neutral text-[10px]">
+                            {t.common.terms}: {meta.paymentTerms}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </span>
                 </Link>
                 <span className="flex shrink-0 items-center gap-2">

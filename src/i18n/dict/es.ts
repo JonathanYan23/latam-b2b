@@ -214,6 +214,7 @@ const es = {
     title: "Mis proveedores",
     desc: "Mayoristas con los que trabajas. Cada relación se gestiona de forma independiente.",
     emptyTitle: "Aún no hay proveedores",
+    partnerSince: "Socio desde",
     emptyDesc:
       "Explora el marketplace y solicita precios a los mayoristas para empezar a trabajar juntos.",
     productsCount: "{n} productos",

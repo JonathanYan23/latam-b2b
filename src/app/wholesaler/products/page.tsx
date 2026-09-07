@@ -105,22 +105,18 @@ export default async function WholesalerProductsPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center justify-between rounded-lg border border-[var(--color-line-2)] px-3 py-2">
-                  <span
-                    className={`text-xs font-medium ${
-                      stock <= 0
-                        ? "text-[var(--color-danger)]"
-                        : stock < 20
-                          ? "text-[var(--color-warning)]"
-                          : "text-[var(--color-ink-2)]"
-                    }`}
-                  >
-                    {stock <= 0
-                      ? t.common.outOfStock
-                      : stock < 20
-                        ? fmt("{l} · {n}", { l: t.common.lowStock, n: stock })
-                        : fmt("{n} {u} " + t.common.inStock, { n: stock, u: t.common.units })}
-                  </span>
+                <div className="mt-3 flex items-center justify-between gap-2 rounded-lg border border-[var(--color-line-2)] px-3 py-2">
+                  {stock <= 0 ? (
+                    <span className="badge badge-danger shrink-0">{t.common.outOfStock}</span>
+                  ) : stock < 20 ? (
+                    <span className="badge badge-warning shrink-0">
+                      {fmt("{l} · {n}", { l: t.common.lowStock, n: stock })}
+                    </span>
+                  ) : (
+                    <span className="text-meta shrink-0 text-xs">
+                      {fmt("{n} {u} " + t.common.inStock, { n: stock, u: t.common.units })}
+                    </span>
+                  )}
                   <StockUpdater productId={p.id} initial={stock} t={t} />
                 </div>
               </div>
