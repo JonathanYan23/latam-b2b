@@ -25,11 +25,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "too_large" }, { status: 413 });
   }
 
-  // 生产（Vercel）凭据：OIDC（BLOB_STORE_ID + 运行时 VERCEL_OIDC_TOKEN）或静态读写 token
+  // 生产（Vercel）凭据：完整可用才走 Blob——
+  // 静态读写 token 自足；OIDC 需要 BLOB_STORE_ID + VERCEL_OIDC_TOKEN 同时存在。
+  // 否则（本地开发 / 未配存储）落到 public/uploads，避免本地误调云端报错。
   const hasBlob = !!(
     process.env.BLOB_READ_WRITE_TOKEN ||
-    process.env.VERCEL_OIDC_TOKEN ||
-    process.env.BLOB_STORE_ID
+    (process.env.BLOB_STORE_ID && process.env.VERCEL_OIDC_TOKEN)
   );
   if (hasBlob) {
     try {
