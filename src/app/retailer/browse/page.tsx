@@ -170,7 +170,7 @@ export default async function BrowsePage({
                   >
                     <div className="relative aspect-square w-full bg-[var(--color-bg-muted)]">
                       {imgA && (
-                        <Image src={imgA} alt={a.name} fill sizes="(max-width:640px) 100vw,25vw" className="object-cover" unoptimized />
+                        <Image src={imgA} alt={a.name} fill sizes="(max-width:640px) 100vw,25vw" data-zoom className="object-cover" unoptimized />
                       )}
                       <span className={`badge absolute left-3 top-3 backdrop-blur-sm ${stockA <= 0 ? "badge-danger" : stockA < 20 ? "badge-warning" : "badge-success"}`}>
                         {stockA <= 0 ? t.common.outOfStock : t.common.inStock}
@@ -247,6 +247,7 @@ export default async function BrowsePage({
                     <Image
                       src={img}
                       alt={p.name}
+                      data-zoom
                       fill
                       sizes="(max-width: 640px) 100vw, 25vw"
                       className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"

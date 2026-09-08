@@ -4,6 +4,7 @@ import { navUnread } from "@/lib/unread";
 import { db } from "@/lib/db";
 import {getDictionary, getLocale} from "@/i18n";
 import { PortalShell } from "@/components/portal-shell";
+import { ImageLightbox } from "@/components/image-lightbox";
 
 /** 购物车角标数：当前 DRAFT 草稿单的商品总件数 */
 async function cartItemCount(retailerId: string | null | undefined): Promise<number> {
@@ -35,7 +36,9 @@ export default async function RetailerLayout({
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
 
   return (
-    <PortalShell
+    <>
+      <ImageLightbox />
+      <PortalShell
       role="retailer"
       brand={t.nav.retailerBrand}
       userName={session.user.name}
@@ -54,6 +57,7 @@ export default async function RetailerLayout({
       currency={(session.user as { currency?: string }).currency ?? "USD"}
     >
       {children}
-    </PortalShell>
+      </PortalShell>
+    </>
   );
 }

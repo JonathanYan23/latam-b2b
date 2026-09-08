@@ -209,6 +209,7 @@ export default async function DiscoverPage({
                       <Image
                         src={u}
                         alt=""
+                        data-zoom
                         fill
                         sizes="48px"
                         className="object-cover"

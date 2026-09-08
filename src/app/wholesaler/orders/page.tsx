@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShoppingCart, FileDown } from "lucide-react";
+import { ShoppingCart, FileDown, Search } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
@@ -11,6 +11,7 @@ import {
   date,
 } from "@/lib/format";
 import { DeleteOrderButton } from "./delete-order-button";
+import { OrderCheckbox, OrdersBulkBar } from "./orders-bulk";
 import { AutoRefresh } from "@/components/auto-refresh";
 
 export const metadata = { title: "Orders" };
@@ -18,18 +19,52 @@ export const metadata = { title: "Orders" };
 export default async function WholesalerOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ s?: string }>;
+  searchParams: Promise<{ s?: string; q?: string; f?: string; t?: string }>;
 }) {
   const session = await requireRole("WHOLESALER");
   const cur = session.currency ?? "USD"; // 账户货币符号
   const t = await getDictionary();
   const wholesalerId = session.wholesalerId!;
-  const { s } = await searchParams;
+  const { s, q, f, t: ft } = await searchParams;
   const STATUSES = ["ALL", "DRAFT", "SUBMITTED", "CONFIRMED", "PREPARING", "READY", "COMPLETED", "CANCELLED"] as const;
   const activeStatus = STATUSES.includes(s as (typeof STATUSES)[number]) ? (s as (typeof STATUSES)[number]) : "ALL";
+  const keyword = (q ?? "").trim();
+  const dateFrom = (f ?? "").trim();
+  const dateTo = (ft ?? "").trim();
+  const hasFilter = Boolean(keyword || dateFrom || dateTo);
 
+  const where = {
+    wholesalerId,
+    deletedAt: null, // 前台不展示已删除（后台保留）
+    ...(activeStatus !== "ALL" ? { status: activeStatus as never } : {}),
+    ...(dateFrom || dateTo
+      ? {
+          createdAt: {
+            ...(dateFrom ? { gte: new Date(dateFrom + "T00:00:00") } : {}),
+            ...(dateTo ? { lte: new Date(dateTo + "T23:59:59") } : {}),
+          } as never,
+        }
+      : {}),
+    ...(keyword
+      ? {
+          order: {
+            OR: [
+              { orderNumber: { contains: keyword } },
+              {
+                retailer: {
+                  OR: [
+                    { business: { tradeName: { contains: keyword } } },
+                    { user: { name: { contains: keyword } } },
+                  ],
+                },
+              },
+            ],
+          },
+        }
+      : {}),
+  };
   const orders = await db.supplierOrder.findMany({
-    where: { wholesalerId },
+    where,
     orderBy: { createdAt: "desc" },
     include: {
       order: {
@@ -57,17 +92,60 @@ export default async function WholesalerOrdersPage({
       <h1 className="text-h1">{t.wsOrders.title}</h1>
       <p className="text-body mt-1">{t.wsOrders.desc}</p>
 
-      {/* 状态筛选 + 导出 */}
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
+      {/* 搜索 + 日期筛选（与状态 chips 组合使用） */}
+      <form
+        method="get"
+        action="/wholesaler/orders"
+        className="card mt-5 flex flex-wrap items-end gap-2 p-3"
+      >
+        {activeStatus !== "ALL" && <input type="hidden" name="s" value={activeStatus} />}
+        <div className="relative min-w-0 flex-1 basis-52">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--color-ink-3)]" />
+          <input
+            name="q"
+            defaultValue={keyword}
+            placeholder={t.wsOrders.searchOrders}
+            className="input h-10 pl-9 text-sm"
+          />
+        </div>
+        <label className="text-xs text-[var(--color-ink-2)]">
+          {t.wsOrders.dateFrom}
+          <input name="f" type="date" defaultValue={dateFrom} className="input mt-1 h-10 px-2 text-sm" />
+        </label>
+        <label className="text-xs text-[var(--color-ink-2)]">
+          {t.wsOrders.dateTo}
+          <input name="t" type="date" defaultValue={dateTo} className="input mt-1 h-10 px-2 text-sm" />
+        </label>
+        <button type="submit" className="btn btn-primary h-10 px-4 text-sm">
+          {t.common.search}
+        </button>
+        {hasFilter && (
+          <a
+            href="/wholesaler/orders"
+            className="btn btn-ghost h-10 px-3 text-sm text-[var(--color-ink-2)]"
+          >
+            {t.wsOrders.resetFilter}
+          </a>
+        )}
+      </form>
+
+      {/* 状态筛选 + 导出（保留搜索/日期参数） */}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap gap-1.5">
         {STATUSES.map((st) => {
           const n = st === "ALL" ? allCount : counts[st] ?? 0;
           const active = activeStatus === st;
           const label = st === "ALL" ? t.common.all : orderStatusLabel(st as never, t);
+          const sp = new URLSearchParams();
+          if (st !== "ALL") sp.set("s", st);
+          if (keyword) sp.set("q", keyword);
+          if (dateFrom) sp.set("f", dateFrom);
+          if (dateTo) sp.set("t", dateTo);
+          const qs = sp.toString();
           return (
             <Link
               key={st}
-              href={st === "ALL" ? "/wholesaler/orders" : `/wholesaler/orders?s=${st}`}
+              href={`/wholesaler/orders${qs ? `?${qs}` : ""}`}
               className={
                 active
                   ? "rounded-full bg-[var(--color-ink)] px-3 py-1.5 text-xs font-medium text-white"
@@ -92,9 +170,13 @@ export default async function WholesalerOrdersPage({
 
       {shown.length === 0 ? (
         <div className="card mt-8 flex flex-col items-center px-6 py-16 text-center">
-          <ShoppingCart className="mb-4 size-8 text-[var(--color-ink-3)]" strokeWidth={1.5} />
-          <p className="text-h3 text-base">{t.wsOrders.emptyTitle}</p>
-          <p className="text-meta mt-1.5 max-w-sm">{t.wsOrders.emptyDesc}</p>
+          <Search className="mb-4 size-8 text-[var(--color-ink-3)]" strokeWidth={1.5} />
+          <p className="text-h3 text-base">
+            {hasFilter ? t.wsOrders.noMatchOrders : t.wsOrders.emptyTitle}
+          </p>
+          <p className="text-meta mt-1.5 max-w-sm">
+            {hasFilter ? t.wsOrders.desc : t.wsOrders.emptyDesc}
+          </p>
         </div>
       ) : (
         <div className="mt-8 grid gap-4 lg:grid-cols-2">
@@ -107,8 +189,11 @@ export default async function WholesalerOrdersPage({
             return (
               <div
                 key={o.id}
-                className="card group relative flex flex-col p-5 transition-shadow hover:shadow-md"
+                className="card group relative flex flex-col p-5 pl-11 transition-shadow hover:shadow-md"
               >
+                <div className="absolute left-4 top-5 z-20">
+                  <OrderCheckbox id={o.id} />
+                </div>
                 <Link
                   href={`/wholesaler/orders/${o.id}`}
                   className="absolute inset-0 rounded-2xl"
@@ -156,6 +241,18 @@ export default async function WholesalerOrdersPage({
           })}
         </div>
       )}
+
+      <OrdersBulkBar
+        visibleIds={shown.map((o) => o.id)}
+        activeIds={shown
+          .filter((o) =>
+            ["SUBMITTED", "CONFIRMED", "PREPARING", "READY", "COMPLETED"].includes(
+              o.status,
+            ),
+          )
+          .map((o) => o.id)}
+        t={t}
+      />
     </div>
   );
 }

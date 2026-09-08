@@ -99,12 +99,13 @@ export default async function ProductPage({
 
       <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
         {/* 图片区 */}
-        <div>
+        <div data-zoom-group>
           <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-[var(--color-line-2)] bg-[var(--color-bg-muted)]">
             {images[0] && (
               <Image
                 src={images[0]}
                 alt={product.name}
+                data-zoom
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
@@ -122,6 +123,7 @@ export default async function ProductPage({
                   <Image
                     src={img}
                     alt={`${product.name} ${i + 2}`}
+                    data-zoom
                     fill
                     className="object-cover"
                     unoptimized

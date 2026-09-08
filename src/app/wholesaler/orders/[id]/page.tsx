@@ -31,7 +31,7 @@ export default async function WholesalerOrderDetailPage({
       relationship: true,
     },
   });
-  if (!so || so.wholesalerId !== wholesalerId) notFound();
+  if (!so || so.wholesalerId !== wholesalerId || so.deletedAt) notFound(); // 已删除(前台隐藏)订单不可访问
 
   const loc = [
     so.order.retailer.business.city?.name,

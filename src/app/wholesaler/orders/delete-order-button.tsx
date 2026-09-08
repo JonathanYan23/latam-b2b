@@ -27,15 +27,17 @@ export function DeleteOrderButton({
       type="button"
       disabled={pending}
       onClick={() => {
+        // 软删除确认：明确「前台隐藏、后台保留可恢复」
         if (
           !window.confirm(
-            `${t.wsOrders.deleteTitle}\n\n${t.wsOrders.deleteConfirm}\n\n#${orderNumber}`,
+            `${t.wsOrders.deleteTitle}\n\n${t.wsOrders.deleteOrder} #${orderNumber} 将从本列表隐藏；数据在平台管理端完整保留（可恢复）。建议先导出备份。`,
           )
         )
           return;
         startTransition(async () => {
           const res = await deleteSupplierOrderAction(supplierOrderId);
           if (!res.ok) window.alert(res.error);
+          else window.alert(t.wsOrders.removedTip.replace("{n}", "1"));
         });
       }}
       className="btn btn-ghost inline-flex items-center gap-1.5 border border-[var(--color-line-2)] px-2.5 py-1.5 text-xs text-[var(--color-danger)] hover:border-[var(--color-danger)]/40 disabled:opacity-50"

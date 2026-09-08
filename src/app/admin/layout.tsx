@@ -28,9 +28,23 @@ export default async function AdminLayout({
               {t.admin.console}
             </span>
           </Link>
-          <span className="text-sm text-[var(--color-ink-3)]">
-            {session.user.name ?? session.user.email}
-          </span>
+          <nav className="flex items-center gap-3 text-[13px]">
+            <Link href="/admin/orders" className="text-[var(--color-ink-2)] transition-colors hover:text-[var(--color-ink)]">
+              {t.admin.orders}
+            </Link>
+            <Link href="/admin/wholesalers" className="text-[var(--color-ink-2)] transition-colors hover:text-[var(--color-ink)]">
+              {t.admin.wholesalers}
+            </Link>
+            <Link href="/admin/retailers" className="text-[var(--color-ink-2)] transition-colors hover:text-[var(--color-ink)]">
+              {t.admin.retailers}
+            </Link>
+            <Link href="/admin/products" className="text-[var(--color-ink-2)] transition-colors hover:text-[var(--color-ink)]">
+              {t.admin.products}
+            </Link>
+            <span className="ml-1 text-sm text-[var(--color-ink-3)]">
+              {session.user.name ?? session.user.email}
+            </span>
+          </nav>
         </div>
       </header>
       <main className="container-x py-8">{children}</main>

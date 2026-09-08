@@ -27,8 +27,10 @@
     "lucide-react": "^0.475.0",
     "next": "15.5.25",
     "next-auth": "^5.0.0-beta.25",
+    "pdf-parse": "^2.4.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {

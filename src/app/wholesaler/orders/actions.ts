@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import type { OrderStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
@@ -211,20 +212,74 @@ export async function deleteSupplierOrderAction(
   if (!["DRAFT", "SUBMITTED", "CANCELLED"].includes(so.status))
     return { ok: false, error: t.wsOrders.errActive };
 
-  await db.$transaction([
-    db.orderItem.deleteMany({ where: { supplierOrderId } }),
-    db.supplierOrder.delete({ where: { id: supplierOrderId } }),
-  ]);
-
-  // 主订单若无剩余子单 → 置 CANCELLED（买家订单历史仍保留）
-  const siblings = await db.supplierOrder.count({ where: { orderId: so.orderId } });
-  if (siblings === 0) {
-    await db.order.update({
-      where: { id: so.orderId },
-      data: { status: "CANCELLED" },
-    });
-  }
+  // 软删除（前台删、后台留）：仅标记，平台管理端完整保留可恢复
+  const hd = await headers();
+  const ip =
+    (hd.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || hd.get("x-real-ip") || null;
+  await db.supplierOrder.update({
+    where: { id: supplierOrderId },
+    data: { deletedAt: new Date(), deletedBy: session.userId, deletedIp: ip },
+  });
 
   revalidatePath("/wholesaler/orders");
+  return { ok: true };
+}
+
+/** 批量删除选中订单（软删）：逐单守卫（状态/发票/收款），部分失败给出原因 */
+export async function deleteSupplierOrdersAction(
+  ids: string[],
+): Promise<{ ok: boolean; deleted?: number; skipped?: number; error?: string }> {
+  const session = await requireRole("WHOLESALER");
+  const t = dictForLocale(await getActionLocale());
+  const wholesalerId = session.wholesalerId!;
+  const uniq = [...new Set(ids.filter(Boolean))];
+  if (uniq.length === 0) return { ok: false, error: t.wsOrders.errNotFound };
+
+  const sos = await db.supplierOrder.findMany({
+    where: { id: { in: uniq }, wholesalerId, deletedAt: null },
+    select: { id: true, status: true },
+  });
+  const okIds: string[] = [];
+  let skipped = 0;
+  for (const so of sos) {
+    if (!["DRAFT", "SUBMITTED", "CANCELLED"].includes(so.status)) {
+      skipped++;
+      continue;
+    }
+    const [invCount, payCount] = await Promise.all([
+      db.invoice.count({ where: { supplierOrderId: so.id } }),
+      db.payment.count({ where: { supplierOrderId: so.id } }),
+    ]);
+    if (invCount > 0 || payCount > 0) {
+      skipped++;
+      continue;
+    }
+    okIds.push(so.id);
+  }
+  if (okIds.length > 0) {
+    const hd2 = await headers();
+    const ip =
+      (hd2.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || hd2.get("x-real-ip") || null;
+    await db.supplierOrder.updateMany({
+      where: { id: { in: okIds } },
+      data: { deletedAt: new Date(), deletedBy: session.userId, deletedIp: ip },
+    });
+  }
+  revalidatePath("/wholesaler/orders");
+  return { ok: true, deleted: okIds.length, skipped };
+}
+
+/** 恢复已删除订单（平台管理端专用） */
+export async function restoreSupplierOrderAction(
+  supplierOrderId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  await requireRole("ADMIN");
+  const so = await db.supplierOrder.findUnique({ where: { id: supplierOrderId } });
+  if (!so) return { ok: false, error: "not_found" };
+  await db.supplierOrder.update({
+    where: { id: supplierOrderId },
+    data: { deletedAt: null, deletedBy: null, deletedIp: null },
+  });
+  revalidatePath("/admin/orders");
   return { ok: true };
 }

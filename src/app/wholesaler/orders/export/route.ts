@@ -23,7 +23,7 @@ export async function GET(req: Request) {
   });
 
   const orders = await db.supplierOrder.findMany({
-    where: { id: { in: ids }, wholesalerId },
+    where: { id: { in: ids }, wholesalerId, deletedAt: null },
     include: {
       order: {
         include: {

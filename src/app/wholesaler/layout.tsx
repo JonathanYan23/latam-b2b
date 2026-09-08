@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { navUnread } from "@/lib/unread";
 import {getDictionary, getLocale} from "@/i18n";
 import { PortalShell } from "@/components/portal-shell";
+import { ImageLightbox } from "@/components/image-lightbox";
 
 export default async function WholesalerLayout({
   children,
@@ -17,7 +18,9 @@ export default async function WholesalerLayout({
   const [t, locale] = await Promise.all([getDictionary(), getLocale()]);
 
   return (
-    <PortalShell
+    <>
+      <ImageLightbox />
+      <PortalShell
       role="wholesaler"
       brand={t.nav.wholesalerBrand}
       userName={session.user.name}
@@ -32,6 +35,7 @@ export default async function WholesalerLayout({
       })}
     >
       {children}
-    </PortalShell>
+      </PortalShell>
+    </>
   );
 }

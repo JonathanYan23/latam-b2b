@@ -15,9 +15,17 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "no_file" }, { status: 400 });
   }
 
-  // 类型白名单（图片 + PDF）
-  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
-  if (!allowed.includes(file.type)) {
+  // 类型白名单（图片 / PDF / Excel / CSV / 文本报价单；部分客户端 mime 为空 → 按扩展名放行）
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  const allowedMime = [
+    "image/jpeg", "image/png", "image/webp", "image/gif",
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel", "text/csv", "text/plain",
+  ];
+  const allowedExt = ["jpg", "jpeg", "png", "webp", "gif", "pdf", "xlsx", "xls", "csv", "txt"];
+  const okType = file.type === "" || allowedMime.includes(file.type);
+  if (!okType || !allowedExt.includes(ext)) {
     return NextResponse.json({ error: "unsupported_type" }, { status: 415 });
   }
   // 单文件上限 10MB

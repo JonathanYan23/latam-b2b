@@ -356,11 +356,17 @@ model SupplierOrder {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // 软删除（前台删、后台留）：批发商删除仅标记，平台管理端保留可见可恢复
+  deletedAt    DateTime?
+  deletedBy    String?
+  deletedIp    String?
+
   items       OrderItem[]
   payments    Payment[]
   invoices    Invoice[]
 
   @@index([wholesalerId, status])
+  @@index([wholesalerId, deletedAt])
 }
 
 model OrderItem {

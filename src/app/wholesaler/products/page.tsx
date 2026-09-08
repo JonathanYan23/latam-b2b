@@ -95,7 +95,7 @@ export default async function WholesalerProductsPage() {
                   />
                   <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-[var(--color-bg-muted)]">
                     {img && (
-                      <Image src={img} alt={p.name} fill sizes="48px" className="object-cover" unoptimized />
+                      <Image src={img} alt={p.name} data-zoom fill sizes="48px" className="object-cover" unoptimized />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
