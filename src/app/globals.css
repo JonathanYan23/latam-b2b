@@ -7,29 +7,31 @@
    ============================================================= */
 
 @theme {
-  /* 色彩系统 — 浅色极简 */
-  --color-bg: #ffffff;
-  --color-bg-subtle: #fafafa;
-  --color-bg-muted: #f4f4f5;
-  --color-ink: #18181b; /* 主文字 zinc-900 */
-  --color-ink-2: #52525b; /* 次级 zinc-600 */
-  --color-ink-3: #a1a1aa; /* 弱化 zinc-400 */
-  --color-line: #e4e4e7; /* 边框 zinc-200 */
-  --color-line-2: #f0f0f1;
+  /* Apple / macOS 极简设计系统 — 页面浅灰底、纯白卡片、克制的蓝 */
+  --color-bg: #ffffff; /* 卡片 / 白色表面 */
+  --color-page: #f5f5f7; /* 页面背景（Apple 暖灰白） */
+  --color-bg-subtle: #f5f5f7;
+  --color-bg-muted: #e9e9ec;
+  --color-ink: #1d1d1f; /* 主文字 */
+  --color-ink-2: #6e6e73; /* 次级文字 */
+  --color-ink-3: #aeaeb2; /* 弱化文字 */
+  --color-line: #d2d2d7; /* 分割/描边（Apple） */
+  --color-line-2: #ececee;
 
-  --color-primary: #18181b; /* 主按钮：近黑 */
-  --color-primary-hover: #27272a;
-  --color-accent: #f59e0b; /* 强调色（规范 v1.0）：琥珀橙 — 金额/待付款/重点标签/状态提醒 */
-  --color-accent-soft: #fef3c7;
-  --color-success: #10b981;
-  --color-warning: #d97706;
-  --color-danger: #ef4444;
+  --color-primary: #0071e3; /* 主按钮：Apple 蓝 */
+  --color-primary-hover: #0077ed;
+  --color-accent: #0071e3; /* 强调色（统一蓝：金额/重点/状态） */
+  --color-accent-soft: #e8f1fd;
+  --color-success: #34c759;
+  --color-warning: #ff9500;
+  --color-danger: #ff3b30;
 
-  /* 圆角 */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  /* 圆角（Apple 大圆角） */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-full: 999px;
 
   /* 字体 */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
@@ -37,8 +39,9 @@
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 
   /* 阴影（克制） */
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03);
-  --shadow-pop: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03),
+    0 8px 24px rgba(0, 0, 0, 0.05);
+  --shadow-pop: 0 2px 4px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.1);
 }
 
 html {
@@ -48,7 +51,7 @@ html {
 body {
   min-height: 100vh;
   color: var(--color-ink);
-  background: var(--color-bg);
+  background: var(--color-page);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -62,18 +65,15 @@ body {
 /* 卡片：干净、单边框、轻微阴影，不做渐变堆叠 */
 .card {
   background: var(--color-bg);
-  border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
 }
 
 .card-hover {
-  transition: border-color 0.15s ease, box-shadow 0.15s ease,
-    transform 0.15s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 .card-hover:hover {
-  transform: translateY(-2px);
-  border-color: #a1a1aa;
+  transform: translateY(-1px);
   box-shadow: var(--shadow-pop);
 }
 
@@ -84,7 +84,7 @@ body {
   justify-content: center;
   gap: 0.5rem;
   font-weight: 500;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   transition: all 0.15s ease;
   cursor: pointer;
   white-space: nowrap;
@@ -277,4 +277,69 @@ body {
   button.badge {
     min-height: 28px;
   }
+}
+
+
+/* ===== Apple 风格数量滑块 ===== */
+.qty-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+}
+.qty-range:focus {
+  outline: none;
+}
+.qty-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-primary) 0%,
+    var(--color-primary) var(--qty-fill, 50%),
+    #e5e5ea var(--qty-fill, 50%),
+    #e5e5ea 100%
+  );
+}
+.qty-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s ease;
+}
+.qty-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.qty-range:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+.qty-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: #e5e5ea;
+}
+.qty-range::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-primary);
+}
+.qty-range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border: none;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+.qty-range:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

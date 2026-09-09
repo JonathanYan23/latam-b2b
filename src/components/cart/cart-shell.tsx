@@ -7,18 +7,17 @@ import { useRouter } from "next/navigation";
 import {
   ShoppingBag,
   X,
-  Plus,
-  Minus,
   Trash2,
   Loader2,
   ArrowRight,
 } from "lucide-react";
 import {
   getCartSnapshotAction,
-  adjustDraftItemAction,
+  setDraftItemQuantityAction,
   removeDraftItemAction,
   clearDraftAction,
 } from "@/app/retailer/draft-actions";
+import { QtySlider } from "@/components/qty-slider";
 import { money } from "@/lib/format";
 import type { Dict } from "@/i18n";
 
@@ -149,12 +148,13 @@ export function CartButton({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[70]">
+        <div className="fixed inset-0 z-[90]">
+          {/* 实色遮罩：下层内容完全不可见，不干扰视线 */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
+            className="absolute inset-0 bg-[#1d1d1f]"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute inset-y-0 right-0 flex w-full max-w-md animate-fade-up flex-col bg-[var(--color-bg)] shadow-2xl">
+          <aside className="absolute inset-y-0 right-0 flex w-full max-w-[440px] animate-fade-up flex-col bg-white shadow-[0_0_60px_rgba(0,0,0,0.35)]">
             {/* 头 */}
             <div className="flex items-center justify-between gap-2 border-b border-[var(--color-line-2)] px-5 py-4">
               <div className="flex items-center gap-2">
@@ -187,7 +187,7 @@ export function CartButton({
             </div>
 
             {/* 内容 */}
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
               {loading && snap === null ? (
                 <div className="flex h-40 items-center justify-center">
                   <Loader2 className="size-5 animate-spin text-[var(--color-ink-3)]" />
@@ -236,93 +236,73 @@ export function CartButton({
                       </div>
                       <div className="divide-y divide-[var(--color-line-2)]">
                         {g.items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center gap-2.5 px-3.5 py-2.5"
-                          >
-                            <div className="relative size-9 shrink-0 overflow-hidden rounded-md bg-[var(--color-bg-muted)]">
-                              {item.image && (
-                                <Image
-                                  src={item.image}
-                                  alt={item.name}
-                                  fill
-                                  sizes="36px"
-                                  className="object-cover"
-                                  unoptimized
-                                />
-                              )}
+                          <div key={item.id} className="px-3.5 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-[var(--color-bg-muted)]">
+                                {item.image && (
+                                  <Image
+                                    src={item.image}
+                                    alt={item.name}
+                                    fill
+                                    sizes="40px"
+                                    className="object-cover"
+                                    unoptimized
+                                  />
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <Link
+                                  href={`/retailer/products/${item.productId}`}
+                                  onClick={() => setOpen(false)}
+                                  className="block truncate text-[13px] font-medium hover:underline"
+                                >
+                                  {item.name}
+                                </Link>
+                                <p className="text-meta text-[11px] tabular-nums">
+                                  {money(item.unitPrice, currency)} / {t.common.unit}
+                                </p>
+                              </div>
+                              <div className="shrink-0 text-right">
+                                <p className="amount text-[13px]">
+                                  {money(item.subtotal, currency)}
+                                </p>
+                                <button
+                                  type="button"
+                                  disabled={busy}
+                                  aria-label={t.common.remove}
+                                  onClick={() => {
+                                    if (!window.confirm(t.cart.removeConfirm)) return;
+                                    act(() =>
+                                      removeDraftItemAction(
+                                        snap.orderId,
+                                        item.productId,
+                                      ),
+                                    );
+                                  }}
+                                  className="mt-1 rounded p-1 text-[var(--color-ink-3)] transition-colors hover:text-[var(--color-danger)]"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </button>
+                              </div>
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <Link
-                                href={`/retailer/products/${item.productId}`}
-                                onClick={() => setOpen(false)}
-                                className="block truncate text-[13px] font-medium hover:underline"
-                              >
-                                {item.name}
-                              </Link>
-                              <p className="text-meta text-[11px] tabular-nums">
-                                {money(item.unitPrice, currency)} × {item.quantity}
-                              </p>
-                            </div>
-
-                            {/* 数量步进 */}
-                            <div className="flex shrink-0 flex-col overflow-hidden rounded-md border border-[var(--color-line)]">
-                              <button
-                                type="button"
+                            {/* 数量：Apple 风滑块（min=1 永不误清空；拖动/输入即改） */}
+                            <div className="mt-2.5 flex items-center gap-2 pl-[50px]">
+                              <QtySlider
+                                value={item.quantity}
+                                min={1}
+                                max={Math.max(item.moq, item.stock > 0 ? item.stock : 999)}
                                 disabled={busy}
-                                onClick={() =>
+                                onChange={(next) =>
                                   act(() =>
-                                    adjustDraftItemAction(
+                                    setDraftItemQuantityAction(
                                       snap.orderId,
                                       item.productId,
-                                      1,
+                                      next,
                                     ),
                                   )
                                 }
-                                className="flex w-7 items-center justify-center py-0.5 text-[var(--color-ink-2)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)]"
-                              >
-                                <Plus className="size-3" />
-                              </button>
-                              <span className="w-full border-y border-[var(--color-line-2)] py-0.5 text-center text-[11px] font-medium tabular-nums">
-                                {item.quantity}
-                              </span>
-                              <button
-                                type="button"
-                                disabled={busy}
-                                onClick={() =>
-                                  act(() =>
-                                    adjustDraftItemAction(
-                                      snap.orderId,
-                                      item.productId,
-                                      -1,
-                                    ),
-                                  )
-                                }
-                                className="flex w-7 items-center justify-center py-0.5 text-[var(--color-ink-2)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)]"
-                              >
-                                <Minus className="size-3" />
-                              </button>
+                              />
                             </div>
-
-                            <p className="amount w-16 shrink-0 text-right text-[13px]">
-                              {money(item.subtotal, currency)}
-                            </p>
-                            <button
-                              type="button"
-                              disabled={busy}
-                              aria-label="Remove"
-                              onClick={() =>
-                                act(() =>
-                                  removeDraftItemAction(
-                                    snap.orderId,
-                                    item.productId,
-                                  ),
-                                )
-                              }
-                              className="shrink-0 rounded p-1 text-[var(--color-ink-3)] transition-colors hover:text-[var(--color-danger)]"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </button>
                           </div>
                         ))}
                       </div>

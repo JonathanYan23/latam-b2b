@@ -7,13 +7,13 @@
  * - 全局同步：操作后拉最新快照并派发 CART_EVENT，其它卡片/顶栏角标/抽屉实时一致
  */
 import { useEffect, useRef, useState, useTransition } from "react";
-import { Plus, Minus, ShoppingBag, Check, Loader2 } from "lucide-react";
+import { ShoppingBag, Check, Loader2 } from "lucide-react";
 import {
   addToDraftAction,
-  adjustDraftItemAction,
   setDraftItemQuantityAction,
   getCartSnapshotAction,
 } from "@/app/retailer/draft-actions";
+import { QtySlider } from "@/components/qty-slider";
 import { CART_EVENT } from "@/components/cart/cart-shell";
 import type { Dict } from "@/i18n";
 
@@ -109,27 +109,14 @@ export function QuickAdd({
       flash();
     });
 
-  const change = (delta: number) =>
+  const setTo = (target: number) =>
     act(async () => {
-      const base = qty || moqSafe;
-      const target = Math.max(0, base + delta * moqSafe);
-      if (target === 0) {
-        if (orderId) await setDraftItemQuantityAction(orderId, productId, 0);
-        else {
-          // 兜底：快照未就绪时用调整 -1 循环不可行 → 直接移除一次语义
-          const snap = (await getCartSnapshotAction()) as CartSnapLike | null;
-          if (snap) await setDraftItemQuantityAction(snap.orderId, productId, 0);
-        }
-        return;
-      }
       if (orderId) {
         await setDraftItemQuantityAction(orderId, productId, target);
-      } else {
-        // 理论不可达（qty>0 必有 orderId）；保底用 adjust
-        const snap = (await getCartSnapshotAction()) as CartSnapLike | null;
-        if (!snap) return;
-        await adjustDraftItemAction(snap.orderId, productId, target >= 1 ? 1 : -1);
+        return;
       }
+      const snap = (await getCartSnapshotAction()) as CartSnapLike | null;
+      if (snap) await setDraftItemQuantityAction(snap.orderId, productId, target);
     });
 
   // 不可购（无价格/未授权/售罄）：保持原卡片其它信息，仅不渲染控件
@@ -170,36 +157,15 @@ export function QuickAdd({
   }
 
   return (
-    <div
-      className={`inline-flex shrink-0 items-center overflow-hidden rounded-full border border-[var(--color-line)] ${
-        compact ? "h-8" : "h-9"
-      }`}
-    >
-      <button
-        type="button"
+    <div className="w-full min-w-0">
+      <QtySlider
+        value={qty}
+        min={1}
+        max={Math.max(moqSafe, stock > 0 ? stock : 999)}
         disabled={busyNow}
-        onClick={() => change(-1)}
-        aria-label={t.common.removeOne}
-        className="grid size-8 place-items-center text-[var(--color-ink-2)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)] disabled:opacity-40"
-      >
-        <Minus className="size-3.5" />
-      </button>
-      <span className="min-w-9 border-x border-[var(--color-line)] px-1 text-center text-[13px] font-semibold tabular-nums">
-        {qty}
-      </span>
-      <button
-        type="button"
-        disabled={busyNow || stock <= 0}
-        onClick={() => change(1)}
-        aria-label={t.product.addToOrder}
-        className="grid size-8 place-items-center text-[var(--color-ink)] transition-colors hover:bg-[var(--color-bg-muted)] disabled:opacity-40"
-      >
-        {busyNow ? (
-          <Loader2 className="size-3.5 animate-spin" />
-        ) : (
-          <Plus className="size-3.5" />
-        )}
-      </button>
+        onChange={setTo}
+        compact={compact}
+      />
     </div>
   );
 }

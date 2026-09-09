@@ -37,6 +37,7 @@ export default async function RetailerHome() {
     openInvoices,
     payments,
     invoices,
+    invoiceTotal,
   ] = await Promise.all([
     db.customerRelationship.count({
       where: { retailerId, status: "APPROVED" },
@@ -73,14 +74,16 @@ export default async function RetailerHome() {
     db.payment.findMany({
       where: { retailerId, status: "RECEIVED", paidAt: { not: null } },
       orderBy: { paidAt: "desc" },
-      take: 8,
+      take: 5,
       include: { wholesaler: { include: { business: true } } },
     }),
     db.invoice.findMany({
       where: { retailerId },
       orderBy: { createdAt: "desc" },
+      take: 5,
       include: { wholesaler: { include: { business: true } } },
     }),
+    db.invoice.count({ where: { retailerId } }),
   ]);
 
   // 应付总额与各供应商应付（FIFO 抵扣真实欠款）
@@ -215,15 +218,25 @@ export default async function RetailerHome() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-          {/* 应付明细（账期本地化 + 到期/逾期） */}
-          <div className="card divide-y divide-[var(--color-line-2)] self-start">
+          {/* 应付明细（账期本地化 + 到期/逾期）+ 查看全部 → 账款明细页 */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-[14px] font-semibold">{t.retailerHome.payHeader}</h3>
+              <Link
+                href="/retailer/balances"
+                className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-accent)] hover:underline"
+              >
+                {t.common.viewAll} <ArrowRight className="size-3" />
+              </Link>
+            </div>
+            <div className="card divide-y divide-[var(--color-line-2)] self-start">
             {totalOutstanding === 0 ? (
               <p className="flex items-center gap-3 px-5 py-6 text-sm text-[var(--color-ink-2)]">
                 <span className="size-2 rounded-full bg-[var(--color-success)]" />
                 {t.retailerHome.payNoInvoices}
               </p>
             ) : (
-              [...wsBalances.entries()].map(([wsId, b]) => {
+              [...wsBalances.entries()].slice(0, 5).map(([wsId, b]) => {
                 const meta = termsByWs.get(wsId);
                 const name = meta?.name ?? t.common.supplier;
                 return (
@@ -260,6 +273,15 @@ export default async function RetailerHome() {
                 );
               })
             )}
+            {wsBalances.size > 5 && (
+              <Link
+                href="/retailer/balances"
+                className="flex items-center justify-center gap-1 px-5 py-3 text-xs font-medium text-[var(--color-accent)] hover:underline"
+              >
+                +{wsBalances.size - 5} {t.common.more} · {t.common.viewAll}
+              </Link>
+            )}
+          </div>
           </div>
 
           {/* 记录付款（常驻：无欠款时展示空态说明，避免"找不到框"） + 最近付款 */}
@@ -281,9 +303,17 @@ export default async function RetailerHome() {
               )}
             </div>
             <div className="card p-5">
-              <h3 className="text-[14px] font-semibold">
-                {t.retailerAccount.paymentHistory}
-              </h3>
+              <div className="mb-1 flex items-center justify-between">
+                <h3 className="text-[14px] font-semibold">
+                  {t.retailerAccount.paymentHistory}
+                </h3>
+                <Link
+                  href="/retailer/payments"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-accent)] hover:underline"
+                >
+                  {t.common.viewAll} <ArrowRight className="size-3" />
+                </Link>
+              </div>
               {payments.length === 0 ? (
                 <p className="py-4 text-center text-sm text-[var(--color-ink-3)]">
                   {t.retailerAccount.noPayments}
@@ -316,10 +346,18 @@ export default async function RetailerHome() {
         </div>
 
         {/* 发票（完整列表，含 PDF 下载） */}
-        <h2 id="invoices" className="text-h2 mt-8 scroll-mt-20 text-lg">
-          {t.retailerAccount.invoices}
-          <span className="text-meta ml-2 text-sm font-normal">{invoices.length}</span>
-        </h2>
+        <div className="mt-8 flex items-center justify-between">
+          <h2 id="invoices" className="text-h2 scroll-mt-20 text-lg">
+            {t.retailerAccount.invoices}
+            <span className="text-meta ml-2 text-sm font-normal">{invoiceTotal}</span>
+          </h2>
+          <Link
+            href="/retailer/invoices"
+            className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-accent)] hover:underline"
+          >
+            {t.common.viewAll} <ArrowRight className="size-4" />
+          </Link>
+        </div>
         {invoices.length === 0 ? (
           <div className="card mt-3 px-5 py-8 text-center text-sm text-[var(--color-ink-3)]">
             {t.common.noResults}

@@ -3,13 +3,14 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, Trash2, Loader2, ArrowRight, Check, ShoppingBag } from "lucide-react";
+import { Trash2, Loader2, ArrowRight, Check, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import {
-  adjustDraftItemAction,
+  setDraftItemQuantityAction,
   removeDraftItemAction,
   submitDraftAction,
 } from "../../draft-actions";
+import { QtySlider } from "@/components/qty-slider";
 import { fmt } from "@/i18n/utils";
 import { CART_EVENT } from "@/components/cart/cart-shell";
 import type { Dict } from "@/i18n";
@@ -51,16 +52,18 @@ export function DraftManager({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
-  const adjust = (productId: string, delta: number) =>
+  const setQty = (productId: string, next: number) =>
     startTransition(async () => {
-      await adjustDraftItemAction(orderId, productId, delta);
+      await setDraftItemQuantityAction(orderId, productId, next);
       router.refresh();
     });
-  const remove = (productId: string) =>
+  const remove = (productId: string) => {
+    if (!window.confirm(t.cart.removeConfirm)) return;
     startTransition(async () => {
       await removeDraftItemAction(orderId, productId);
       router.refresh();
     });
+  };
   const submit = () =>
     startTransition(async () => {
       const res = await submitDraftAction(orderId);
@@ -117,27 +120,15 @@ export function DraftManager({
                   </p>
                 </div>
 
-                {/* 上下调量（单框） */}
-                <div className="flex w-9 shrink-0 flex-col items-center overflow-hidden rounded-md border border-[var(--color-line)]">
-                  <button
-                    type="button"
+                {/* 数量：Apple 风滑块（min=1 永不误清空） */}
+                <div className="w-44 min-w-[176px] shrink-0">
+                  <QtySlider
+                    value={item.quantity}
+                    min={1}
+                    max={Math.max(item.moq, item.stock > 0 ? item.stock : 999)}
                     disabled={pending}
-                    onClick={() => adjust(item.productId, 1)}
-                    className="flex w-full items-center justify-center py-0.5 text-[var(--color-ink-2)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)]"
-                  >
-                    <Plus className="size-3" />
-                  </button>
-                  <span className="w-full border-y border-[var(--color-line-2)] py-0.5 text-center text-xs font-medium tabular-nums">
-                    {item.quantity}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() => adjust(item.productId, -1)}
-                    className="flex w-full items-center justify-center py-0.5 text-[var(--color-ink-2)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)]"
-                  >
-                    <Minus className="size-3" />
-                  </button>
+                    onChange={(next) => setQty(item.productId, next)}
+                  />
                 </div>
 
                 <p className="w-16 shrink-0 text-right text-sm font-semibold tabular-nums">

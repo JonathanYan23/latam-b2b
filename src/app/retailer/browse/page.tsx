@@ -194,7 +194,7 @@ export default async function BrowsePage({
                       <p className="text-meta mt-1 text-[11px]">
                         {t.common.moq} {a.moq}
                       </p>
-                      <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+                      <div className="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-2.5 pt-2">
                         {viewA.price ? (
                           <p className="text-base font-bold">{money(viewA.price, cur)}</p>
                         ) : (
@@ -314,7 +314,7 @@ export default async function BrowsePage({
                       <span> · {t.common.pack} {p.boxSize}</span>
                     ) : null}
                   </p>
-                  <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+                  <div className="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-2.5 pt-2">
                     {view.price ? (
                       <div className="min-w-0">
                         <p className="text-base font-bold">{money(view.price, cur)}</p>

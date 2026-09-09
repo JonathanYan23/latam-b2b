@@ -273,7 +273,7 @@ export default async function SupplierPage({
                       <span> · {t.common.pack} {p.boxSize}</span>
                     ) : null}
                   </p>
-                  <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+                  <div className="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-2.5 pt-2">
                     {view.price ? (
                       <div className="min-w-0">
                         <p className="text-[15px] font-bold">{money(view.price, cur)}</p>
