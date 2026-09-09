@@ -10,7 +10,7 @@ import {
   removeDraftItemAction,
   submitDraftAction,
 } from "../../draft-actions";
-import { QtySlider } from "@/components/qty-slider";
+import { QtyWheel } from "@/components/qty-wheel";
 import { fmt } from "@/i18n/utils";
 import { CART_EVENT } from "@/components/cart/cart-shell";
 import type { Dict } from "@/i18n";
@@ -98,15 +98,15 @@ export function DraftManager({
             {g.items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-3 px-5 py-3"
+                className="flex items-center gap-4 px-5 py-4"
               >
-                <div className="relative size-10 shrink-0 overflow-hidden rounded-md bg-[var(--color-bg-muted)]">
+                <div className="relative size-11 shrink-0 overflow-hidden rounded-[9px] bg-[var(--color-bg-muted)]">
                   {item.image && (
                     <Image
                       src={item.image}
                       alt={item.name}
                       fill
-                      sizes="40px"
+                      sizes="44px"
                       className="object-cover"
                       unoptimized
                     />
@@ -114,33 +114,45 @@ export function DraftManager({
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{item.name}</p>
-                  <p className="text-meta text-[11px]">
-                    {money(item.unitPrice, currency)} × {item.quantity} · {t.common.moq}{" "}
-                    {item.moq}
+                  <p className="text-meta mt-0.5 text-[11px] leading-relaxed">
+                    {money(item.unitPrice, currency)} / {t.common.unit}
+                    {item.moq > 1 ? (
+                      <span> · {t.common.moq} {item.moq}</span>
+                    ) : null}
+                    {item.stock > 0 && item.stock <= 99 ? (
+                      <span className="text-[var(--color-ink-2)]">
+                        {" "}
+                        · {t.cart.inStockCount.replace("{n}", String(item.stock))}
+                      </span>
+                    ) : null}
                   </p>
                 </div>
 
-                {/* 数量：Apple 风滑块（min=1 永不误清空） */}
-                <div className="w-44 min-w-[176px] shrink-0">
-                  <QtySlider
+                {/* 数量：滚轮选择器（1..库存；滚轮 / 拖拽 / 键盘，松手自动吸附） */}
+                <div className="w-[70px] shrink-0">
+                  <QtyWheel
                     value={item.quantity}
                     min={1}
-                    max={Math.max(item.moq, item.stock > 0 ? item.stock : 999)}
-                    disabled={pending}
+                    max={Math.max(1, item.stock > 0 ? item.stock : 999)}
+                    ariaLabel={item.name}
                     onChange={(next) => setQty(item.productId, next)}
                   />
                 </div>
 
-                <p className="w-16 shrink-0 text-right text-sm font-semibold tabular-nums">
+                <p className="w-24 shrink-0 text-right text-sm font-semibold tabular-nums">
                   {money(item.subtotal, currency)}
+                  <span className="mt-0.5 block text-[10px] font-normal tabular-nums text-[var(--color-ink-3)]">
+                    {money(item.unitPrice, currency)} × {item.quantity}
+                  </span>
                 </p>
                 <button
                   type="button"
                   disabled={pending}
+                  aria-label={t.common.remove}
                   onClick={() => remove(item.productId)}
-                  className="shrink-0 rounded p-1 text-[var(--color-ink-3)] transition-colors hover:text-[var(--color-danger)]"
+                  className="shrink-0 rounded-md p-1.5 text-[var(--color-ink-3)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-danger)]"
                 >
-                  <Trash2 className="size-3.5" />
+                  <Trash2 className="size-4" />
                 </button>
               </div>
             ))}

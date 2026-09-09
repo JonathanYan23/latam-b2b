@@ -13,7 +13,7 @@ import {
   setDraftItemQuantityAction,
   getCartSnapshotAction,
 } from "@/app/retailer/draft-actions";
-import { QtySlider } from "@/components/qty-slider";
+import { QtyWheel } from "@/components/qty-wheel";
 import { CART_EVENT } from "@/components/cart/cart-shell";
 import type { Dict } from "@/i18n";
 
@@ -77,6 +77,7 @@ export function QuickAdd({
     return () => {
       window.removeEventListener(CART_EVENT, h);
       if (timer.current) clearTimeout(timer.current);
+      if (syncTimer.current) clearTimeout(syncTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
@@ -109,15 +110,28 @@ export function QuickAdd({
       flash();
     });
 
-  const setTo = (target: number) =>
-    act(async () => {
-      if (orderId) {
-        await setDraftItemQuantityAction(orderId, productId, target);
-        return;
-      }
-      const snap = (await getCartSnapshotAction()) as CartSnapLike | null;
-      if (snap) await setDraftItemQuantityAction(snap.orderId, productId, target);
-    });
+  const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setTo = (target: number) => {
+    setQty(target); // 乐观即时更新（滚轮当前值）
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => {
+      startTransition(async () => {
+        let oid = orderId;
+        if (!oid) {
+          const snap0 = (await getCartSnapshotAction()) as CartSnapLike | null;
+          if (snap0) oid = snap0.orderId;
+        }
+        if (!oid) return;
+        try {
+          await setDraftItemQuantityAction(oid, productId, target);
+        } catch {
+          /* 忽略：refresh 会拉回服务端一致状态 */
+        }
+        await refresh();
+        window.dispatchEvent(new Event(CART_EVENT));
+      });
+    }, 200);
+  };
 
   // 不可购（无价格/未授权/售罄）：保持原卡片其它信息，仅不渲染控件
   if (!enabled) return <div className="h-8" aria-hidden="true" />;
@@ -157,15 +171,21 @@ export function QuickAdd({
   }
 
   return (
-    <div className="w-full min-w-0">
-      <QtySlider
-        value={qty}
-        min={1}
-        max={Math.max(moqSafe, stock > 0 ? stock : 999)}
-        disabled={busyNow}
-        onChange={setTo}
-        compact={compact}
-      />
+    <div className="flex flex-col items-center">
+      <div className={compact ? "w-[66px]" : "w-[74px]"}>
+        <QtyWheel
+          value={qty}
+          min={1}
+          max={Math.max(1, stock > 0 ? stock : 999)}
+          ariaLabel={t.product.addToOrder}
+          onChange={setTo}
+        />
+      </div>
+      {stock > 0 && stock <= 99 && (
+        <p className="mt-1 text-center text-[10px] leading-none text-[var(--color-ink-3)]">
+          {t.cart.inStockCount.replace("{n}", String(stock))}
+        </p>
+      )}
     </div>
   );
 }

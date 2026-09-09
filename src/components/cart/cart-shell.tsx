@@ -1,24 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+/**
+ * Shopping Cart — 右侧滑出 Cart Drawer（重新设计的交互与 UI）
+ *
+ * Desktop: 右上角 icon + 数量入口 → 右侧滑出 Drawer(≈420px)
+ *  - 背景仅轻微变暗（可感知页面仍存在），Drawer 不遮挡全部内容
+ *  - Header（标题 + 件数 + 关闭）/ 商品列表（仅此区滚动）/ Footer（小计 + Checkout）三段清晰
+ * Mobile: Drawer 占满宽度（近似全屏购物车），Header / 列表 / Checkout 依然分明
+ *
+ * 数量调整使用 QtyWheel 滚轮选择器；改数量即时乐观更新行小计 / 组小计 / 总额 / 角标，
+ * 300ms 后静默同步服务端（无需刷新页面）。
+ */
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  ShoppingBag,
-  X,
-  Trash2,
-  Loader2,
-  ArrowRight,
-} from "lucide-react";
+import { createPortal } from "react-dom";
+import { ShoppingBag, X, Trash2, Loader2, ChevronRight } from "lucide-react";
 import {
   getCartSnapshotAction,
   setDraftItemQuantityAction,
   removeDraftItemAction,
   clearDraftAction,
 } from "@/app/retailer/draft-actions";
-import { QtySlider } from "@/components/qty-slider";
+import { QtyWheel } from "@/components/qty-wheel";
 import { money } from "@/lib/format";
+import { fmt } from "@/i18n/utils";
 import type { Dict } from "@/i18n";
 
 /** 购物车变更广播事件：加购 / 抽屉内操作后派发，全局角标据此刷新 */
@@ -49,6 +62,8 @@ interface CartSnap {
   count: number;
 }
 
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
 export function CartButton({
   initialCount,
   t,
@@ -66,17 +81,30 @@ export function CartButton({
   const [busy, setBusy] = useState(false);
   const [pending, startTransition] = useTransition();
 
+  const orderIdRef = useRef<string | null>(null);
+  const syncTimers = useRef<Map<string, number>>(new Map());
+
   const refresh = useCallback(async () => {
-    const s = (await getCartSnapshotAction()) as CartSnap | null;
-    setSnap(s);
-    setCount(s ? s.count : 0);
-    return s;
+    try {
+      const s = (await getCartSnapshotAction()) as CartSnap | null;
+      setSnap(s);
+      setCount(s ? s.count : 0);
+      if (s) orderIdRef.current = s.orderId;
+      return s;
+    } catch {
+      return null;
+    }
   }, []);
 
-  // 顶栏角标：外部加购（CART_EVENT）后主动拉取最新
+  // 角标同步：仅抽屉未打开时回拉服务端（外部加购等）；打开期间本地乐观态为主导，
+  // 避免删除/调量后被陈旧回执“回填复活”
+  const openRef = useRef(false);
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
   useEffect(() => {
     const h = () => {
-      refresh();
+      if (!openRef.current) refresh();
     };
     window.addEventListener(CART_EVENT, h);
     return () => window.removeEventListener(CART_EVENT, h);
@@ -85,6 +113,19 @@ export function CartButton({
   useEffect(() => {
     setCount(initialCount);
   }, [initialCount]);
+
+  // 抽屉打开期间锁定背景滚动（避免 Drawer 打开后页面仍可滚动的割裂感）
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   const openDrawer = () => {
     setOpen(true);
@@ -95,17 +136,114 @@ export function CartButton({
     });
   };
 
-  const act = (fn: () => Promise<unknown>) =>
+  /** 纯函数：按目标数量重算快照（行小计 → 组小计 → 总额 → 件数） */
+  const applyQtyTo = (prev: CartSnap | null, pid: string, q: number): CartSnap | null => {
+    if (!prev) return prev;
+    const groups = prev.groups.map((g) => {
+      const items = g.items.map((it) =>
+        it.productId === pid
+          ? { ...it, quantity: q, subtotal: round2(it.unitPrice * q) }
+          : it,
+      );
+      return {
+        ...g,
+        items,
+        subtotal: round2(items.reduce((s, it) => s + it.subtotal, 0)),
+      };
+    });
+    return {
+      ...prev,
+      groups,
+      total: round2(groups.reduce((s, g) => s + g.subtotal, 0)),
+      count: groups.reduce(
+        (s, g) => s + g.items.reduce((x, it) => x + it.quantity, 0),
+        0,
+      ),
+    };
+  };
+
+  const applyQty = (pid: string, q: number) => {
+    setSnap((prev) => applyQtyTo(prev, pid, q));
+  };
+
+  // 顶栏角标与 Header 件数由快照派生（乐观更新即时一致，不依赖服务端回写）
+  useEffect(() => {
+    setCount(snap ? snap.count : 0);
+  }, [snap]);
+
+  /** 静默落库（每商品 300ms 合并）。UI 完全由本地乐观驱动——服务端永不回写覆盖，保证零回跳零闪烁 */
+  const queueSync = (pid: string, q: number) => {
+    const t0 = syncTimers.current.get(pid);
+    if (t0) window.clearTimeout(t0);
+    syncTimers.current.set(
+      pid,
+      window.setTimeout(() => {
+        syncTimers.current.delete(pid);
+        void (async () => {
+          const oid = orderIdRef.current;
+          if (!oid) return;
+          try {
+            await setDraftItemQuantityAction(oid, pid, q);
+          } catch {
+            /* 静默失败：忽略 */
+          }
+          window.dispatchEvent(new Event(CART_EVENT));
+        })();
+      }, 300),
+    );
+  };
+
+  const setItemQty = (pid: string, q: number) => {
+    applyQty(pid, q);
+    queueSync(pid, q);
+  };
+
+  /** 乐观删除：立即从本地移除该商品（空组随之消失），后台同步 */
+  const removeItem = (pid: string) => {
+    if (!window.confirm(t.cart.removeConfirm)) return;
+    setSnap((prev) => {
+      if (!prev) return prev;
+      const groups = prev.groups
+        .map((g) => {
+          const items = g.items.filter((it) => it.productId !== pid);
+          return { ...g, items, subtotal: round2(items.reduce((s, it) => s + it.subtotal, 0)) };
+        })
+        .filter((g) => g.items.length > 0);
+      const next: CartSnap = {
+        ...prev,
+        groups,
+        total: round2(groups.reduce((s, g) => s + g.subtotal, 0)),
+        count: groups.reduce((s, g) => s + g.items.reduce((x, it) => x + it.quantity, 0), 0),
+      };
+      return next;
+    });
+    startTransition(async () => {
+      const oid = orderIdRef.current;
+      if (!oid) return;
+      try {
+        await removeDraftItemAction(oid, pid);
+      } catch {
+        /* ignore */
+      }
+      window.dispatchEvent(new Event(CART_EVENT));
+    });
+  };
+
+  const clear = () => {
+    if (!snap) return;
+    if (!window.confirm(t.cart.clearConfirm)) return;
     startTransition(async () => {
       setBusy(true);
       try {
-        await fn();
-        await refresh();
+        await clearDraftAction(snap.orderId);
+        setSnap(null);
+        setCount(0);
         window.dispatchEvent(new Event(CART_EVENT));
       } finally {
         setBusy(false);
       }
     });
+  };
 
   const goCheckout = () => {
     setOpen(false);
@@ -113,19 +251,11 @@ export function CartButton({
     router.refresh();
   };
 
-  const clear = () => {
-    if (!snap) return;
-    if (!window.confirm(t.cart.clearConfirm)) return;
-    act(() => clearDraftAction(snap.orderId));
-  };
-
-  // Esc 关闭
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+    return () => {
+      syncTimers.current.forEach((t0) => window.clearTimeout(t0));
+    };
+  }, []);
 
   const badge =
     count > 0 ? (
@@ -134,43 +264,50 @@ export function CartButton({
       </span>
     ) : null;
 
+  const hasItems = !!snap && snap.groups.length > 0;
+
   return (
     <>
+      {/* 右上角固定入口：icon + 当前商品数量 */}
       <button
         type="button"
         onClick={openDrawer}
         aria-label={t.cart.cartTitle}
         title={t.cart.cartTitle}
-        className="relative flex size-8 items-center justify-center rounded-md text-[var(--color-ink-3)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)]"
+        className="relative flex size-8 items-center justify-center rounded-full text-[var(--color-ink-3)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)]"
       >
-        <ShoppingBag className="size-4" strokeWidth={1.9} />
+        <ShoppingBag className="size-[17px]" strokeWidth={1.8} />
         {badge}
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[90]">
-          {/* 遮罩：轻微变暗（纯色无模糊，下层内容可辨识但不干扰） */}
+      {open &&
+        createPortal(
+          <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-label={t.cart.cartTitle}>
+          {/* 遮罩：非常轻微的变暗 —— 仍能感知后面的商品页面存在 */}
           <div
-            className="absolute inset-0 bg-[#0f172a]/35"
+            className="cart-fade absolute inset-0 bg-[#0f172a]/20"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute inset-y-0 right-0 flex w-full max-w-[440px] flex-col bg-white">
-            {/* 头 */}
-            <div className="flex items-center justify-between gap-2 border-b border-[var(--color-line-2)] px-5 py-4">
-              <div className="flex items-center gap-2">
-                <ShoppingBag className="size-4 text-[var(--color-ink-2)]" />
-                <h2 className="text-[15px] font-semibold">{t.cart.cartTitle}</h2>
-                {count > 0 && (
-                  <span className="badge badge-neutral">{count}</span>
-                )}
+
+          {/* Drawer：桌面右侧滑出（420px）；移动端全宽（近似全屏购物车） */}
+          <aside className="cart-sheet flex flex-col bg-white text-[var(--color-ink)]">
+            {/* Header */}
+            <header className="flex items-start justify-between gap-3 px-6 pb-4 pt-5">
+              <div className="min-w-0">
+                <h2 className="text-[17px] font-semibold tracking-tight">
+                  {t.cart.cartTitle}
+                </h2>
+                <p className="mt-0.5 text-xs text-[var(--color-ink-3)]">
+                  {hasItems ? fmt(t.cart.itemsCount, { n: snap!.count }) : " "}
+                </p>
               </div>
-              <div className="flex items-center gap-1">
-                {count > 0 && (
+              <div className="flex shrink-0 items-center gap-0.5">
+                {hasItems && (
                   <button
                     type="button"
-                    onClick={clear}
                     disabled={busy}
-                    className="rounded-md px-2 py-1 text-xs text-[var(--color-ink-3)] transition-colors hover:text-[var(--color-danger)] disabled:opacity-40"
+                    onClick={clear}
+                    className="rounded-md px-2 py-1.5 text-[11px] text-[var(--color-ink-3)] transition-colors hover:text-[var(--color-danger)] disabled:opacity-40"
                   >
                     {t.cart.clearCart}
                   </button>
@@ -179,29 +316,29 @@ export function CartButton({
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label="Close"
-                  className="rounded-md p-1.5 text-[var(--color-ink-3)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)]"
+                  className="grid size-7 place-items-center rounded-full text-[var(--color-ink-3)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)]"
                 >
                   <X className="size-4" />
                 </button>
               </div>
-            </div>
+            </header>
 
-            {/* 内容 */}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+            {/* 商品列表（仅此区域滚动） */}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-[var(--color-line-2)] px-6 py-2">
               {loading && snap === null ? (
-                <div className="flex h-40 items-center justify-center">
+                <div className="flex h-48 items-center justify-center">
                   <Loader2 className="size-5 animate-spin text-[var(--color-ink-3)]" />
                 </div>
-              ) : !snap || snap.groups.length === 0 ? (
-                <div className="flex flex-col items-center px-4 py-16 text-center">
-                  <ShoppingBag
-                    className="size-8 text-[var(--color-ink-3)]"
-                    strokeWidth={1.5}
-                  />
-                  <p className="mt-4 text-[15px] font-medium">
-                    {t.cart.emptyTitle}
-                  </p>
-                  <p className="text-meta mt-1 max-w-xs text-sm">
+              ) : !hasItems ? (
+                <div className="flex flex-col items-center px-4 py-20 text-center">
+                  <div className="grid size-14 place-items-center rounded-full bg-[var(--color-bg-subtle)]">
+                    <ShoppingBag
+                      className="size-5 text-[var(--color-ink-3)]"
+                      strokeWidth={1.5}
+                    />
+                  </div>
+                  <p className="mt-4 text-[15px] font-medium">{t.cart.emptyTitle}</p>
+                  <p className="mt-1 max-w-[240px] text-[13px] leading-relaxed text-[var(--color-ink-3)]">
                     {t.cart.emptyDesc}
                   </p>
                   <button
@@ -210,136 +347,163 @@ export function CartButton({
                       setOpen(false);
                       router.push("/retailer/browse");
                     }}
-                    className="btn btn-primary mt-5 px-4 py-2 text-sm"
+                    className="mt-6 h-10 rounded-full bg-[var(--color-ink)] px-5 text-sm font-medium text-white transition-colors hover:bg-black active:scale-[0.98]"
                   >
                     {t.retailerHome.browseCta}
                   </button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {snap.groups.map((g) => (
+                <div>
+                  {snap!.groups.map((g) => (
                     <div
                       key={g.id}
-                      className="overflow-hidden rounded-xl border border-[var(--color-line-2)]"
+                      className="border-b border-[var(--color-line-2)] last:border-0"
                     >
-                      <div className="flex items-center justify-between gap-2 border-b border-[var(--color-line-2)] bg-[var(--color-bg-muted)]/60 px-3.5 py-2">
+                      {/* 供应商分组头 */}
+                      <div className="flex items-center gap-1 pb-1 pt-3">
                         <Link
                           href={`/retailer/suppliers/${g.wholesalerId}`}
                           onClick={() => setOpen(false)}
-                          className="truncate text-xs font-semibold hover:underline"
+                          className="flex min-w-0 items-center gap-0.5 text-[12px] font-semibold text-[var(--color-ink)] hover:underline"
                         >
-                          {g.wholesalerName}
+                          <span className="truncate">{g.wholesalerName}</span>
+                          <ChevronRight className="size-3 shrink-0 text-[var(--color-ink-3)]" />
                         </Link>
-                        <span className="shrink-0 text-xs font-medium tabular-nums">
-                          {money(g.subtotal, currency)}
+                        <span className="ml-auto shrink-0 pl-3 text-[11px] text-[var(--color-ink-3)]">
+                          {fmt(t.cart.itemsCount, {
+                            n: g.items.reduce((s, it) => s + it.quantity, 0),
+                          })}
                         </span>
                       </div>
-                      <div className="divide-y divide-[var(--color-line-2)]">
-                        {g.items.map((item) => (
-                          <div key={item.id} className="px-3.5 py-3">
-                            <div className="flex items-center gap-2.5">
-                              <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-[var(--color-bg-muted)]">
-                                {item.image && (
-                                  <Image
-                                    src={item.image}
-                                    alt={item.name}
-                                    fill
-                                    sizes="40px"
-                                    className="object-cover"
-                                    unoptimized
-                                  />
-                                )}
-                              </div>
-                              <div className="min-w-0 flex-1">
+
+                      {/* 商品行 */}
+                      {g.items.map((item) => {
+                        const stockCap = Math.max(1, item.stock > 0 ? item.stock : 999);
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex gap-3.5 py-3.5"
+                          >
+                            <Link
+                              href={`/retailer/products/${item.productId}`}
+                              onClick={() => setOpen(false)}
+                              className="relative block size-11 shrink-0 overflow-hidden rounded-[9px] bg-[var(--color-bg-muted)]"
+                            >
+                              {item.image && (
+                                <Image
+                                  src={item.image}
+                                  alt={item.name}
+                                  fill
+                                  sizes="44px"
+                                  className="object-cover"
+                                  unoptimized
+                                />
+                              )}
+                            </Link>
+
+                            <div className="flex min-w-0 flex-1 flex-col">
+                              <div className="flex items-start justify-between gap-2">
                                 <Link
                                   href={`/retailer/products/${item.productId}`}
                                   onClick={() => setOpen(false)}
-                                  className="block truncate text-[13px] font-medium hover:underline"
+                                  title={item.name}
+                                  className="min-w-0 flex-1 truncate text-[13px] font-medium leading-snug hover:underline"
                                 >
                                   {item.name}
                                 </Link>
-                                <p className="text-meta text-[11px] tabular-nums">
-                                  {money(item.unitPrice, currency)} / {t.common.unit}
-                                </p>
-                              </div>
-                              <div className="shrink-0 text-right">
-                                <p className="amount text-[13px]">
-                                  {money(item.subtotal, currency)}
-                                </p>
                                 <button
                                   type="button"
-                                  disabled={busy}
                                   aria-label={t.common.remove}
-                                  onClick={() => {
-                                    if (!window.confirm(t.cart.removeConfirm)) return;
-                                    act(() =>
-                                      removeDraftItemAction(
-                                        snap.orderId,
-                                        item.productId,
-                                      ),
-                                    );
-                                  }}
-                                  className="mt-1 rounded p-1 text-[var(--color-ink-3)] transition-colors hover:text-[var(--color-danger)]"
+                                  title={t.common.remove}
+                                  onClick={() => removeItem(item.productId)}
+                                  className="-mr-1.5 -mt-0.5 shrink-0 rounded-md p-1 text-[var(--color-ink-3)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-danger)]"
                                 >
                                   <Trash2 className="size-3.5" />
                                 </button>
                               </div>
-                            </div>
-                            {/* 数量：Apple 风滑块（min=1 永不误清空；拖动/输入即改） */}
-                            <div className="mt-2.5 flex items-center gap-2 pl-[50px]">
-                              <QtySlider
-                                value={item.quantity}
-                                min={1}
-                                max={Math.max(item.moq, item.stock > 0 ? item.stock : 999)}
-                                disabled={busy}
-                                onChange={(next) =>
-                                  act(() =>
-                                    setDraftItemQuantityAction(
-                                      snap.orderId,
-                                      item.productId,
-                                      next,
-                                    ),
-                                  )
-                                }
-                              />
+
+                              {/* 规格：单价 / 单位 · 起订量 · 库存 */}
+                              <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-ink-3)]">
+                                {money(item.unitPrice, currency)} / {t.common.unit}
+                                {item.moq > 1 ? (
+                                  <span> · {t.common.moq} {item.moq}</span>
+                                ) : null}
+                                {item.stock > 0 && item.stock <= 99 ? (
+                                  <span className="text-[var(--color-ink-2)]">
+                                    {" "}
+                                    · {t.cart.inStockCount.replace("{n}", String(item.stock))}
+                                  </span>
+                                ) : null}
+                              </p>
+
+                              <div className="mt-2 flex items-center justify-between gap-3">
+                                {/* 滚轮式数量选择器（1..库存，拖/滚/键盘均吸附） */}
+                                <div className="w-[68px] shrink-0">
+                                  <QtyWheel
+                                    value={item.quantity}
+                                    min={1}
+                                    max={stockCap}
+                                    ariaLabel={item.name}
+                                    onChange={(q) => setItemQty(item.productId, q)}
+                                  />
+                                </div>
+                                <div className="shrink-0 text-right">
+                                  <p className="text-[13px] font-semibold tabular-nums">
+                                    {money(item.subtotal, currency)}
+                                  </p>
+                                  <p className="mt-0.5 text-[10px] tabular-nums text-[var(--color-ink-3)]">
+                                    {money(item.unitPrice, currency)} × {item.quantity}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* 底栏 */}
-            {snap && snap.groups.length > 0 && (
-              <div className="border-t border-[var(--color-line-2)] px-5 py-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-meta text-sm">{t.cart.cartTotal}</span>
-                  <p className="amount text-lg">{money(snap.total, currency)}</p>
+            {/* Footer：小计 → Checkout（唯一主操作，始终可见） */}
+            {hasItems && (
+              <footer className="shrink-0 border-t border-[var(--color-line-2)] px-6 pb-[max(env(safe-area-inset-bottom),14px)] pt-4">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[13px] text-[var(--color-ink-2)]">
+                    {t.cart.subtotal}
+                  </span>
+                  <p className="text-[17px] font-semibold tabular-nums tracking-tight">
+                    {money(snap!.total, currency)}
+                  </p>
                 </div>
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    className="btn btn-secondary flex-1 px-3 py-2.5 text-sm"
-                  >
-                    {t.cart.continueShopping}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={goCheckout}
-                    className="btn btn-primary flex-1 px-3 py-2.5 text-sm"
-                  >
-                    {t.cart.goCheckout} <ArrowRight className="size-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </aside>
-        </div>
-      )}
+                <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-ink-3)]">
+                  {t.cart.checkoutNote}
+                </p>
+                <button
+                  type="button"
+                  onClick={goCheckout}
+                  disabled={busy || pending}
+                  className="mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-[10px] bg-[#1d1d1f] text-sm font-medium text-white transition-all hover:bg-black active:scale-[0.99] disabled:opacity-50"
+                >
+                  {busy || pending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : null}
+                  {t.cart.goCheckout}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="mt-2.5 w-full text-center text-xs text-[var(--color-ink-3)] transition-colors hover:text-[var(--color-ink)]"
+                >
+                  {t.cart.continueShopping}
+                </button>
+              </footer>
+              )}
+            </aside>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

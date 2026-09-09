@@ -281,13 +281,40 @@ body {
 
 
 
-/* ===== 纵向数量拖拽滑块 ===== */
-.vqty {
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
+
+/* ===== 购物车 Cart Drawer ===== */
+.cart-fade {
+  animation: cartFade 0.18s ease;
 }
-.vqty * {
-  pointer-events: none;
+.cart-sheet {
+  position: absolute;
+  inset: 0 0 0 auto; /* 右滑出 */
+  width: 100%;
+  max-width: 420px;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.08);
+  animation: cartRight 0.24s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+@keyframes cartRight {
+  from {
+    transform: translateX(24px);
+    opacity: 0.4;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes cartFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* 移动端：近似全屏购物车（底边自然到屏底，避免横向溢出） */
+@media (min-width: 768px) {
+  .cart-sheet {
+    width: 420px;
+  }
 }
