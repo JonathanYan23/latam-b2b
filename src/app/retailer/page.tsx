@@ -262,19 +262,24 @@ export default async function RetailerHome() {
             )}
           </div>
 
-          {/* 记录付款 + 最近付款 */}
+          {/* 记录付款（常驻：无欠款时展示空态说明，避免"找不到框"） + 最近付款 */}
           <div className="flex flex-col gap-4">
-            {payeeList.length > 0 && (
-              <div className="card p-5">
-                <div className="mb-3 flex items-center gap-2">
-                  <CreditCard className="size-4 text-[var(--color-ink-2)]" />
-                  <h3 className="text-[14px] font-semibold">
-                    {t.retailerAccount.recordPayment}
-                  </h3>
-                </div>
-                <PaymentForm wholesalers={payeeList} currency={cur} t={t} />
+            <div className="card p-5">
+              <div className="mb-3 flex items-center gap-2">
+                <CreditCard className="size-4 text-[var(--color-ink-2)]" />
+                <h3 className="text-[14px] font-semibold">
+                  {t.retailerAccount.recordPayment}
+                </h3>
               </div>
-            )}
+              {payeeList.length > 0 ? (
+                <PaymentForm wholesalers={payeeList} currency={cur} t={t} />
+              ) : (
+                <p className="flex items-center gap-2.5 rounded-lg border border-[var(--color-line-2)] px-3.5 py-3 text-sm text-[var(--color-ink-2)]">
+                  <span className="size-2 shrink-0 rounded-full bg-[var(--color-success)]" />
+                  {t.retailerHome.payNoInvoices}
+                </p>
+              )}
+            </div>
             <div className="card p-5">
               <h3 className="text-[14px] font-semibold">
                 {t.retailerAccount.paymentHistory}
