@@ -407,6 +407,7 @@ const es = {
     price: "Precio",
     moq: "Cant. mín.",
     stock: "Stock",
+
     mode: "Modo",
     edit: "Editar",
     deleteProduct: "Eliminar",
@@ -458,6 +459,9 @@ const es = {
   },
 
   productForm: {
+    costPrice: "Precio de costo",
+    lowStockThreshold: "Alerta de stock bajo en",
+    lowStockHint: "Avisar cuando el stock baje de esta cantidad (vacío = off)",
     addTitle: "Agregar producto",
     addDesc: "Crea un producto con precio, cantidad mínima e inventario.",
     editTitle: "Editar producto",
@@ -487,6 +491,7 @@ const es = {
   },
 
   wsOrders: {
+    shareOrder: "Compartir por WhatsApp",
     title: "Pedidos",
     desc: "Revisa y despacha los pedidos recibidos.",
     emptyTitle: "Aún no hay pedidos",
@@ -515,6 +520,7 @@ const es = {
       "Algunos están COMPLETADOS / PENDIENTES: se ocultarán también sus registros de conciliación.",
     cancelBtn: "Cancelar",
     confirmDelBtn: "Sí, eliminar",
+    estMargin: "Margen est.",
     removedTip: "{n} pedidos eliminados (retenidos en admin)",
     dateFrom: "Desde",
     dateTo: "Hasta",
@@ -579,6 +585,21 @@ const es = {
     deleteConfirm: "Eliminar este cliente borra sus precios personalizados y perderá el acceso a tus precios de cliente. No se puede deshacer. Los clientes con pedidos o facturas no pueden eliminarse.",
   },
 
+  wsReports: {
+    title: "Informe mensual",
+    desc: "Resumen mensual de ventas, costo y margen con exportación CSV.",
+    month: "Mes",
+    exportCsv: "Exportar CSV",
+    sales: "Ventas",
+    cost: "Costo",
+    margin: "Margen",
+    orderCount: "Pedidos",
+    orderCol: "Pedido",
+    dateCol: "Fecha",
+    customerCol: "Cliente",
+    emptyReport: "Sin pedidos completados este mes",
+    marginNote: "Costo estimado con el precio de costo actual del producto.",
+  },
   wsAccount: {
     businessProfile: "Perfil de tienda",
     businessProfileDesc: "Información visible para los minoristas: se actualiza en todos los puntos.",

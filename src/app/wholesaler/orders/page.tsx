@@ -75,6 +75,7 @@ export default async function WholesalerOrdersPage({
         },
       },
       _count: { select: { items: true, invoices: true, payments: true } },
+      items: { select: { quantity: true, product: { select: { costPrice: true } } } },
     },
   });
 
@@ -226,6 +227,20 @@ export default async function WholesalerOrdersPage({
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-2">
                     <p className="amount text-sm">{money(o.total, cur)}</p>
+                    {(() => {
+                      const costs = o.items.reduce(
+                        (sum, it) => sum + (Number(it.product.costPrice ?? 0) * it.quantity || 0),
+                        0,
+                      );
+                      const hasCost = o.items.some((it) => it.product.costPrice != null);
+                      if (!hasCost || o.items.length === 0) return null;
+                      const margin = Number(o.total) - costs;
+                      return (
+                        <span className={`text-[11px] ${margin >= 0 ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}`}>
+                          {t.wsOrders.estMargin}: {money(margin, cur)}
+                        </span>
+                      );
+                    })()}
                     <div className="relative z-10 flex items-center gap-1.5">
                       <DeleteOrderButton
                         supplierOrderId={o.id}

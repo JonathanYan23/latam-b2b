@@ -396,6 +396,7 @@ const zh = {
     price: "价格",
     moq: "起订量",
     stock: "库存",
+
     mode: "销售模式",
     edit: "编辑",
     deleteProduct: "删除",
@@ -443,6 +444,9 @@ const zh = {
   },
 
   productForm: {
+    costPrice: "成本价（进价）",
+    lowStockThreshold: "库存预警阈值",
+    lowStockHint: "低于该数量时自动提醒补货（留空不提醒）",
     addTitle: "添加商品",
     addDesc: "创建带价格、起订量与库存的新商品。",
     editTitle: "编辑商品",
@@ -472,6 +476,7 @@ const zh = {
   },
 
   wsOrders: {
+    shareOrder: "分享到 WhatsApp",
     title: "订单",
     desc: "审核并处理收到的订单。",
     emptyTitle: "还没有订单",
@@ -499,6 +504,7 @@ const zh = {
     batchDelActiveWarn: "订单状态为已完成/待处理，删除后相关对账记录将一并隐藏。",
     cancelBtn: "取消",
     confirmDelBtn: "确认删除",
+    estMargin: "预估毛利",
     removedTip: "已移除 {n} 个订单（后台记录保留）",
     dateFrom: "开始日期",
     dateTo: "结束日期",
@@ -562,6 +568,21 @@ const zh = {
     deleteConfirm: "移除该客户关系将同时删除其专属价格，客户将无法再查看你的客户专属价；此操作不可恢复。已产生订单或发票的客户无法移除。",
   },
 
+  wsReports: {
+    title: "月度报表",
+    desc: "按月份汇总销售、成本与毛利，一键导出 CSV/Excel。",
+    month: "月份",
+    exportCsv: "导出报表 CSV",
+    sales: "销售额",
+    cost: "销售成本",
+    margin: "毛利",
+    orderCount: "订单数",
+    orderCol: "订单",
+    dateCol: "日期",
+    customerCol: "客户",
+    emptyReport: "该月暂无已完成订单",
+    marginNote: "成本按商品当前成本价估算；请先在商品中维护成本价以得到准确毛利。",
+  },
   wsAccount: {
     businessProfile: "店铺资料",
     businessProfileDesc: "展示给零售商的店铺信息，保存后各入口即时更新。",

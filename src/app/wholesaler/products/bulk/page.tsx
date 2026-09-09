@@ -13,5 +13,10 @@ export default async function BulkProductsPage() {
     where: { wholesalerId: session.wholesalerId! },
     select: { name: true, barcode: true },
   });
-  return <BulkProductForm t={t} existing={existing} />;
+  const categories = await db.category.findMany({
+    where: { active: true },
+    orderBy: { sortOrder: "asc" },
+    select: { id: true, name: true },
+  });
+  return <BulkProductForm t={t} existing={existing} categories={categories} />;
 }

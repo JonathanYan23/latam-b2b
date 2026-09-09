@@ -39,6 +39,7 @@ interface Row {
   sku: string;
   price: string;
   moq: string;
+  categoryId?: string;
   selected: boolean;
   ai?: "loading" | "done" | "fail";
 }
@@ -63,6 +64,22 @@ function fmtBytes(n: number): string {
   return (n / 1024 / 1024).toFixed(1) + " MB";
 }
 
+/** 按商品名自动建议分类（词重叠匹配） */
+function suggestCategory(name: string, cats: { id: string; name: string }[]): string {
+  const words = name
+    .toLowerCase()
+    .replace(/[^a-z0-9à-ÿ一-鿿 ]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 1);
+  if (words.length === 0) return "";
+  for (const c of cats) {
+    const cn = c.name.toLowerCase();
+    if (words.some((w) => cn.includes(w)) || cn.split(/\s+/).some((cw) => words.includes(cw)))
+      return c.id;
+  }
+  return "";
+}
+
 /** 打开全局图片预览（模块：全站图片放大预览） */
 function zoomUrl(url: string) {
   window.dispatchEvent(
@@ -75,9 +92,11 @@ type Phase = "upload" | "busy" | "review";
 export function BulkProductForm({
   t,
   existing = [],
+  categories = [],
 }: {
   t: Dict;
   existing?: { name: string; barcode: string | null }[];
+  categories?: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -177,6 +196,7 @@ export function BulkProductForm({
         sku,
         price,
         moq,
+        categoryId: suggestCategory(name, categories) || undefined,
         selected: true,
         ai,
       });
@@ -220,6 +240,7 @@ export function BulkProductForm({
         imageUrl: r.url,
         price: Number(r.price) || 0,
         moq: Number(r.moq) || 1,
+        categoryId: r.categoryId ?? null,
       }));
     if (selected.length === 0) return;
     setError(null);
@@ -450,6 +471,25 @@ export function BulkProductForm({
                     dupName && r.selected ? "!border-[var(--color-warning)]" : ""
                   } ${r.selected ? "" : "opacity-60"}`}
                 >
+                  {categories.length > 0 && (
+                    <div className="flex w-full flex-wrap items-center gap-2">
+                      <span className="text-[11px] text-[var(--color-ink-3)]">
+                        {t.productForm.category}
+                      </span>
+                      <select
+                        value={r.categoryId ?? ""}
+                        onChange={(e) => update(r.id, "categoryId", e.target.value || undefined)}
+                        className="input h-7 w-full max-w-60 px-2 py-0 text-xs"
+                      >
+                        <option value="">{t.productForm.uncategorized}</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   {dupName && (
                     <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-md bg-[#fef3c7] px-3 py-2 text-xs text-[#92400e]">
                       <span className="flex min-w-0 items-center gap-1.5">

@@ -20,7 +20,21 @@ export default async function EditProductPage({
 
   const product = await db.product.findUnique({
     where: { id },
-    include: { inventories: true },
+    select: {
+      id: true,
+      name: true,
+      sku: true,
+      description: true,
+      categoryId: true,
+      images: true,
+      wholesalerId: true,
+      moq: true,
+      sellingMode: true,
+      publicPrice: true,
+      costPrice: true,
+      lowStockThreshold: true,
+      inventories: true,
+    },
   });
   if (!product || product.wholesalerId !== wholesalerId) notFound();
 
@@ -51,6 +65,8 @@ export default async function EditProductPage({
             categoryId: product.categoryId,
             images: product.images,
             publicPrice: product.publicPrice ? Number(product.publicPrice) : null,
+            costPrice: product.costPrice ? Number(product.costPrice) : null,
+            lowStockThreshold: product.lowStockThreshold,
             moq: product.moq,
             sellingMode: product.sellingMode,
           }}

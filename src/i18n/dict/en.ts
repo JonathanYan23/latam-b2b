@@ -404,6 +404,7 @@ const en = {
     price: "Price",
     moq: "MOQ",
     stock: "Stock",
+
     mode: "Mode",
     edit: "Edit",
     deleteProduct: "Delete",
@@ -455,6 +456,9 @@ const en = {
   },
 
   productForm: {
+    costPrice: "Cost price (landed)",
+    lowStockThreshold: "Low-stock alert at",
+    lowStockHint: "Remind to reorder when stock drops below this (empty = off)",
     addTitle: "Add a product",
     addDesc: "Create a new product with pricing, MOQ and inventory.",
     editTitle: "Edit product",
@@ -484,6 +488,7 @@ const en = {
   },
 
   wsOrders: {
+    shareOrder: "Share via WhatsApp",
     title: "Orders",
     desc: "Review and fulfill incoming orders.",
     emptyTitle: "No orders yet",
@@ -512,6 +517,7 @@ const en = {
       "Some orders are COMPLETED / PENDING — deleting will also hide related reconciliation records.",
     cancelBtn: "Cancel",
     confirmDelBtn: "Yes, delete",
+    estMargin: "Est. margin",
     removedTip: "{n} orders removed (kept in admin)",
     dateFrom: "From",
     dateTo: "To",
@@ -576,6 +582,21 @@ const en = {
     deleteConfirm: "Removing this customer deletes their custom prices and they will lose access to your customer pricing. This cannot be undone. Customers with orders or invoices cannot be removed.",
   },
 
+  wsReports: {
+    title: "Monthly report",
+    desc: "Monthly sales, cost and margin summary with one-click CSV export.",
+    month: "Month",
+    exportCsv: "Export CSV",
+    sales: "Sales",
+    cost: "Cost",
+    margin: "Margin",
+    orderCount: "Orders",
+    orderCol: "Order",
+    dateCol: "Date",
+    customerCol: "Customer",
+    emptyReport: "No completed orders in this month",
+    marginNote: "Cost is estimated using the product cost price. Keep cost prices updated for accurate margins.",
+  },
   wsAccount: {
     businessProfile: "Store profile",
     businessProfileDesc: "Store info shown to retailers — saved changes update everywhere.",

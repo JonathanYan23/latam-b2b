@@ -16,6 +16,12 @@ const productSchema = z.object({
   categoryId: z.string().optional(),
   imageUrl: z.string().optional(),
   publicPrice: z.coerce.number().min(0),
+  costPrice: z
+    .preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().min(0))
+    .optional(),
+  lowStockThreshold: z
+    .preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().int().min(0))
+    .optional(),
   moq: z.coerce.number().int().min(1).default(1),
   stock: z.coerce.number().int().min(0).default(0),
   sellingMode: z.enum(["PUBLIC", "CUSTOMER_ONLY", "BOTH"]),
@@ -39,6 +45,8 @@ export async function createProductAction(
     categoryId: formData.get("categoryId") || undefined,
     imageUrl: formData.get("imageUrl") || undefined,
     publicPrice: formData.get("publicPrice") || 0,
+    costPrice: formData.get("costPrice"),
+    lowStockThreshold: formData.get("lowStockThreshold"),
     moq: formData.get("moq") || 1,
     stock: formData.get("stock") || 0,
     sellingMode: formData.get("sellingMode") || "BOTH",
@@ -48,7 +56,7 @@ export async function createProductAction(
     return { error: code === "name" ? t.productForm.errName : t.productForm.errSku };
   }
 
-  const { name, sku, description, categoryId, imageUrl, publicPrice, moq, stock, sellingMode } =
+  const { name, sku, description, categoryId, imageUrl, publicPrice, costPrice, lowStockThreshold, moq, stock, sellingMode } =
     parsed.data;
 
   const dup = await db.product.findUnique({
@@ -72,6 +80,8 @@ export async function createProductAction(
         images: JSON.stringify(imageUrl ? [imageUrl] : []),
         sellingMode,
         publicPrice,
+        costPrice: costPrice ?? null,
+        lowStockThreshold: lowStockThreshold ?? null,
         moq,
       },
     });
@@ -127,6 +137,8 @@ export async function updateProductAction(
     categoryId: formData.get("categoryId") || undefined,
     imageUrl: formData.get("imageUrl") || undefined,
     publicPrice: formData.get("publicPrice") || 0,
+    costPrice: formData.get("costPrice"),
+    lowStockThreshold: formData.get("lowStockThreshold"),
     moq: formData.get("moq") || 1,
     stock: formData.get("stock") || 0,
     sellingMode: formData.get("sellingMode") || "BOTH",
@@ -136,7 +148,7 @@ export async function updateProductAction(
     return { error: code === "name" ? t.productForm.errName : t.productForm.errSku };
   }
 
-  const { name, sku, description, categoryId, imageUrl, publicPrice, moq, stock, sellingMode } =
+  const { name, sku, description, categoryId, imageUrl, publicPrice, costPrice, lowStockThreshold, moq, stock, sellingMode } =
     parsed.data;
 
   const dup = await db.product.findFirst({
@@ -154,6 +166,8 @@ export async function updateProductAction(
       images: JSON.stringify(imageUrl ? [imageUrl] : []),
       sellingMode,
       publicPrice,
+      costPrice: costPrice ?? null,
+      lowStockThreshold: lowStockThreshold ?? null,
       moq,
     },
   });
@@ -407,7 +421,14 @@ function parseCsv(text: string): string[][] {
 
 /** 批量创建商品（照片批量上传生成）：一行一个商品 */
 export async function bulkCreateProductsAction(
-  rows: { name: string; sku?: string; imageUrl?: string; price?: number; moq?: number }[],
+  rows: {
+    name: string;
+    sku?: string;
+    imageUrl?: string;
+    price?: number;
+    moq?: number;
+    categoryId?: string | null;
+  }[],
 ): Promise<{ ok: boolean; created?: number; error?: string }> {
   const session = await requireRole("WHOLESALER");
   const t = dictForLocale(await getActionLocale());
@@ -440,6 +461,8 @@ export async function bulkCreateProductsAction(
     const product = await db.product.create({
       data: {
         wholesalerId,
+        categoryId:
+          typeof r.categoryId === "string" && r.categoryId ? r.categoryId : null,
         name: r.name.trim(),
         sku,
         images: r.imageUrl ? JSON.stringify([r.imageUrl]) : "[]",

@@ -206,6 +206,8 @@ model Product {
   publicPrice Decimal?  
   currency    String     @default("USD")
 
+  costPrice        Decimal? // 成本价（毛利核算用）
+  lowStockThreshold Int?    // 库存预警阈值（低于即提醒补货）
   moq         Int        @default(1) // Minimum Order Quantity
   active      Boolean    @default(true)
   createdAt   DateTime   @default(now())

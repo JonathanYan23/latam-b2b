@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileDown, MessageCircle } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import {getDictionary} from "@/i18n";
@@ -61,7 +61,28 @@ export default async function WholesalerOrderDetailPage({
             {fmt(t.orders.placed, { date: date(so.createdAt) })}
           </p>
         </div>
-        <StatusFlowButtons supplierOrderId={so.id} current={so.status} t={t} />
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <StatusFlowButtons supplierOrderId={so.id} current={so.status} t={t} />
+          <div className="flex w-full items-center justify-end gap-2">
+            <a
+              href={`/wholesaler/orders/export?ids=${so.id}`}
+              target="_blank"
+              className="btn btn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 text-xs"
+            >
+              <FileDown className="size-3.5" /> {t.common.exportPdf}
+            </a>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(
+                `#${so.order.orderNumber} · ${money(so.total, cur)} — Latam B2B`,
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 text-xs"
+            >
+              <MessageCircle className="size-3.5" /> {t.wsOrders.shareOrder}
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* 客户信息 */}

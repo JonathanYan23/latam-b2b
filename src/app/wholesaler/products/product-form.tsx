@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useEffect, useState, useActionState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { Category, Product, SellingMode } from "@prisma/client";
@@ -18,11 +18,19 @@ export function ProductForm({
   product?: Pick<
     Product,
     "id" | "name" | "sku" | "description" | "categoryId" | "images" | "moq" | "sellingMode"
-  > & { publicPrice: number | null };
+  > & { publicPrice: number | null; costPrice: number | null; lowStockThreshold: number | null };
   t: Dict;
 }) {
   const router = useRouter();
   const isEdit = !!product;
+  // 记住常用分类：新增商品默认上次所选，减少重复选择
+  const [cat, setCat] = useState<string>(product?.categoryId ?? "");
+  useEffect(() => {
+    if (!isEdit && typeof window !== "undefined") {
+      const last = window.localStorage.getItem("latam:lastCategory");
+      if (last) setCat(last);
+    }
+  }, [isEdit]);
   const [state, formAction, pending] = useActionState(
     isEdit ? updateProductAction.bind(null, product!.id) : createProductAction,
     undefined,
@@ -62,7 +70,8 @@ export function ProductForm({
           <select
             name="categoryId"
             className="input"
-            defaultValue={product?.categoryId ?? ""}
+            value={cat}
+            onChange={(e) => { setCat(e.target.value); window.localStorage.setItem("latam:lastCategory", e.target.value); }}
           >
             <option value="">{pf.uncategorized}</option>
             {categories.map((c) => (
@@ -132,6 +141,20 @@ export function ProductForm({
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
+            {pf.costPrice}
+          </label>
+          <input
+            name="costPrice"
+            type="number"
+            step="0.01"
+            min="0"
+            className="input"
+            defaultValue={product?.costPrice?.toString() ?? ""}
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
             {pf.moq}
           </label>
           <input
@@ -141,6 +164,20 @@ export function ProductForm({
             className="input"
             defaultValue={product?.moq?.toString() ?? "1"}
           />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
+            {pf.lowStockThreshold}
+          </label>
+          <input
+            name="lowStockThreshold"
+            type="number"
+            min="0"
+            className="input"
+            defaultValue={product?.lowStockThreshold?.toString() ?? ""}
+          />
+          <p className="mt-1 text-[11px] text-[var(--color-ink-3)]">{pf.lowStockHint}</p>
         </div>
 
         <div>
