@@ -229,7 +229,7 @@ export default async function SupplierPage({
                       data-zoom
                       fill
                       sizes="(max-width: 640px) 50vw, 25vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      className="object-cover"
                       unoptimized
                     />
                   )}

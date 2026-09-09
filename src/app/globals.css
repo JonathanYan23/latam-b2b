@@ -280,66 +280,14 @@ body {
 }
 
 
-/* ===== Apple 风格数量滑块 ===== */
-.qty-range {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 22px;
-  background: transparent;
-  cursor: pointer;
+
+/* ===== 纵向数量拖拽滑块 ===== */
+.vqty {
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.qty-range:focus {
-  outline: none;
-}
-.qty-range::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 999px;
-  background: linear-gradient(
-    to right,
-    var(--color-primary) 0%,
-    var(--color-primary) var(--qty-fill, 50%),
-    #e5e5ea var(--qty-fill, 50%),
-    #e5e5ea 100%
-  );
-}
-.qty-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  margin-top: -6px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 0.5px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-  transition: transform 0.1s ease;
-}
-.qty-range::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-}
-.qty-range:active::-webkit-slider-thumb {
-  transform: scale(1.2);
-}
-.qty-range::-moz-range-track {
-  height: 4px;
-  border-radius: 999px;
-  background: #e5e5ea;
-}
-.qty-range::-moz-range-progress {
-  height: 4px;
-  border-radius: 999px;
-  background: var(--color-primary);
-}
-.qty-range::-moz-range-thumb {
-  width: 15px;
-  height: 15px;
-  border: none;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-}
-.qty-range:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.vqty * {
+  pointer-events: none;
 }

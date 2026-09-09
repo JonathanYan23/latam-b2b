@@ -149,12 +149,12 @@ export function CartButton({
 
       {open && (
         <div className="fixed inset-0 z-[90]">
-          {/* 实色遮罩：下层内容完全不可见，不干扰视线 */}
+          {/* 遮罩：轻微变暗（纯色无模糊，下层内容可辨识但不干扰） */}
           <div
-            className="absolute inset-0 bg-[#1d1d1f]"
+            className="absolute inset-0 bg-[#0f172a]/35"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute inset-y-0 right-0 flex w-full max-w-[440px] animate-fade-up flex-col bg-white shadow-[0_0_60px_rgba(0,0,0,0.35)]">
+          <aside className="absolute inset-y-0 right-0 flex w-full max-w-[440px] flex-col bg-white">
             {/* 头 */}
             <div className="flex items-center justify-between gap-2 border-b border-[var(--color-line-2)] px-5 py-4">
               <div className="flex items-center gap-2">

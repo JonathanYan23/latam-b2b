@@ -272,7 +272,7 @@ export default async function BrowsePage({
                       data-zoom
                       fill
                       sizes="(max-width: 640px) 100vw, 25vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      className="object-cover"
                       unoptimized
                     />
                   )}
