@@ -13,6 +13,7 @@ import {
   money,
   date,
 } from "@/lib/format";
+import { termsLabel } from "@/lib/terms";
 import {
   ApproveRejectButtons,
   DeleteCustomerButton,
@@ -234,7 +235,7 @@ export default async function CustomersPage({
                           <div className="flex flex-wrap items-center gap-1.5">
                             {r.paymentTerms && (
                               <span className="badge badge-neutral text-[11px]">
-                                {r.paymentTerms}
+                                {termsLabel(r.paymentTerms, t)}
                               </span>
                             )}
                             {r.creditLimit != null && (

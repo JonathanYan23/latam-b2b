@@ -42,7 +42,7 @@ export function AccountMenu({
             </div>
             <div className="p-1.5">
               <Link
-                href={`/${role}/account`}
+                href={role === "retailer" ? "/retailer#finance" : `/${role}/account`}
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-[var(--color-ink-2)] transition-colors hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-ink)]"
               >

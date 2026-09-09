@@ -194,11 +194,15 @@ model Product {
   category     Category? @relation(fields: [categoryId], references: [id])
 
   name        String
+  nameZh      String? // 中文品名（多语言展示，缺省回退主名）
+  nameEn      String? // English name（多语言展示，缺省回退主名）
+  nameEs      String? // Nombre en español（多语言展示，缺省回退主名）
   description String?
   keywords    String? // 多语言搜索关键词（逗号分隔），如 "无线耳机,audifonos,earbuds"
   sku         String
   barcode     String? // 商品条形码（商家内部查重用）
-  boxSize     String? // 箱规/包装规格，如 "24瓶/箱"（录入时标准化）
+  boxSize     String? // 箱规/包装规格，如 "24瓶/箱"（上架必填；录入时标准化）
+  showBoxSize Boolean   @default(true) // 供应商是否向采购方展示装箱数（默认展示）
   images      String // JSON array of image URLs
   sellingMode SellingMode @default(BOTH)
 

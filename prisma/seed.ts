@@ -238,6 +238,9 @@ async function main() {
     {
       key: "seed-p1",
       name: "Wireless Earbuds Pro",
+      nameZh: "无线降噪耳机 Pro",
+      nameEs: "Auriculares inalámbricos Pro",
+      boxSize: "50 pcs / carton",
       sku: "ELEC-EAR-001",
       cat: "electronics",
       price: 24.5,
@@ -250,6 +253,9 @@ async function main() {
     {
       key: "seed-p2",
       name: "Stainless Water Bottle 750ml",
+      nameZh: "不锈钢保温水瓶 750ml",
+      nameEs: "Termo de acero 750ml",
+      boxSize: "24 pcs / carton",
       sku: "HOME-BOT-002",
       cat: "home-living",
       price: 8.2,
@@ -262,6 +268,9 @@ async function main() {
     {
       key: "seed-p3",
       name: "LED Strip Light 5m",
+      nameZh: "LED 灯带 5 米",
+      nameEs: "Tira LED 5m",
+      boxSize: "20 rolls / carton",
       sku: "ELEC-LED-003",
       cat: "electronics",
       price: 12.9,
@@ -274,6 +283,9 @@ async function main() {
     {
       key: "seed-p4",
       name: "Ceramic Mug Set (4 pcs)",
+      nameZh: "陶瓷马克杯套装（4 件）",
+      nameEs: "Set de tazas de cerámica (4 pz)",
+      boxSize: "12 sets / carton",
       sku: "HOME-MUG-004",
       cat: "home-living",
       price: 14.0,
@@ -286,6 +298,9 @@ async function main() {
     {
       key: "seed-p5",
       name: "Kids Building Blocks 300pcs",
+      nameZh: "儿童拼插积木 300 件",
+      nameEs: "Bloques de construcción 300 pz",
+      boxSize: "24 boxes / carton",
       sku: "TOYS-BLK-005",
       cat: "toys",
       price: 16.75,
@@ -300,12 +315,15 @@ async function main() {
   for (const p of products) {
     await db.product.upsert({
       where: { id: p.key },
-      update: { name: p.name, keywords: p.kw },
+      update: { name: p.name, nameZh: p.nameZh, nameEs: p.nameEs, keywords: p.kw, boxSize: p.boxSize },
       create: {
         id: p.key,
         wholesalerId: ws.id,
         categoryId: cats[p.cat],
         name: p.name,
+        nameZh: p.nameZh,
+        nameEs: p.nameEs,
+        boxSize: p.boxSize,
         description: p.desc,
         keywords: p.kw,
         sku: p.sku,

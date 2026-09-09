@@ -39,6 +39,7 @@ interface Row {
   sku: string;
   price: string;
   moq: string;
+  boxSize: string;
   categoryId?: string;
   selected: boolean;
   ai?: "loading" | "done" | "fail";
@@ -154,6 +155,7 @@ export function BulkProductForm({
       let sku = "";
       let price = "";
       let moq = "1";
+      let boxSize = "";
       let ai: Row["ai"] = "done";
       try {
         const res = await fetch("/api/ai/extract", {
@@ -172,6 +174,7 @@ export function BulkProductForm({
             sku?: string;
             publicPrice?: number;
             moq?: number;
+            boxSize?: string;
           };
         };
         if (!res.ok || !data?.ok || data.disabled) {
@@ -184,6 +187,8 @@ export function BulkProductForm({
           if (typeof fld.publicPrice === "number" && fld.publicPrice >= 0)
             price = String(fld.publicPrice);
           if (typeof fld.moq === "number" && fld.moq >= 1) moq = String(fld.moq);
+          if (typeof fld.boxSize === "string" && fld.boxSize.trim())
+            boxSize = fld.boxSize.trim();
         }
       } catch {
         ai = "fail";
@@ -196,6 +201,7 @@ export function BulkProductForm({
         sku,
         price,
         moq,
+        boxSize,
         categoryId: suggestCategory(name, categories) || undefined,
         selected: true,
         ai,
@@ -240,6 +246,7 @@ export function BulkProductForm({
         imageUrl: r.url,
         price: Number(r.price) || 0,
         moq: Number(r.moq) || 1,
+        boxSize: r.boxSize || null,
         categoryId: r.categoryId ?? null,
       }));
     if (selected.length === 0) return;
@@ -566,6 +573,12 @@ export function BulkProductForm({
                       inputMode="numeric"
                       placeholder={t.common.moq}
                       className="input px-2 py-1.5 text-sm"
+                    />
+                    <input
+                      value={r.boxSize ?? ""}
+                      onChange={(e) => update(r.id, "boxSize", e.target.value)}
+                      placeholder={t.productForm.boxSize + " (" + t.productForm.boxSizeHint + ")"}
+                      className="input col-span-2 px-2 py-1.5 text-sm sm:col-span-4"
                     />
                   </div>
                 </div>

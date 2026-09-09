@@ -33,6 +33,11 @@ export default async function EditProductPage({
       publicPrice: true,
       costPrice: true,
       lowStockThreshold: true,
+      boxSize: true,
+      showBoxSize: true,
+      nameZh: true,
+      nameEn: true,
+      nameEs: true,
       inventories: true,
     },
   });
@@ -67,6 +72,11 @@ export default async function EditProductPage({
             publicPrice: product.publicPrice ? Number(product.publicPrice) : null,
             costPrice: product.costPrice ? Number(product.costPrice) : null,
             lowStockThreshold: product.lowStockThreshold,
+            boxSize: product.boxSize,
+            showBoxSize: product.showBoxSize !== false,
+            nameZh: product.nameZh,
+            nameEn: product.nameEn,
+            nameEs: product.nameEs,
             moq: product.moq,
             sellingMode: product.sellingMode,
           }}

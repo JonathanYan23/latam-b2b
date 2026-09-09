@@ -22,6 +22,13 @@ const productSchema = z.object({
   lowStockThreshold: z
     .preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().int().min(0))
     .optional(),
+  boxSize: z.string().trim().min(1, "boxSize"),
+  showBoxSize: z
+    .preprocess((v) => v === "1" || v === true, z.boolean())
+    .default(true),
+  nameZh: z.string().optional().default(""),
+  nameEn: z.string().optional().default(""),
+  nameEs: z.string().optional().default(""),
   moq: z.coerce.number().int().min(1).default(1),
   stock: z.coerce.number().int().min(0).default(0),
   sellingMode: z.enum(["PUBLIC", "CUSTOMER_ONLY", "BOTH"]),
@@ -47,16 +54,23 @@ export async function createProductAction(
     publicPrice: formData.get("publicPrice") || 0,
     costPrice: formData.get("costPrice"),
     lowStockThreshold: formData.get("lowStockThreshold"),
+    boxSize: formData.get("boxSize"),
+    showBoxSize: formData.get("showBoxSize"),
+    nameZh: formData.get("nameZh") || "",
+    nameEn: formData.get("nameEn") || "",
+    nameEs: formData.get("nameEs") || "",
     moq: formData.get("moq") || 1,
     stock: formData.get("stock") || 0,
     sellingMode: formData.get("sellingMode") || "BOTH",
   });
   if (!parsed.success) {
     const code = parsed.error.errors[0]?.message;
-    return { error: code === "name" ? t.productForm.errName : t.productForm.errSku };
+    if (code === "name") return { error: t.productForm.errName };
+    if (code === "sku") return { error: t.productForm.errSku };
+    return { error: code === "boxSize" ? t.productForm.boxSizeRequired : t.productForm.errSku };
   }
 
-  const { name, sku, description, categoryId, imageUrl, publicPrice, costPrice, lowStockThreshold, moq, stock, sellingMode } =
+  const { name, sku, description, categoryId, imageUrl, publicPrice, costPrice, lowStockThreshold, boxSize, showBoxSize, nameZh, nameEn, nameEs, moq, stock, sellingMode } =
     parsed.data;
 
   const dup = await db.product.findUnique({
@@ -82,6 +96,11 @@ export async function createProductAction(
         publicPrice,
         costPrice: costPrice ?? null,
         lowStockThreshold: lowStockThreshold ?? null,
+        boxSize,
+        showBoxSize,
+        nameZh: nameZh || null,
+        nameEn: nameEn || null,
+        nameEs: nameEs || null,
         moq,
       },
     });
@@ -139,16 +158,23 @@ export async function updateProductAction(
     publicPrice: formData.get("publicPrice") || 0,
     costPrice: formData.get("costPrice"),
     lowStockThreshold: formData.get("lowStockThreshold"),
+    boxSize: formData.get("boxSize"),
+    showBoxSize: formData.get("showBoxSize"),
+    nameZh: formData.get("nameZh") || "",
+    nameEn: formData.get("nameEn") || "",
+    nameEs: formData.get("nameEs") || "",
     moq: formData.get("moq") || 1,
     stock: formData.get("stock") || 0,
     sellingMode: formData.get("sellingMode") || "BOTH",
   });
   if (!parsed.success) {
     const code = parsed.error.errors[0]?.message;
-    return { error: code === "name" ? t.productForm.errName : t.productForm.errSku };
+    if (code === "name") return { error: t.productForm.errName };
+    if (code === "sku") return { error: t.productForm.errSku };
+    return { error: code === "boxSize" ? t.productForm.boxSizeRequired : t.productForm.errSku };
   }
 
-  const { name, sku, description, categoryId, imageUrl, publicPrice, costPrice, lowStockThreshold, moq, stock, sellingMode } =
+  const { name, sku, description, categoryId, imageUrl, publicPrice, costPrice, lowStockThreshold, boxSize, showBoxSize, nameZh, nameEn, nameEs, moq, stock, sellingMode } =
     parsed.data;
 
   const dup = await db.product.findFirst({
@@ -168,6 +194,11 @@ export async function updateProductAction(
       publicPrice,
       costPrice: costPrice ?? null,
       lowStockThreshold: lowStockThreshold ?? null,
+      boxSize,
+      showBoxSize,
+      nameZh: nameZh || null,
+      nameEn: nameEn || null,
+      nameEs: nameEs || null,
       moq,
     },
   });
@@ -282,6 +313,10 @@ export async function importProductsAction(
   const imgIdx = idx("imageurl") >= 0 ? idx("imageurl") : idx("image");
   const modeIdx = idx("sellingmode");
   const descIdx = idx("description");
+  const boxIdx = idx("boxsize") >= 0 ? idx("boxsize") : idx("box");
+  const nameZhIdx = idx("namezh") >= 0 ? idx("namezh") : idx("中文品名");
+  const nameEsIdx = idx("namees") >= 0 ? idx("namees") : idx("nombrees");
+  const showBoxIdx = idx("showboxsize");
 
   const warehouse =
     (await db.warehouse.findFirst({
@@ -332,6 +367,11 @@ export async function importProductsAction(
         sellingMode,
         publicPrice: Number.isFinite(price) && price > 0 ? price : null,
         moq,
+        boxSize: boxIdx >= 0 && row[boxIdx]?.trim() ? row[boxIdx].trim() : null,
+        nameZh: nameZhIdx >= 0 && row[nameZhIdx]?.trim() ? row[nameZhIdx].trim() : null,
+        nameEs: nameEsIdx >= 0 && row[nameEsIdx]?.trim() ? row[nameEsIdx].trim() : null,
+        showBoxSize:
+          showBoxIdx >= 0 ? row[showBoxIdx]?.trim() !== "0" : true,
       },
     });
     await db.inventory.create({
@@ -427,6 +467,7 @@ export async function bulkCreateProductsAction(
     imageUrl?: string;
     price?: number;
     moq?: number;
+    boxSize?: string | null;
     categoryId?: string | null;
   }[],
 ): Promise<{ ok: boolean; created?: number; error?: string }> {
@@ -468,6 +509,10 @@ export async function bulkCreateProductsAction(
         images: r.imageUrl ? JSON.stringify([r.imageUrl]) : "[]",
         publicPrice: typeof r.price === "number" && r.price >= 0 ? r.price : 0,
         moq: typeof r.moq === "number" && r.moq >= 1 ? Math.floor(r.moq) : 1,
+        boxSize:
+          typeof r.boxSize === "string" && r.boxSize.trim()
+            ? r.boxSize.trim()
+            : null,
         sellingMode: "BOTH",
       },
     });

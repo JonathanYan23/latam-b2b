@@ -46,6 +46,6 @@ export async function recordPaymentAction(
     },
   });
 
-  revalidatePath("/retailer/account");
+  revalidatePath("/retailer");
   return { ok: true };
 }

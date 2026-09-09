@@ -18,7 +18,16 @@ export function ProductForm({
   product?: Pick<
     Product,
     "id" | "name" | "sku" | "description" | "categoryId" | "images" | "moq" | "sellingMode"
-  > & { publicPrice: number | null; costPrice: number | null; lowStockThreshold: number | null };
+  > & {
+      publicPrice: number | null;
+      costPrice: number | null;
+      lowStockThreshold: number | null;
+      boxSize: string | null;
+      showBoxSize: boolean;
+      nameZh: string | null;
+      nameEn: string | null;
+      nameEs: string | null;
+    };
   t: Dict;
 }) {
   const router = useRouter();
@@ -54,6 +63,33 @@ export function ProductForm({
             {pf.name}
           </label>
           <input name="name" className="input" defaultValue={product?.name} required />
+        </div>
+
+        {/* 多语言品名：采购方按界面语言自动看到对应名称 */}
+        <div className="sm:col-span-2">
+          <p className="mb-1.5 text-[11px] font-medium text-[var(--color-ink-3)]">
+            {pf.multilangNames}
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <input
+              name="nameZh"
+              className="input"
+              placeholder={pf.nameZh}
+              defaultValue={product?.nameZh ?? ""}
+            />
+            <input
+              name="nameEn"
+              className="input"
+              placeholder={pf.nameEn}
+              defaultValue={product?.nameEn ?? ""}
+            />
+            <input
+              name="nameEs"
+              className="input"
+              placeholder={pf.nameEs}
+              defaultValue={product?.nameEs ?? ""}
+            />
+          </div>
         </div>
 
         <div>
@@ -167,6 +203,21 @@ export function ProductForm({
         </div>
 
         <div>
+          <label className="mb-1.5 flex items-center gap-1 text-sm font-medium text-[var(--color-ink-2)]">
+            {pf.boxSize}
+            <span className="text-[var(--color-danger)]">*</span>
+          </label>
+          <input
+            name="boxSize"
+            className="input"
+            required
+            placeholder={pf.boxSizeHint}
+            defaultValue={product?.boxSize ?? ""}
+          />
+          <p className="mt-1 text-[11px] text-[var(--color-ink-3)]">{pf.boxSizeHint}</p>
+        </div>
+
+        <div>
           <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">
             {pf.lowStockThreshold}
           </label>
@@ -196,6 +247,17 @@ export function ProductForm({
           />
           <p className="mt-1 text-[11px] text-[var(--color-ink-3)]">{pf.stockHint}</p>
         </div>
+
+        <label className="flex items-center gap-2 self-end text-sm text-[var(--color-ink-2)]">
+          <input
+            type="checkbox"
+            name="showBoxSize"
+            value="1"
+            defaultChecked={product ? product.showBoxSize !== false : true}
+            className="size-4"
+          />
+          {pf.showBoxSizeToBuyer}
+        </label>
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-[var(--color-ink-2)]">

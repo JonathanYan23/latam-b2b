@@ -175,6 +175,8 @@ export function PortalShell({
 function buildNav(role: "retailer" | "wholesaler", t: Dict): NavItem[] {
   const n = t.nav;
   if (role === "retailer") {
+    // 主导航固定 5 项：首页(含账户) / 逛市场 / 找批发商 / 订单 / 我的供应商
+    // 聊天/消息已整合进「我的供应商」（会话搜索 + 店内聊天）；账户并入首页
     return [
       { href: "/retailer", label: n.home, icon: Home },
       {
@@ -185,9 +187,12 @@ function buildNav(role: "retailer" | "wholesaler", t: Dict): NavItem[] {
       },
       { href: "/retailer/discover", label: n.discover, icon: Compass },
       { href: "/retailer/orders", label: n.orders, icon: ShoppingBag },
-      { href: "/retailer/suppliers", label: n.suppliers, icon: Store },
-      { href: "/retailer/messages", label: n.messages, icon: MessageCircle },
-      { href: "/retailer/account", label: n.account, icon: UserCircle },
+      {
+        href: "/retailer/suppliers",
+        label: n.suppliers,
+        icon: Store,
+        match: ["/retailer/suppliers"],
+      },
     ];
   }
   return [

@@ -232,6 +232,66 @@ export async function removeDraftItemAction(
 }
 
 /**
+ * 商品卡快速调量：把行数量直接设为 target（MOQ 步进结果）。
+ * target<=0 时等同移除该行（组内无货删整组）；需先校验该商品在本人 DRAFT 草稿内。
+ */
+export async function setDraftItemQuantityAction(
+  orderId: string,
+  productId: string,
+  target: number,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireRole("RETAILER");
+  const t = dictForLocale(await getActionLocale());
+  const order = await db.order.findFirst({
+    where: { id: orderId, retailerId: session.retailerId!, status: "DRAFT" },
+    include: { supplierOrders: { include: { items: true } } },
+  });
+  if (!order) return { ok: false, error: t.orders.errNotFound };
+
+  await db.$transaction(async (tx) => {
+    for (const so of order.supplierOrders) {
+      const item = so.items.find((i) => i.productId === productId);
+      if (!item) continue;
+      if (target <= 0) {
+        // 移除行；组空则删整组
+        await tx.orderItem.delete({ where: { id: item.id } });
+        const rest = await tx.orderItem.findMany({
+          where: { supplierOrderId: so.id },
+        });
+        if (rest.length === 0) {
+          await tx.supplierOrder.delete({ where: { id: so.id } });
+        } else {
+          const sum = rest.reduce((a, i) => a + Number(i.subtotal), 0);
+          await tx.supplierOrder.update({
+            where: { id: so.id },
+            data: { subtotal: sum, total: sum },
+          });
+        }
+      } else {
+        const subtotal = Number(item.unitPrice) * target;
+        await tx.orderItem.update({
+          where: { id: item.id },
+          data: { quantity: target, subtotal },
+        });
+        const others = await tx.orderItem.findMany({
+          where: { supplierOrderId: so.id },
+        });
+        const sum = others.reduce(
+          (a, i) => a + (i.id === item.id ? subtotal : Number(i.subtotal)),
+          0,
+        );
+        await tx.supplierOrder.update({
+          where: { id: so.id },
+          data: { subtotal: sum, total: sum },
+        });
+      }
+    }
+  });
+  revalidatePath("/retailer/orders/draft");
+  return { ok: true };
+}
+
+/**
  * 正式提交草稿订单：校验（非空/MOQ/库存/最低订单金额）→ DRAFT→SUBMITTED，
  * 生成正式单号。确认扣库存仍在批发商确认环节。
  */

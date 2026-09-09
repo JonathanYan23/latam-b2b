@@ -107,7 +107,7 @@ export default async function RetailerOrderDetailPage({
                       inv.status === "OVERDUE");
                   return unpaid ? (
                     <Link
-                      href="/retailer/account"
+                      href="/retailer#finance"
                       className="badge badge-warning font-medium transition-opacity hover:opacity-80"
                     >
                       {t.orders.paymentDue} · {money(inv.amount, cur)}

@@ -22,7 +22,7 @@ export async function navUnread(opts: {
     const n = await db.message.count({
       where: { retailerId, senderId: { not: userId }, readAt: null },
     });
-    return n > 0 ? { "/retailer/suppliers": n, "/retailer/messages": n } : {};
+    return n > 0 ? { "/retailer/suppliers": n } : {}; // 消息已整合进「我的供应商」
   }
   if (role === "WHOLESALER" && wholesalerId) {
     const n = await db.message.count({

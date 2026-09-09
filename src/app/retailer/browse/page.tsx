@@ -1,13 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Search, SlidersHorizontal, PackageX, Sparkles } from "lucide-react";
+import { Search, SlidersHorizontal, PackageX, Sparkles, ZoomIn } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import { priceView, parseImages } from "@/lib/pricing";
 import { money } from "@/lib/format";
 import { getDictionary, getLocale } from "@/i18n";
 import { catName } from "@/lib/cat";
+import { productName } from "@/lib/product-name";
 import { fmt } from "@/i18n/utils";
+import { QuickAdd } from "../quick-add";
 
 export const metadata = { title: "Browse" };
 
@@ -38,6 +40,9 @@ export default async function BrowsePage({
           ? {
               OR: [
                 { name: { contains: q } },
+                { nameZh: { contains: q } },
+                { nameEn: { contains: q } },
+                { nameEs: { contains: q } },
                 { sku: { contains: q } },
                 { description: { contains: q } },
                 { keywords: { contains: q } },
@@ -163,31 +168,48 @@ export default async function BrowsePage({
                 const stockA = a.inventories.reduce((x, i) => x + i.stock, 0);
                 const [imgA] = parseImages(a.images);
                 return (
-                  <Link
+                  <div
                     key={a.id}
-                    href={`/retailer/products/${a.id}`}
                     className="card card-hover group flex flex-col overflow-hidden"
                   >
                     <div className="relative aspect-square w-full bg-[var(--color-bg-muted)]">
                       {imgA && (
-                        <Image src={imgA} alt={a.name} fill sizes="(max-width:640px) 100vw,25vw" data-zoom className="object-cover" unoptimized />
+                        <Image src={imgA} alt={productName(a, locale)} fill sizes="(max-width:640px) 100vw,25vw" data-zoom className="object-cover" unoptimized />
                       )}
+                      <span className="absolute right-2 top-2 z-10 grid size-6 place-items-center rounded-full bg-black/35 text-white opacity-70 transition-opacity group-hover:opacity-100">
+                        <ZoomIn className="size-3.5" />
+                      </span>
                       <span className={`badge absolute left-3 top-3 backdrop-blur-sm ${stockA <= 0 ? "badge-danger" : stockA < 20 ? "badge-warning" : "badge-success"}`}>
                         {stockA <= 0 ? t.common.outOfStock : t.common.inStock}
                       </span>
                     </div>
                     <div className="flex flex-1 flex-col p-3">
                       <p className="text-meta truncate text-[11px]">{a.wholesaler.business.tradeName}</p>
-                      <h3 className="mt-0.5 line-clamp-2 text-[13px] font-medium leading-snug">{a.name}</h3>
-                      <div className="mt-auto pt-1">
+                      <Link
+                        href={`/retailer/products/${a.id}`}
+                        className="mt-0.5 line-clamp-2 text-[13px] font-medium leading-snug text-[var(--color-ink)] transition-colors hover:underline"
+                      >
+                        {productName(a, locale)}
+                      </Link>
+                      <p className="text-meta mt-1 text-[11px]">
+                        {t.common.moq} {a.moq}
+                      </p>
+                      <div className="mt-auto flex items-end justify-between gap-2 pt-2">
                         {viewA.price ? (
                           <p className="text-base font-bold">{money(viewA.price, cur)}</p>
                         ) : (
                           <span className="badge badge-info">{t.browse.requestPricing}</span>
                         )}
+                        <QuickAdd
+                          productId={a.id}
+                          moq={a.moq}
+                          stock={stockA}
+                          enabled={!!viewA.price && stockA > 0}
+                          t={t}
+                        />
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
@@ -237,16 +259,16 @@ export default async function BrowsePage({
             const [img] = parseImages(p.images);
 
             return (
-              <Link
+              <div
                 key={p.id}
-                href={`/retailer/products/${p.id}`}
-                className="card card-hover group flex flex-col overflow-hidden"
+                className="card card-hover group relative flex flex-col overflow-hidden"
               >
+                {/* 商品图：点击直接放大（data-zoom 全局灯箱），右上轻提示可放大 */}
                 <div className="relative aspect-square w-full bg-[var(--color-bg-muted)]">
                   {img && (
                     <Image
                       src={img}
-                      alt={p.name}
+                      alt={productName(p, locale)}
                       data-zoom
                       fill
                       sizes="(max-width: 640px) 100vw, 25vw"
@@ -254,6 +276,12 @@ export default async function BrowsePage({
                       unoptimized
                     />
                   )}
+                  <span
+                    title={t.common.zoomHint}
+                    className="absolute right-2 top-2 z-10 grid size-6 place-items-center rounded-full bg-black/35 text-white opacity-70 transition-opacity group-hover:opacity-100"
+                  >
+                    <ZoomIn className="size-3.5" />
+                  </span>
                   <span
                     className={`badge absolute left-3 top-3 backdrop-blur-sm ${
                       stock <= 0
@@ -274,15 +302,21 @@ export default async function BrowsePage({
                   <p className="text-meta truncate text-[11px]">
                     {p.wholesaler.business.tradeName}
                   </p>
-                  <h3 className="mt-0.5 line-clamp-2 text-[13px] font-medium leading-snug">
-                    {p.name}
-                  </h3>
+                  <Link
+                    href={`/retailer/products/${p.id}`}
+                    className="mt-0.5 line-clamp-2 text-[13px] font-medium leading-snug text-[var(--color-ink)] transition-colors hover:underline"
+                  >
+                    {productName(p, locale)}
+                  </Link>
                   <p className="text-meta mt-1 text-[11px]">
                     {t.common.moq} {p.moq}
+                    {p.boxSize && p.showBoxSize !== false ? (
+                      <span> · {t.common.pack} {p.boxSize}</span>
+                    ) : null}
                   </p>
-                  <div className="mt-auto flex items-end justify-between pt-2">
+                  <div className="mt-auto flex items-end justify-between gap-2 pt-2">
                     {view.price ? (
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-base font-bold">{money(view.price, cur)}</p>
                         {view.priceType === "CUSTOMER" && (
                           <p className="text-[11px] font-medium text-[var(--color-accent)]">
@@ -293,9 +327,16 @@ export default async function BrowsePage({
                     ) : (
                       <span className="badge badge-info">{t.browse.requestPricing}</span>
                     )}
+                    <QuickAdd
+                      productId={p.id}
+                      moq={p.moq}
+                      stock={stock}
+                      enabled={!!view.price && stock > 0}
+                      t={t}
+                    />
                   </div>
                 </div>
-              </Link>
+              </div>
             );
           })}
           </div>

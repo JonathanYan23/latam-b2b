@@ -145,7 +145,7 @@ export async function markConversationReadAction(
   // 让布局与列表缓存失效 → 客户端导航返回后红点即时消失
   revalidatePath("/retailer", "layout");
   revalidatePath("/wholesaler", "layout");
-  revalidatePath("/retailer/messages");
+  revalidatePath("/retailer/suppliers");
   revalidatePath("/wholesaler/messages");
   revalidatePath("/retailer/suppliers");
   revalidatePath("/wholesaler/customers");

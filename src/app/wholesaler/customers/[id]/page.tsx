@@ -7,6 +7,7 @@ import { requireRole } from "@/lib/require";
 import {getDictionary, getLocale} from "@/i18n";
 import { fmt } from "@/i18n/utils";
 import { money, date } from "@/lib/format";
+import { termsLabel } from "@/lib/terms";
 import { parseImages } from "@/lib/pricing";
 import {
   CustomerPriceForm,
@@ -96,7 +97,7 @@ export default async function CustomerDetailPage({
             </Link>
           )}
           {rel.paymentTerms && (
-            <span className="badge badge-neutral">{rel.paymentTerms}</span>
+            <span className="badge badge-neutral">{termsLabel(rel.paymentTerms, t)}</span>
           )}
           {rel.creditLimit && (
             <span className="badge badge-neutral">

@@ -1,14 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, Store, MessageCircle } from "lucide-react";
+import { MapPin, Store, MessageCircle, ZoomIn } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import { priceView, parseImages } from "@/lib/pricing";
 import { money } from "@/lib/format";
+import { termsLabel } from "@/lib/terms";
+import { productName } from "@/lib/product-name";
 import { fmt } from "@/i18n/utils";
-import {getDictionary, getLocale} from "@/i18n";
+import { getDictionary, getLocale } from "@/i18n";
 import { RequestPricingButton } from "@/app/retailer/products/[id]/request-button";
+import { QuickAdd } from "../../quick-add";
 
 export default async function SupplierPage({
   params,
@@ -40,14 +43,22 @@ export default async function SupplierPage({
 
   // 新上架：最近 14 天创建；?new=1 时仅展示新上架
   const NEW_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
-  const isNewProduct = (createdAt: Date) => Date.now() - createdAt.getTime() < NEW_WINDOW_MS;
-  const products = onlyNew === "1"
-    ? wholesaler.products.filter((p) => isNewProduct(p.createdAt))
-    : wholesaler.products;
+  const isNewProduct = (createdAt: Date) =>
+    Date.now() - createdAt.getTime() < NEW_WINDOW_MS;
+  const products =
+    onlyNew === "1"
+      ? wholesaler.products.filter((p) => isNewProduct(p.createdAt))
+      : wholesaler.products;
 
   const relationship = await db.customerRelationship.findUnique({
     where: { wholesalerId_retailerId: { wholesalerId: id, retailerId } },
-    select: { id: true, status: true, tier: true, paymentTerms: true, creditLimit: true },
+    select: {
+      id: true,
+      status: true,
+      tier: true,
+      paymentTerms: true,
+      creditLimit: true,
+    },
   });
 
   const customerPrices =
@@ -73,6 +84,7 @@ export default async function SupplierPage({
   ]
     .filter(Boolean)
     .join(", ");
+  const title = wholesaler.business.tradeName ?? wholesaler.business.legalName;
 
   return (
     <div className="mx-auto max-w-6xl animate-fade-up">
@@ -81,89 +93,90 @@ export default async function SupplierPage({
           {t.suppliers.title}
         </Link>
         <span className="mx-1.5">/</span>
-        <span className="text-[var(--color-ink-2)]">
-          {wholesaler.business.tradeName}
-        </span>
+        <span className="text-[var(--color-ink-2)]">{title}</span>
       </p>
 
-      {/* 供应商头部 */}
-      <div className="card flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
+      {/* 供应商信息区（精简一行式：让出更多空间给商品） */}
+      <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
+        <div className="flex min-w-0 items-center gap-3">
           {wholesaler.business.logo ? (
-            <span className="relative size-14 shrink-0 overflow-hidden rounded-2xl bg-[var(--color-bg-muted)]">
+            <span className="relative size-11 shrink-0 overflow-hidden rounded-xl bg-[var(--color-bg-muted)]">
               <Image
                 src={wholesaler.business.logo}
-                alt={wholesaler.business.tradeName ?? ""}
+                alt={title}
                 fill
-                sizes="56px"
+                sizes="44px"
                 className="object-cover"
                 unoptimized
               />
             </span>
           ) : (
-            <span className="grid size-14 place-items-center rounded-2xl bg-[var(--color-bg-muted)]">
-              <Store className="size-7 text-[var(--color-ink-2)]" strokeWidth={1.6} />
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[var(--color-bg-muted)]">
+              <Store className="size-5 text-[var(--color-ink-2)]" strokeWidth={1.8} />
             </span>
           )}
-          <div>
-            <h1 className="text-h2">{wholesaler.business.tradeName}</h1>
-            <p className="text-meta mt-0.5 text-sm">
-              {wholesaler.business.legalName}
+          <div className="min-w-0">
+            <h1 className="truncate text-[17px] font-semibold">{title}</h1>
+            <p className="text-meta truncate text-xs">
               {location && (
-                <span className="ml-2 inline-flex items-center gap-1">
-                  <MapPin className="size-3.5" /> {location}
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="size-3" /> {location}
+                </span>
+              )}
+              {wholesaler.user?.name && (
+                <span className="ml-2">
+                  {t.common.contactPerson}: {wholesaler.user.name}
+                </span>
+              )}
+              {relationship?.status === "APPROVED" && relationship.paymentTerms && (
+                <span className="ml-2 text-[var(--color-ink-2)]">
+                  · {termsLabel(relationship.paymentTerms, t)}
                 </span>
               )}
             </p>
-            {wholesaler.user?.name && (
-              <p className="text-meta mt-0.5 text-xs">
-                {t.common.contactPerson}: {wholesaler.user.name}
-              </p>
-            )}
           </div>
         </div>
-        <div className="flex flex-col items-start gap-2 sm:items-end">
+
+        {/* 右侧：状态 + 发消息直达（不额外占用商品区） */}
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
           {relationship && (
-            <div className="flex flex-wrap gap-2">
-              <span
-                className={`badge ${
-                  relationship.status === "APPROVED"
-                    ? "badge-success"
-                    : relationship.status === "PENDING"
-                      ? "badge-warning"
-                      : "badge-danger"
-                }`}
-              >
-                {relationship.status === "APPROVED"
-                  ? t.suppliers.approvedCustomer
+            <span
+              className={`badge ${
+                relationship.status === "APPROVED"
+                  ? "badge-success"
                   : relationship.status === "PENDING"
-                    ? t.suppliers.requestPending
-                    : t.suppliers.requestDeclined}
-              </span>
-              {relationship.paymentTerms && (
-                <span className="badge badge-neutral">{relationship.paymentTerms}</span>
-              )}
-              {wholesaler.minOrderAmount && Number(wholesaler.minOrderAmount) > 0 && (
-                <span className="badge badge-warning">
-                  {t.suppliers.minOrderValue}: ${Number(wholesaler.minOrderAmount).toLocaleString()}
-                </span>
-              )}
-            </div>
+                    ? "badge-warning"
+                    : "badge-danger"
+              }`}
+            >
+              {relationship.status === "APPROVED"
+                ? t.suppliers.approvedCustomer
+                : relationship.status === "PENDING"
+                  ? t.suppliers.requestPending
+                  : t.suppliers.requestDeclined}
+            </span>
           )}
-          {relStatus !== "APPROVED" && (
-            <div className="w-full sm:w-56">
-              <RequestPricingButton wholesalerId={id} status={relStatus} t={t} />
-            </div>
+          {relStatus !== "APPROVED" ? (
+            <RequestPricingButton wholesalerId={id} status={relStatus} t={t} />
+          ) : (
+            <Link
+              href={`/retailer/suppliers/${id}/chat`}
+              className="btn btn-secondary inline-flex items-center gap-1.5 px-3.5 py-2 text-sm"
+            >
+              <MessageCircle className="size-4" /> {t.suppliers.messagesTitle}
+            </Link>
           )}
         </div>
       </div>
 
-      {/* 商品（左）+ 消息（右侧贴店名可见）双栏 */}
-      <div className="mt-8 grid items-start gap-6 lg:grid-cols-[1fr_360px]">
-      <div className="order-2 min-w-0 lg:order-1">
-      {/* 该供应商的商品 */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-h2 text-lg">{t.suppliers.productsTitle}</h2>
+      {/* 商品标题 + 全部/新上架 筛选 */}
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-h2 text-lg">
+          {t.suppliers.productsTitle}
+          <span className="text-meta ml-2 text-sm font-normal">
+            {fmt(t.suppliers.count, { n: wholesaler.products.length })}
+          </span>
+        </h2>
         <div className="flex items-center gap-1 rounded-lg border border-[var(--color-line-2)] bg-[var(--color-bg-subtle)] p-1 text-xs font-medium">
           <Link
             href={`/retailer/suppliers/${id}`}
@@ -187,91 +200,108 @@ export default async function SupplierPage({
           </Link>
         </div>
       </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((p) => {
-          const cp = cpMap.get(p.id);
-          const view = priceView(p, relationship, cp);
-          const stock = p.inventories.reduce((s, i) => s + i.stock, 0);
-          const [img] = parseImages(p.images);
-          const isNew = isNewProduct(p.createdAt);
-          return (
-            <Link
-              key={p.id}
-              href={`/retailer/products/${p.id}`}
-              className="card card-hover flex gap-4 p-4"
-            >
-              <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-[var(--color-bg-muted)]">
-                {img && (
-                  <Image
-                    src={img}
-                    alt={p.name}
-                    fill
-                    sizes="80px"
-                    className="object-cover"
-                    unoptimized
-                  />
-                )}
-                {isNew && (
-                  <span className="absolute left-0 top-0 rounded-br-md bg-[var(--color-ink)] px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                    {t.suppliers.newArrivals}
+
+      {/* 商品网格：与「逛市场」同等的大图体验 + 点击放大 + 直达加购 */}
+      {products.length === 0 ? (
+        <div className="card mt-4 flex flex-col items-center px-6 py-14 text-center">
+          <Store className="mb-3 size-8 text-[var(--color-ink-3)]" strokeWidth={1.5} />
+          <p className="text-h3 text-base">{t.suppliers.emptySearch}</p>
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {products.map((p) => {
+            const cp = cpMap.get(p.id);
+            const view = priceView(p, relationship, cp);
+            const stock = p.inventories.reduce((s, i) => s + i.stock, 0);
+            const [img] = parseImages(p.images);
+            const isNew = isNewProduct(p.createdAt);
+            const name = productName(p, locale);
+            return (
+              <div
+                key={p.id}
+                className="card card-hover group relative flex flex-col overflow-hidden"
+              >
+                <div className="relative aspect-square w-full bg-[var(--color-bg-muted)]">
+                  {img && (
+                    <Image
+                      src={img}
+                      alt={name}
+                      data-zoom
+                      fill
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      unoptimized
+                    />
+                  )}
+                  <span
+                    title={t.common.zoomHint}
+                    className="absolute right-2 top-2 z-10 grid size-6 place-items-center rounded-full bg-black/35 text-white opacity-70 transition-opacity group-hover:opacity-100"
+                  >
+                    <ZoomIn className="size-3.5" />
                   </span>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="truncate text-sm font-medium">{p.name}</h3>
-                <p className="text-meta text-xs">
-                  {t.common.moq} {cp?.moq ?? p.moq}
-                </p>
-                <div className="mt-2">
-                  {view.price ? (
-                    <>
-                      <span className="text-sm font-semibold">
-                        {money(view.price, cur)}
-                      </span>
-                      {view.priceType === "CUSTOMER" && (
-                        <span className="badge badge-success ml-2 text-[11px]">
-                          {t.browse.yourPrice}
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <span className="badge badge-info text-[11px]">
-                      {t.suppliers.customerOnly}
+                  {isNew && (
+                    <span className="absolute left-2 top-2 rounded-md bg-[var(--color-ink)] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                      {t.suppliers.newArrivals}
                     </span>
                   )}
+                  <span
+                    className={`badge absolute bottom-2 left-2 backdrop-blur-sm ${
+                      stock <= 0
+                        ? "badge-danger"
+                        : stock < 20
+                          ? "badge-warning"
+                          : "badge-success"
+                    }`}
+                  >
+                    {stock <= 0
+                      ? t.common.outOfStock
+                      : stock < 20
+                        ? fmt(t.common.lowStock + " · {n} " + t.common.units, { n: stock })
+                        : t.common.inStock}
+                  </span>
                 </div>
-                <p
-                  className={`mt-1 text-xs ${
-                    stock <= 0 ? "text-[var(--color-danger)]" : "text-[var(--color-ink-3)]"
-                  }`}
-                >
-                  {stock <= 0
-                    ? t.common.outOfStock
-                    : fmt("{n} {u} " + t.common.inStock, { n: stock, u: t.common.units })}
-                </p>
+                <div className="flex flex-1 flex-col p-3">
+                  <Link
+                    href={`/retailer/products/${p.id}`}
+                    className="line-clamp-2 text-[13px] font-medium leading-snug text-[var(--color-ink)] transition-colors hover:underline"
+                  >
+                    {name}
+                  </Link>
+                  <p className="text-meta mt-1 text-[11px]">
+                    {t.common.moq} {cp?.moq ?? p.moq}
+                    {p.boxSize && p.showBoxSize !== false ? (
+                      <span> · {t.common.pack} {p.boxSize}</span>
+                    ) : null}
+                  </p>
+                  <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+                    {view.price ? (
+                      <div className="min-w-0">
+                        <p className="text-[15px] font-bold">{money(view.price, cur)}</p>
+                        {view.priceType === "CUSTOMER" && (
+                          <p className="text-[10px] font-medium text-[var(--color-accent)]">
+                            {t.browse.yourPrice}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="badge badge-info text-[11px]">
+                        {t.suppliers.customerOnly}
+                      </span>
+                    )}
+                    <QuickAdd
+                      productId={p.id}
+                      moq={cp?.moq ?? p.moq}
+                      stock={stock}
+                      enabled={!!view.price && stock > 0}
+                      t={t}
+                    />
+                  </div>
+                </div>
               </div>
-            </Link>
-          );
-        })}
-      </div>
-
-      </div>
-
-      {/* 进入聊天（独立整页，支持图片/PDF 附件） */}
-      <div className="order-1 lg:order-2 lg:sticky lg:top-20">
-        <Link
-          href={`/retailer/suppliers/${id}/chat`}
-          className="card flex flex-col items-center gap-2 p-6 text-center transition-shadow hover:shadow-md"
-        >
-          <span className="grid size-12 place-items-center rounded-xl bg-[var(--color-bg-muted)]">
-            <MessageCircle className="size-6 text-[var(--color-ink-2)]" strokeWidth={1.6} />
-          </span>
-          <p className="text-sm font-semibold">{t.suppliers.messagesTitle}</p>
-          <p className="text-meta text-xs">{t.suppliers.chatHint}</p>
-          <span className="btn btn-secondary mt-1 px-4 py-1.5 text-xs">{t.suppliers.openChat}</span>
-        </Link>
-      </div>
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

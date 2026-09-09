@@ -8,6 +8,8 @@ import { priceView, parseImages } from "@/lib/pricing";
 import { money } from "@/lib/format";
 import { fmt } from "@/i18n/utils";
 import { catName } from "@/lib/cat";
+import { productName } from "@/lib/product-name";
+import { termsLabel } from "@/lib/terms";
 import { getDictionary, getLocale } from "@/i18n";
 import { RequestPricingButton } from "./request-button";
 import { AddToOrderButton } from "./add-to-order-button";
@@ -61,6 +63,7 @@ export default async function ProductPage({
 
   const view = priceView(product, relationship, customerPrice);
   const images = parseImages(product.images);
+  const name = productName(product, locale); // 品名按界面语言自动匹配
   const stock = product.inventories.reduce((s, i) => s + i.stock, 0);
   const location = [
     product.wholesaler.business.city?.name,
@@ -93,7 +96,7 @@ export default async function ProductPage({
         </Link>
         <span className="mx-1.5 shrink-0">/</span>
         <span className="min-w-0 truncate text-[var(--color-ink-2)]">
-          {product.name}
+          {name}
         </span>
       </p>
 
@@ -104,7 +107,7 @@ export default async function ProductPage({
             {images[0] && (
               <Image
                 src={images[0]}
-                alt={product.name}
+                alt={name}
                 data-zoom
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -122,7 +125,7 @@ export default async function ProductPage({
                 >
                   <Image
                     src={img}
-                    alt={`${product.name} ${i + 2}`}
+                    alt={`${name} ${i + 2}`}
                     data-zoom
                     fill
                     className="object-cover"
@@ -145,7 +148,7 @@ export default async function ProductPage({
               </span>
             )}
           </div>
-          <h1 className="text-h1 mt-2">{product.name}</h1>
+          <h1 className="text-h1 mt-2">{name}</h1>
           <p className="text-meta mt-1">SKU: {product.sku}</p>
 
           {product.category && (
@@ -165,6 +168,14 @@ export default async function ProductPage({
                 })}
               </p>
             </div>
+            {product.boxSize && product.showBoxSize !== false && (
+              <div className="card p-4">
+                <p className="text-meta text-xs">{t.common.pack}</p>
+                <p className="mt-1 text-sm font-semibold leading-snug">
+                  {product.boxSize}
+                </p>
+              </div>
+            )}
             <div className="card p-4">
               <p className="text-meta text-xs">{t.product.availability}</p>
               <p
@@ -204,7 +215,7 @@ export default async function ProductPage({
                 )}
                 {relationship?.paymentTerms && (
                   <p className="text-meta mt-2 text-xs">
-                    {t.product.paymentTerms}: {relationship.paymentTerms}
+                    {t.product.paymentTerms}: {termsLabel(relationship.paymentTerms, t)}
                   </p>
                 )}
                 <div className="mt-4">
