@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Search, SlidersHorizontal, PackageX, Sparkles, ZoomIn } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
@@ -10,6 +9,7 @@ import { catName } from "@/lib/cat";
 import { productName } from "@/lib/product-name";
 import { fmt } from "@/i18n/utils";
 import { QuickAdd } from "../quick-add";
+import { ProductImage } from "@/components/product-image";
 
 export const metadata = { title: "Browse" };
 
@@ -173,9 +173,13 @@ export default async function BrowsePage({
                     className="card card-hover group flex flex-col overflow-hidden"
                   >
                     <div className="relative aspect-square w-full bg-[var(--color-bg-muted)]">
-                      {imgA && (
-                        <Image src={imgA} alt={productName(a, locale)} fill sizes="(max-width:640px) 100vw,25vw" data-zoom className="object-cover" unoptimized />
-                      )}
+                      <ProductImage
+                        src={imgA}
+                        alt={productName(a, locale)}
+                        sizes="(max-width:640px) 100vw,25vw"
+                        zoom
+                        iconClassName="size-8 text-[var(--color-ink-3)]"
+                      />
                       <span className="absolute right-2 top-2 z-10 grid size-6 place-items-center rounded-full bg-black/35 text-white opacity-70 transition-opacity group-hover:opacity-100">
                         <ZoomIn className="size-3.5" />
                       </span>
@@ -265,17 +269,13 @@ export default async function BrowsePage({
               >
                 {/* 商品图：点击直接放大（data-zoom 全局灯箱），右上轻提示可放大 */}
                 <div className="relative aspect-square w-full bg-[var(--color-bg-muted)]">
-                  {img && (
-                    <Image
-                      src={img}
-                      alt={productName(p, locale)}
-                      data-zoom
-                      fill
-                      sizes="(max-width: 640px) 100vw, 25vw"
-                      className="object-cover"
-                      unoptimized
-                    />
-                  )}
+                  <ProductImage
+                    src={img}
+                    alt={productName(p, locale)}
+                    zoom
+                    sizes="(max-width: 640px) 100vw, 25vw"
+                    iconClassName="size-8 text-[var(--color-ink-3)]"
+                  />
                   <span
                     title={t.common.zoomHint}
                     className="absolute right-2 top-2 z-10 grid size-6 place-items-center rounded-full bg-black/35 text-white opacity-70 transition-opacity group-hover:opacity-100"

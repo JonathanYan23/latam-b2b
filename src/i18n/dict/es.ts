@@ -65,6 +65,27 @@ const es = {
     of: "de",
   },
 
+  // 全局 UI 反馈层（Toast / 确认弹窗 / 骨架屏 / 错误页 / 404）
+  ui: {
+    close: "Cerrar",
+    ok: "Entendido",
+    notice: "Aviso",
+    confirm: "Confirmar",
+    errorTitle: "Algo salió mal",
+    errorDesc:
+      "Ocurrió un problema inesperado en esta página. Puedes reintentar o volver a tu página de inicio.",
+    errorRetry: "Reintentar",
+    errorHome: "Volver al inicio",
+    errorRef: "Ref.",
+    notFoundTitle: "Página no encontrada",
+    notFoundDesc: "La página que buscas no existe o puede haber sido movida.",
+    notFoundHome: "Volver al inicio",
+    loadingPage: "Cargando…",
+    working: "Procesando…",
+    networkError: "Problema de red — inténtalo de nuevo",
+    comingSoonTitle: "Próximamente",
+  },
+
   landing: {
     tagline: "Comercio mayorista B2B para LatAm",
     title:
@@ -297,6 +318,8 @@ const es = {
     backToOrders: "Volver a pedidos",
     cancel: "Cancelar pedido",
     errCancel: "Solo se pueden cancelar pedidos pendientes de confirmación",
+    cancelConfirmDesc:
+      "Este pedido será retirado y el mayorista ya no lo procesará. Puedes volver a pedirlo cuando quieras.",
     errNotFound: "Pedido no encontrado",
     payNow: "Pagar ahora",
     paymentDue: "Pago pendiente",
@@ -435,6 +458,7 @@ const es = {
     mode: "Modo",
     edit: "Editar",
     deleteProduct: "Eliminar",
+    deleteTitle: "¿Eliminar este producto?",
     bulkUpload: "Alta masiva inteligente",
     bulkTitle: "Generar productos en masa",
     bulkHint:
@@ -554,6 +578,8 @@ const es = {
     confirmDelBtn: "Sí, eliminar",
     estMargin: "Margen est.",
     removedTip: "{n} pedidos eliminados (retenidos en admin)",
+    deleteDesc:
+      "El pedido #{n} se ocultará de esta lista. El registro se conserva completo en el panel de administración y puede restaurarse. Exporta una copia de seguridad antes si lo necesitas.",
     dateFrom: "Desde",
     dateTo: "Hasta",
     resetFilter: "Restablecer",
@@ -615,6 +641,7 @@ const es = {
     deleteCustomer: "Eliminar cliente",
     deleteCustomerHint: "Haz clic dos veces para confirmar",
     deleteConfirm: "Eliminar este cliente borra sus precios personalizados y perderá el acceso a tus precios de cliente. No se puede deshacer. Los clientes con pedidos o facturas no pueden eliminarse.",
+    deleteTitle: "¿Eliminar este cliente?",
   },
 
   wsReports: {
@@ -709,6 +736,8 @@ const es = {
     ip: "IP",
     restore: "Restaurar",
     restoredTip: "Pedido restaurado",
+    restoreConfirmDesc:
+      "Este pedido volverá a aparecer en la lista de pedidos del mayorista.",
     orderCol: "Pedido",
     buyerCol: "Comprador",
     totalCol: "Total",

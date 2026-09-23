@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { UserPlus, Check } from "lucide-react";
-import { toast } from "@/components/toast";
+import { useToast } from "@/components/ui/toast";
 
 /** 邀请新客户：复制带邀请标识的注册链接 */
 export function InviteCustomerButton({
@@ -15,6 +15,7 @@ export function InviteCustomerButton({
   copiedLabel: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const toast = useToast();
 
   return (
     <button
@@ -24,11 +25,11 @@ export function InviteCustomerButton({
         try {
           await navigator.clipboard.writeText(url);
         } catch {
-          // 剪贴板不可用时退回提示链接
+          // 剪贴板不可用时静默降级（仍给出提示）
         }
         setCopied(true);
         setTimeout(() => setCopied(false), 2500);
-        toast(copiedLabel);
+        toast.success(copiedLabel);
       }}
       className="btn btn-secondary inline-flex items-center gap-1.5 px-3 py-2 text-sm"
     >

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Loader2, Store, Sparkles } from "lucide-react";
 import { UploadButton } from "@/components/upload-button";
 import { updateBusinessLogoAction } from "./actions";
+import { useToast } from "@/components/ui/toast";
 import type { Dict } from "@/i18n";
 
 /** 批发商账户页顶部：店铺资料（Logo 上传）+ 订阅套餐 */
@@ -22,6 +23,7 @@ export function ProfileCard({
   const [logo, setLogo] = useState<string | null>(initialLogo);
   const [pending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
+  const toast = useToast();
 
   const isPlus = plan === "PLUS";
 
@@ -85,7 +87,11 @@ export function ProfileCard({
             {!isPlus && (
               <button
                 type="button"
-                onClick={() => window.alert(t.wsAccount.upgradeComingSoon)}
+                onClick={() =>
+                  toast.info(t.wsAccount.upgradeComingSoon, {
+                    description: t.wsAccount.planUpgradeHint,
+                  })
+                }
                 className="btn btn-secondary inline-flex items-center gap-1 px-2.5 py-1 text-xs"
               >
                 <Sparkles className="size-3.5" /> {t.wsAccount.upgrade}

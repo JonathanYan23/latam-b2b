@@ -65,6 +65,26 @@ const zh = {
     of: "页，共",
   },
 
+  // 全局 UI 反馈层（Toast / 确认弹窗 / 骨架屏 / 错误页 / 404）
+  ui: {
+    close: "关闭",
+    ok: "知道了",
+    notice: "提示",
+    confirm: "确定",
+    errorTitle: "页面出错了",
+    errorDesc: "这个页面遇到了意外问题。你可以重试，或返回首页继续浏览。",
+    errorRetry: "重试",
+    errorHome: "返回首页",
+    errorRef: "错误编号",
+    notFoundTitle: "页面不存在",
+    notFoundDesc: "你访问的页面不存在，或已被移动。",
+    notFoundHome: "返回首页",
+    loadingPage: "加载中…",
+    working: "处理中…",
+    networkError: "网络异常，请重试",
+    comingSoonTitle: "即将上线",
+  },
+
   landing: {
     tagline: "拉美 B2B 批发电商平台",
     title: "连接拉美批发与采购，一站式 B2B 交易平台",
@@ -289,6 +309,8 @@ const zh = {
     backToOrders: "返回订单",
     cancel: "撤销订单",
     errCancel: "仅待批发商确认的订单可撤销",
+    cancelConfirmDesc:
+      "该订单将被撤回，批发商不会再处理。你之后可以随时重新下单。",
     errNotFound: "订单不存在",
     payNow: "去付款",
     paymentDue: "待付款",
@@ -424,6 +446,7 @@ const zh = {
     mode: "销售模式",
     edit: "编辑",
     deleteProduct: "删除",
+    deleteTitle: "删除该商品？",
     bulkUpload: "批量智能上架",
     bulkTitle: "批量智能上架",
     bulkHint: "上传商品照片、报价单、Excel、截图，AI 自动识别并填写商品信息；补正后勾选批量上架。识别结果可手动修改。",
@@ -538,6 +561,8 @@ const zh = {
     confirmDelBtn: "确认删除",
     estMargin: "预估毛利",
     removedTip: "已移除 {n} 个订单（后台记录保留）",
+    deleteDesc:
+      "订单 #{n} 将从本列表隐藏；数据在平台管理端完整保留，可恢复。建议先导出备份。",
     dateFrom: "开始日期",
     dateTo: "结束日期",
     resetFilter: "重置",
@@ -598,6 +623,7 @@ const zh = {
     deleteCustomer: "移除客户",
     deleteCustomerHint: "点两下确认移除",
     deleteConfirm: "移除该客户关系将同时删除其专属价格，客户将无法再查看你的客户专属价；此操作不可恢复。已产生订单或发票的客户无法移除。",
+    deleteTitle: "移除该客户？",
   },
 
   wsReports: {
@@ -692,6 +718,7 @@ const zh = {
     ip: "IP",
     restore: "恢复",
     restoredTip: "订单已恢复",
+    restoreConfirmDesc: "该订单将重新出现在批发商的订单列表中。",
     orderCol: "订单",
     buyerCol: "买家",
     totalCol: "金额",

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Trash2, Loader2, ArrowRight, Check, ShoppingBag } from "lucide-react";
 import Link from "next/link";
@@ -11,8 +10,11 @@ import {
   submitDraftAction,
 } from "../../draft-actions";
 import { QtyWheel } from "@/components/qty-wheel";
+import { ProductImage } from "@/components/product-image";
 import { fmt } from "@/i18n/utils";
 import { CART_EVENT } from "@/components/cart/cart-shell";
+import { useConfirm } from "@/components/ui/confirm";
+import { useToast } from "@/components/ui/toast";
 import type { Dict } from "@/i18n";
 import { money } from "@/lib/format";
 
@@ -50,6 +52,8 @@ export function DraftManager({
   currency?: string;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [pending, startTransition] = useTransition();
 
   const setQty = (productId: string, next: number) =>
@@ -57,8 +61,13 @@ export function DraftManager({
       await setDraftItemQuantityAction(orderId, productId, next);
       router.refresh();
     });
-  const remove = (productId: string) => {
-    if (!window.confirm(t.cart.removeConfirm)) return;
+  const remove = async (productId: string) => {
+    const ok = await confirm({
+      title: t.cart.removeConfirm,
+      confirmText: t.common.remove,
+      variant: "danger",
+    });
+    if (!ok) return;
     startTransition(async () => {
       await removeDraftItemAction(orderId, productId);
       router.refresh();
@@ -68,7 +77,7 @@ export function DraftManager({
     startTransition(async () => {
       const res = await submitDraftAction(orderId);
       if (!res.ok) {
-        alert(res.error ?? t.orders.errCancel);
+        toast.error(res.error ?? t.orders.errCancel);
         return;
       }
       // 提交成功：跳到结果页（服务端渲染成功面板 + 查看订单/继续采购）
@@ -101,16 +110,12 @@ export function DraftManager({
                 className="flex items-center gap-4 px-5 py-4"
               >
                 <div className="relative size-11 shrink-0 overflow-hidden rounded-[9px] bg-[var(--color-bg-muted)]">
-                  {item.image && (
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      sizes="44px"
-                      className="object-cover"
-                      unoptimized
-                    />
-                  )}
+                  <ProductImage
+                    src={item.image}
+                    alt={item.name}
+                    sizes="44px"
+                    iconClassName="size-4 text-[var(--color-ink-3)]"
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{item.name}</p>

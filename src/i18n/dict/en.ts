@@ -65,6 +65,28 @@ const en = {
     of: "of",
   },
 
+  // 全局 UI 反馈层（Toast / 确认弹窗 / 骨架屏 / 错误页 / 404）
+  ui: {
+    close: "Close",
+    ok: "Got it",
+    notice: "Notice",
+    confirm: "Confirm",
+    errorTitle: "Something went wrong",
+    errorDesc:
+      "An unexpected problem occurred on this page. You can try again, or head back to your home page.",
+    errorRetry: "Try again",
+    errorHome: "Back to home",
+    errorRef: "Ref",
+    notFoundTitle: "Page not found",
+    notFoundDesc:
+      "The page you're looking for doesn't exist, or it may have been moved.",
+    notFoundHome: "Back to home",
+    loadingPage: "Loading…",
+    working: "Working…",
+    networkError: "Network issue — please try again",
+    comingSoonTitle: "Coming soon",
+  },
+
   landing: {
     tagline: "LatAm B2B wholesale e-commerce",
     title:
@@ -294,6 +316,8 @@ const en = {
     backToOrders: "Back to orders",
     cancel: "Cancel order",
     errCancel: "Only orders awaiting confirmation can be cancelled",
+    cancelConfirmDesc:
+      "This order will be withdrawn and the supplier will no longer process it. You can place a new order at any time.",
     errNotFound: "Order not found",
     payNow: "Pay now",
     paymentDue: "Payment due",
@@ -432,6 +456,7 @@ const en = {
     mode: "Mode",
     edit: "Edit",
     deleteProduct: "Delete",
+    deleteTitle: "Delete this product?",
     bulkUpload: "Smart bulk listing",
     bulkTitle: "Generate products in bulk",
     bulkHint:
@@ -551,6 +576,8 @@ const en = {
     confirmDelBtn: "Yes, delete",
     estMargin: "Est. margin",
     removedTip: "{n} orders removed (kept in admin)",
+    deleteDesc:
+      'Order #{n} will be hidden from this list. The record is fully retained on the platform admin side and can be restored. Export a backup first if needed.',
     dateFrom: "From",
     dateTo: "To",
     resetFilter: "Reset",
@@ -612,6 +639,7 @@ const en = {
     deleteCustomer: "Remove customer",
     deleteCustomerHint: "Click twice to confirm",
     deleteConfirm: "Removing this customer deletes their custom prices and they will lose access to your customer pricing. This cannot be undone. Customers with orders or invoices cannot be removed.",
+    deleteTitle: "Remove this customer?",
   },
 
   wsReports: {
@@ -706,6 +734,8 @@ const en = {
     ip: "IP",
     restore: "Restore",
     restoredTip: "Order restored",
+    restoreConfirmDesc:
+      "This order will be visible again in the wholesaler's order list.",
     orderCol: "Order",
     buyerCol: "Buyer",
     totalCol: "Total",

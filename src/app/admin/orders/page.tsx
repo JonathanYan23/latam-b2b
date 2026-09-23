@@ -185,6 +185,7 @@ export default async function AdminOrdersPage({
                     <AdminRestoreButton
                       supplierOrderId={o.id}
                       label={t.admin.restore}
+                      t={t}
                     />
                   )}
                 </td>

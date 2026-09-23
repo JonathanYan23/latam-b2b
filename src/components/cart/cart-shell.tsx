@@ -18,7 +18,6 @@ import {
   useState,
   useTransition,
 } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
@@ -30,12 +29,17 @@ import {
   clearDraftAction,
 } from "@/app/retailer/draft-actions";
 import { QtyWheel } from "@/components/qty-wheel";
+import { ProductImage } from "@/components/product-image";
+import { useConfirm } from "@/components/ui/confirm";
 import { money } from "@/lib/format";
 import { fmt } from "@/i18n/utils";
 import type { Dict } from "@/i18n";
 
 /** 购物车变更广播事件：加购 / 抽屉内操作后派发，全局角标据此刷新 */
 export const CART_EVENT = "latam-cart-sync";
+
+/** 请求打开购物车抽屉（任意位置可触发，如加购 Toast 的「查看购物车」） */
+export const CART_OPEN_EVENT = "latam-cart-open";
 
 interface CartGroup {
   id: string;
@@ -74,6 +78,7 @@ export function CartButton({
   currency?: string;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [count, setCount] = useState(initialCount);
   const [open, setOpen] = useState(false);
   const [snap, setSnap] = useState<CartSnap | null>(null);
@@ -95,6 +100,22 @@ export function CartButton({
       return null;
     }
   }, []);
+
+  const openDrawer = useCallback(() => {
+    setOpen(true);
+    setLoading(true);
+    startTransition(async () => {
+      await refresh();
+      setLoading(false);
+    });
+  }, [refresh]);
+
+  // 外部请求打开抽屉（加购 Toast 的「查看购物车」等）
+  useEffect(() => {
+    const h = () => openDrawer();
+    window.addEventListener(CART_OPEN_EVENT, h);
+    return () => window.removeEventListener(CART_OPEN_EVENT, h);
+  }, [openDrawer]);
 
   // 角标同步：仅抽屉未打开时回拉服务端（外部加购等）；打开期间本地乐观态为主导，
   // 避免删除/调量后被陈旧回执“回填复活”
@@ -126,15 +147,6 @@ export function CartButton({
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);
-
-  const openDrawer = () => {
-    setOpen(true);
-    setLoading(true);
-    startTransition(async () => {
-      await refresh();
-      setLoading(false);
-    });
-  };
 
   /** 纯函数：按目标数量重算快照（行小计 → 组小计 → 总额 → 件数） */
   const applyQtyTo = (prev: CartSnap | null, pid: string, q: number): CartSnap | null => {
@@ -199,8 +211,13 @@ export function CartButton({
   };
 
   /** 乐观删除：立即从本地移除该商品（空组随之消失），后台同步 */
-  const removeItem = (pid: string) => {
-    if (!window.confirm(t.cart.removeConfirm)) return;
+  const removeItem = async (pid: string) => {
+    const ok = await confirm({
+      title: t.cart.removeConfirm,
+      confirmText: t.common.remove,
+      variant: "danger",
+    });
+    if (!ok) return;
     setSnap((prev) => {
       if (!prev) return prev;
       const groups = prev.groups
@@ -229,9 +246,14 @@ export function CartButton({
     });
   };
 
-  const clear = () => {
+  const clear = async () => {
     if (!snap) return;
-    if (!window.confirm(t.cart.clearConfirm)) return;
+    const ok = await confirm({
+      title: t.cart.clearConfirm,
+      confirmText: t.cart.clearCart,
+      variant: "danger",
+    });
+    if (!ok) return;
     startTransition(async () => {
       setBusy(true);
       try {
@@ -389,16 +411,12 @@ export function CartButton({
                               onClick={() => setOpen(false)}
                               className="relative block size-11 shrink-0 overflow-hidden rounded-[9px] bg-[var(--color-bg-muted)]"
                             >
-                              {item.image && (
-                                <Image
-                                  src={item.image}
-                                  alt={item.name}
-                                  fill
-                                  sizes="44px"
-                                  className="object-cover"
-                                  unoptimized
-                                />
-                              )}
+                              <ProductImage
+                                src={item.image}
+                                alt={item.name}
+                                sizes="44px"
+                                iconClassName="size-4 text-[var(--color-ink-3)]"
+                              />
                             </Link>
 
                             <div className="flex min-w-0 flex-1 flex-col">

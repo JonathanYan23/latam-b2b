@@ -10,6 +10,8 @@ import {
   deleteProductAction,
   bulkProductsAction,
 } from "../actions";
+import { useConfirm, usePrompt } from "@/components/ui/confirm";
+import { useToast } from "@/components/ui/toast";
 import type { Dict } from "@/i18n";
 
 /** 列表页内联库存更新（0 库存不显示数字，留空待填） */
@@ -189,16 +191,24 @@ export function DeleteProductButton({
   t: Dict;
 }) {
   const [pending, startTransition] = useTransition();
+  const confirm = useConfirm();
+  const toast = useToast();
 
   return (
     <button
       type="button"
       disabled={pending}
-      onClick={() => {
-        if (!window.confirm(`${t.wsProducts.deleteConfirm}\n\n「${productName}」`)) return;
+      onClick={async () => {
+        const ok = await confirm({
+          title: t.wsProducts.deleteTitle,
+          description: `${t.wsProducts.deleteConfirm}\n\n「${productName}」`,
+          confirmText: t.wsProducts.deleteProduct,
+          variant: "danger",
+        });
+        if (!ok) return;
         startTransition(async () => {
           const res = await deleteProductAction(productId);
-          if (!res.ok) window.alert(res.error);
+          if (!res.ok) toast.error(res.error || t.ui.networkError);
         });
       }}
       className="btn btn-ghost inline-flex items-center gap-1 border border-[var(--color-line-2)] px-2.5 py-1.5 text-xs text-[var(--color-danger)] hover:border-[var(--color-danger)]/40 disabled:opacity-50"
@@ -217,6 +227,9 @@ export function DeleteProductButton({
 export function BulkBar({ t }: { t: Dict }) {
   const [count, setCount] = useState(0);
   const [busy, setBusy] = useState(false);
+  const confirm = useConfirm();
+  const prompt = usePrompt();
+  const toast = useToast();
 
   const refresh = () =>
     setCount(
@@ -239,19 +252,28 @@ export function BulkBar({ t }: { t: Dict }) {
     if (ids.length === 0) return;
     let value: number | undefined;
     if (op === "price") {
-      const raw = window.prompt(t.wsProducts.bulkPricePrompt);
+      const raw = await prompt({
+        title: t.wsProducts.bulkPricePrompt,
+        inputType: "decimal",
+        placeholder: "0.00",
+      });
       if (raw === null) return;
       value = Number(raw);
       if (Number.isNaN(value) || value < 0) return;
     }
     if (op === "delete") {
-      if (!window.confirm(t.wsProducts.bulkDeleteConfirm)) return;
+      const ok = await confirm({
+        title: t.wsProducts.bulkDeleteConfirm,
+        confirmText: t.wsProducts.deleteProduct,
+        variant: "danger",
+      });
+      if (!ok) return;
     }
     setBusy(true);
     const res = await bulkProductsAction(ids, op, value);
     setBusy(false);
     if (!res.ok) {
-      alert(res.error ?? "error");
+      toast.error(res.error || t.ui.networkError);
       return;
     }
     window.location.reload();

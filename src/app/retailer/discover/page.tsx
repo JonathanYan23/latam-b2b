@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { ProductImage } from "@/components/product-image";
 import { Store, MapPin, Package, ArrowRight, Search, MessageCircle } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
@@ -206,14 +206,12 @@ export default async function DiscoverPage({
                       key={u}
                       className="relative block size-12 shrink-0 overflow-hidden rounded-md border border-[var(--color-line-2)] bg-[var(--color-bg-muted)]"
                     >
-                      <Image
+                      <ProductImage
                         src={u}
                         alt=""
-                        data-zoom
-                        fill
+                        zoom
                         sizes="48px"
-                        className="object-cover"
-                        unoptimized
+                        iconClassName="size-4 text-[var(--color-ink-3)]"
                       />
                     </span>
                   ))}

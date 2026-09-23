@@ -14,7 +14,8 @@ import {
   getCartSnapshotAction,
 } from "@/app/retailer/draft-actions";
 import { QtyWheel } from "@/components/qty-wheel";
-import { CART_EVENT } from "@/components/cart/cart-shell";
+import { CART_EVENT, CART_OPEN_EVENT } from "@/components/cart/cart-shell";
+import { useToast } from "@/components/ui/toast";
 import type { Dict } from "@/i18n";
 
 interface CartSnapLike {
@@ -45,6 +46,7 @@ export function QuickAdd({
   const [busy, setBusy] = useState(false);
   const [added, setAdded] = useState(false);
   const [pending, startTransition] = useTransition();
+  const toast = useToast();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moqSafe = Math.max(1, Math.floor(moq) || 1);
 
@@ -104,10 +106,17 @@ export function QuickAdd({
     act(async () => {
       const res = await addToDraftAction(productId, moqSafe);
       if (!res.ok) {
-        window.alert(res.error);
+        toast.error(res.error || t.ui.networkError);
         return;
       }
       flash();
+      // 就地反馈：Toast 带「查看购物车」动作，点击直接打开右侧抽屉（不跳页）
+      toast.success(t.cart.addedToast, {
+        action: {
+          label: t.cart.viewCart,
+          onClick: () => window.dispatchEvent(new Event(CART_OPEN_EVENT)),
+        },
+      });
     });
 
   const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

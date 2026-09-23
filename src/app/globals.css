@@ -48,6 +48,13 @@ html {
   scroll-behavior: smooth;
 }
 
+/* 键盘可达性：统一 focus-visible 焦点环
+   使用 :where() 保持零特异性，组件自带 focus:outline-none + ring 时自动胜出，不会双重描边 */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 body {
   min-height: 100vh;
   color: var(--color-ink);
@@ -317,4 +324,43 @@ body {
   .cart-sheet {
     width: 420px;
   }
+}
+
+/* ===== 全局反馈层：Toast / ConfirmDialog 动效 ===== */
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes toastBar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+/* 自动消失进度条：线性走完即触发关闭；悬停暂停（同时暂停 JS 计时语义） */
+.toast-bar {
+  animation-name: toastBar;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+.toast-card:hover .toast-bar {
+  animation-play-state: paused;
 }

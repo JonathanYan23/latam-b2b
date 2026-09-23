@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MapPin, BadgeCheck, ArrowLeft } from "lucide-react";
+import { ProductImage } from "@/components/product-image";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import { priceView, parseImages } from "@/lib/pricing";
@@ -104,17 +104,13 @@ export default async function ProductPage({
         {/* 图片区 */}
         <div data-zoom-group>
           <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-[var(--color-line-2)] bg-[var(--color-bg-muted)]">
-            {images[0] && (
-              <Image
-                src={images[0]}
-                alt={name}
-                data-zoom
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-                unoptimized
-              />
-            )}
+            <ProductImage
+              src={images[0]}
+              alt={name}
+              zoom
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              iconClassName="size-12 text-[var(--color-ink-3)]"
+            />
           </div>
           {images.length > 1 && (
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
@@ -123,13 +119,12 @@ export default async function ProductPage({
                   key={i}
                   className="relative size-20 shrink-0 overflow-hidden rounded-lg border border-[var(--color-line-2)] bg-[var(--color-bg-muted)]"
                 >
-                  <Image
+                  <ProductImage
                     src={img}
                     alt={`${name} ${i + 2}`}
-                    data-zoom
-                    fill
-                    className="object-cover"
-                    unoptimized
+                    zoom
+                    sizes="80px"
+                    iconClassName="size-5 text-[var(--color-ink-3)]"
                   />
                 </div>
               ))}

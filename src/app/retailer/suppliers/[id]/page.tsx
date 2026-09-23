@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { ProductImage } from "@/components/product-image";
 import { notFound } from "next/navigation";
 import { MapPin, Store, MessageCircle, ZoomIn } from "lucide-react";
 import { db } from "@/lib/db";
@@ -101,13 +101,11 @@ export default async function SupplierPage({
         <div className="flex min-w-0 items-center gap-3">
           {wholesaler.business.logo ? (
             <span className="relative size-11 shrink-0 overflow-hidden rounded-xl bg-[var(--color-bg-muted)]">
-              <Image
+              <ProductImage
                 src={wholesaler.business.logo}
                 alt={title}
-                fill
                 sizes="44px"
-                className="object-cover"
-                unoptimized
+                iconClassName="size-5 text-[var(--color-ink-2)]"
               />
             </span>
           ) : (
@@ -222,17 +220,13 @@ export default async function SupplierPage({
                 className="card card-hover group relative flex flex-col overflow-hidden"
               >
                 <div className="relative aspect-square w-full bg-[var(--color-bg-muted)]">
-                  {img && (
-                    <Image
-                      src={img}
-                      alt={name}
-                      data-zoom
-                      fill
-                      sizes="(max-width: 640px) 50vw, 25vw"
-                      className="object-cover"
-                      unoptimized
-                    />
-                  )}
+                  <ProductImage
+                    src={img}
+                    alt={name}
+                    zoom
+                    sizes="(max-width: 640px) 50vw, 25vw"
+                    iconClassName="size-8 text-[var(--color-ink-3)]"
+                  />
                   <span
                     title={t.common.zoomHint}
                     className="absolute right-2 top-2 z-10 grid size-6 place-items-center rounded-full bg-black/35 text-white opacity-70 transition-opacity group-hover:opacity-100"

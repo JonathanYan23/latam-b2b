@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans, GeistMono } from "geist/font";
-import {getLocale} from "@/i18n";
+import { getDictionary, getLocale } from "@/i18n";
+import { AppProviders } from "@/components/ui/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,18 +19,22 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#f5f5f7",
 };
 
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const locale = await getLocale();
+  const [locale, t] = await Promise.all([getLocale(), getDictionary()]);
   return (
     <html lang={locale}>
       <body
         className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}
       >
-        {children}
+        {/* 全局客户端能力：字典 / Toast / 确认弹窗 */}
+        <AppProviders t={t} locale={locale}>
+          {children}
+        </AppProviders>
       </body>
     </html>
   );

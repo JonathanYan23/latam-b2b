@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, X, Loader2, BadgeCheck, Trash2, AlertTriangle } from "lucide-react";
+import { Check, X, Loader2, BadgeCheck, Trash2 } from "lucide-react";
 import { fmt } from "@/i18n/utils";
 import { currencySymbol } from "@/lib/currency";
 import {
@@ -12,9 +12,11 @@ import {
   removeCustomerPriceAction,
   updateRelationshipAction,
 } from "./actions";
+import { useConfirm } from "@/components/ui/confirm";
+import { useToast } from "@/components/ui/toast";
 import type { Dict } from "@/i18n";
 
-/** 移除客户：两步确认（第一次点击进入待确认（变红），再次点击弹后果说明后删除） */
+/** 移除客户：品牌确认弹窗（说明后果）后再执行 */
 export function DeleteCustomerButton({
   relationshipId,
   customerName,
@@ -24,9 +26,9 @@ export function DeleteCustomerButton({
   customerName: string;
   t: Dict;
 }) {
-  const [armed, setArmed] = useState(false);
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const confirm = useConfirm();
+  const toast = useToast();
 
   return (
     <span className="inline-flex items-center gap-1.5">
@@ -34,45 +36,27 @@ export function DeleteCustomerButton({
         type="button"
         disabled={pending}
         title={t.wsCustomers.deleteCustomerHint}
-        onClick={() => {
-          if (!armed) {
-            setArmed(true);
-            setTimeout(() => setArmed(false), 5000);
-            return;
-          }
-          if (
-            !window.confirm(
-              `${t.wsCustomers.deleteConfirm}\n\n${customerName}`,
-            )
-          ) {
-            setArmed(false);
-            return;
-          }
+        onClick={async () => {
+          const ok = await confirm({
+            title: t.wsCustomers.deleteTitle,
+            description: `${t.wsCustomers.deleteConfirm}\n\n${customerName}`,
+            confirmText: t.wsCustomers.deleteCustomer,
+            variant: "danger",
+          });
+          if (!ok) return;
           startTransition(async () => {
             const res = await deleteCustomerAction(relationshipId);
-            if (!res.ok) {
-              setError(res.error ?? "failed");
-              setArmed(false);
-            }
+            if (!res.ok) toast.error(res.error || t.ui.networkError);
           });
         }}
-        className={
-          armed
-            ? "inline-flex items-center gap-1 rounded-md border border-[var(--color-danger)] bg-[var(--color-danger)] px-2.5 py-1.5 text-xs font-medium text-white"
-            : "inline-flex items-center gap-1 rounded-md border border-[var(--color-line-2)] px-2.5 py-1.5 text-xs font-medium text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-danger)] hover:text-[var(--color-danger)]"
-        }
+        className="inline-flex items-center gap-1 rounded-md border border-[var(--color-line-2)] px-2.5 py-1.5 text-xs font-medium text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-danger)] hover:text-[var(--color-danger)] disabled:opacity-50"
       >
         {pending ? (
           <Loader2 className="size-3.5 animate-spin" />
-        ) : armed ? (
-          <>
-            <AlertTriangle className="size-3.5" /> {t.wsCustomers.deleteCustomer}？
-          </>
         ) : (
           <Trash2 className="size-3.5" />
         )}
       </button>
-      {error && <span className="text-xs text-[var(--color-danger)]">{error}</span>}
     </span>
   );
 }

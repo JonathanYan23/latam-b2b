@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import type { OrderStatus } from "@prisma/client";
 import { updateSupplierOrderStatusAction } from "./actions";
+import { useToast } from "@/components/ui/toast";
 import type { Dict } from "@/i18n";
 
 export function StatusFlowButtons({
@@ -16,6 +17,7 @@ export function StatusFlowButtons({
   t: Dict;
 }) {
   const [pending, startTransition] = useTransition();
+  const toast = useToast();
   const o = t.wsOrders;
 
   const actions: { to: OrderStatus; label: string }[] = [];
@@ -33,7 +35,7 @@ export function StatusFlowButtons({
           onClick={() =>
             startTransition(async () => {
               const res = await updateSupplierOrderStatusAction(supplierOrderId, a.to);
-              if (!res.ok) alert(res.error ?? "Failed");
+              if (!res.ok) toast.error(res.error || t.ui.networkError);
             })
           }
           className="btn btn-primary px-4 py-1.5 text-xs"
@@ -54,7 +56,7 @@ export function StatusFlowButtons({
                 supplierOrderId,
                 "CANCELLED",
               );
-              if (!res.ok) alert(res.error ?? "Failed");
+              if (!res.ok) toast.error(res.error || t.ui.networkError);
             })
           }
           className="btn btn-secondary px-3 py-1.5 text-xs text-[var(--color-danger)]"

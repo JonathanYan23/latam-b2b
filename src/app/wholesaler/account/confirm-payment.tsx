@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { confirmPaymentAction } from "./actions";
+import { useToast } from "@/components/ui/toast";
 import type { Dict } from "@/i18n";
 
 /** 确认收款：填写经手人姓名后确认（防同名混淆/留痕） */
@@ -17,6 +18,7 @@ export function ConfirmPaymentButton({
 }) {
   const [pending, startTransition] = useTransition();
   const [name, setName] = useState(defaultName);
+  const toast = useToast();
 
   return (
     <div className="flex items-center gap-2">
@@ -31,7 +33,8 @@ export function ConfirmPaymentButton({
         onClick={() =>
           startTransition(async () => {
             const res = await confirmPaymentAction(paymentId, name);
-            if (!res.ok) alert(res.error ?? t.wsAccount.errNotFound);
+            if (!res.ok) toast.error(res.error ?? t.wsAccount.errNotFound);
+            else toast.success(t.wsAccount.confirmReceived);
           })
         }
         className="btn btn-primary px-3 py-1.5 text-xs"

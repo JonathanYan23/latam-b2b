@@ -36,3 +36,5 @@ next-env.d.ts
 # vercel env pull 产物
 .env.vercel.prod
 .env.vercel.*
+.dev.log
+.kill.log
