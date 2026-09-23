@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requireRole } from "@/lib/require";
 import { getDictionary, getLocale } from "@/i18n";
 import { date } from "@/lib/format";
+import { msgPreview } from "@/lib/message-preview";
 
 export const metadata = { title: "Messages" };
 
@@ -23,7 +24,14 @@ export default async function WholesalerMessagesPage({
     where: { wholesalerId },
     orderBy: { createdAt: "desc" },
     take: 500,
-    select: { retailerId: true, body: true, createdAt: true, senderId: true, readAt: true },
+    select: {
+      retailerId: true,
+      body: true,
+      attachments: true,
+      createdAt: true,
+      senderId: true,
+      readAt: true,
+    },
   });
 
   const conv = new Map<string, { unread: number; last: string; at: Date }>();
@@ -32,15 +40,7 @@ export default async function WholesalerMessagesPage({
     if (!key) continue;
     const c = conv.get(key) ?? { unread: 0, last: "", at: m.createdAt };
     if (!c.last) {
-      if (m.body.startsWith("[CARD]")) {
-        c.last = m.body.includes('"k":"p"')
-          ? t.messages.sendProduct
-          : m.body.includes('"k":"o"')
-            ? t.messages.sendOrder
-            : m.body;
-      } else {
-        c.last = m.body;
-      }
+      c.last = msgPreview(m.body, m.attachments, t);
     }
     if (m.senderId !== me && !m.readAt) c.unread++;
     c.at = m.createdAt;

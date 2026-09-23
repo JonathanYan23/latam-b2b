@@ -1,0 +1,28 @@
+# 本地构建产物（不得上传，Vercel 云端会自行构建）
+prod-build
+.next
+out
+
+# 依赖与缓存
+node_modules
+.turbo
+*.tsbuildinfo
+
+# 本地数据库与日志
+prisma/dev.db
+prisma/dev.db-journal
+*.log
+
+# 环境变量（生产变量在 Vercel 后台配置）
+.env
+.env.*
+
+# 本地编辑器/系统
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+
+# 本地临时产物
+.kill.log
+.dev.log

@@ -292,6 +292,7 @@ const en = {
     messagesTitle: "Messages",
     chatHint: "Send photos, PDFs and more for smoother communication.",
     openChat: "Open chat",
+    chatNow: "Message",
     minOrderValue: "Minimum order value",
     count: "{n} suppliers",
     searchPlaceholder: "Search suppliers or chats…",
@@ -764,6 +765,9 @@ const en = {
     attach: "Attach",
     sendProduct: "Send product",
     sendOrder: "Send order",
+    cardProduct: "Product card",
+    cardOrder: "Order card",
+    attachmentOnly: "Attachment",
     openLink: "Open",
     noCards: "Nothing to share yet",
 

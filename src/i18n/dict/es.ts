@@ -294,6 +294,7 @@ const es = {
     messagesTitle: "Mensajes",
     chatHint: "Envía fotos, PDF y más para comunicarte mejor.",
     openChat: "Abrir chat",
+    chatNow: "Mensaje",
     minOrderValue: "Valor mínimo de pedido",
     count: "{n} proveedores",
     searchPlaceholder: "Buscar proveedores o chats…",
@@ -766,6 +767,9 @@ const es = {
     attach: "Adjuntar",
     sendProduct: "Enviar producto",
     sendOrder: "Enviar pedido",
+    cardProduct: "Tarjeta de producto",
+    cardOrder: "Tarjeta de pedido",
+    attachmentOnly: "Adjunto",
     openLink: "Abrir",
     noCards: "Nada para compartir aún",
 

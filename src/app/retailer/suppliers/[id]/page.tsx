@@ -161,7 +161,7 @@ export default async function SupplierPage({
               href={`/retailer/suppliers/${id}/chat`}
               className="btn btn-secondary inline-flex items-center gap-1.5 px-3.5 py-2 text-sm"
             >
-              <MessageCircle className="size-4" /> {t.suppliers.messagesTitle}
+              <MessageCircle className="size-4" /> {t.suppliers.chatNow}
             </Link>
           )}
         </div>

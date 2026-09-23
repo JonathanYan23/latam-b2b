@@ -10,6 +10,7 @@ import {
   date,
 } from "@/lib/format";
 import { termsLabel } from "@/lib/terms";
+import { msgPreview } from "@/lib/message-preview";
 import type { RelationshipStatus } from "@prisma/client";
 import { SupplierChatButton } from "./chat-button";
 
@@ -52,6 +53,7 @@ export default async function SuppliersPage({
         wholesalerId: true,
         senderId: true,
         body: true,
+        attachments: true,
         readAt: true,
         createdAt: true,
       },
@@ -72,7 +74,13 @@ export default async function SuppliersPage({
   // 未读 + 最近消息（按供应商取最新一条）
   const lastMsg = new Map<
     string,
-    { body: string; createdAt: Date; fromMe: boolean; unread: boolean }
+    {
+      body: string;
+      attachments: string | null;
+      createdAt: Date;
+      fromMe: boolean;
+      unread: boolean;
+    }
   >();
   const unreadByWs = new Map<string, number>();
   for (const m of recentMsgs) {
@@ -84,6 +92,7 @@ export default async function SuppliersPage({
     if (!lastMsg.has(m.wholesalerId)) {
       lastMsg.set(m.wholesalerId, {
         body: m.body,
+        attachments: m.attachments,
         createdAt: m.createdAt,
         fromMe: m.senderId === session.userId,
         unread: !m.readAt && m.senderId !== session.userId,
@@ -97,7 +106,7 @@ export default async function SuppliersPage({
         const name = `${w.business.tradeName ?? ""} ${w.business.legalName ?? ""}`.toLowerCase();
         if (name.includes(query)) return true;
         const lm = lastMsg.get(w.id);
-        return !!lm && lm.body.toLowerCase().includes(query);
+        return !!lm && msgPreview(lm.body, lm.attachments, t).toLowerCase().includes(query);
       })
     : wholesalers;
 
@@ -216,8 +225,7 @@ export default async function SuppliersPage({
                       >
                         <MessageSquare className="size-3 shrink-0" />
                         <span className="truncate">
-                          {lm.fromMe ? "" : ""}
-                          {lm.body}
+                          {msgPreview(lm.body, lm.attachments, t)}
                         </span>
                         <span className="shrink-0 text-[10px] opacity-70">
                           {date(lm.createdAt)}
@@ -231,6 +239,7 @@ export default async function SuppliersPage({
                     <SupplierChatButton
                       wholesalerId={w.id}
                       supplierName={w.business.tradeName ?? w.business.legalName}
+                      label={t.suppliers.chatNow}
                       unread={unread}
                     />
                   )}

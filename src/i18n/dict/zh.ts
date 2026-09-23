@@ -286,6 +286,7 @@ const zh = {
     messagesTitle: "消息",
     chatHint: "发送图片、PDF 等文件，沟通更高效。",
     openChat: "进入聊天",
+    chatNow: "发消息",
     minOrderValue: "最低订单金额",
     count: "{n} 家供应商",
     searchPlaceholder: "搜索供应商名 / 聊天内容…",
@@ -747,6 +748,9 @@ const zh = {
     attach: "附件",
     sendProduct: "发商品",
     sendOrder: "发订单",
+    cardProduct: "商品卡片",
+    cardOrder: "订单卡片",
+    attachmentOnly: "附件",
     openLink: "打开",
     noCards: "暂无可发送的条目",
 
