@@ -23,7 +23,6 @@ import { QtyStepper } from "@/components/qty-stepper";
 import { CART_EVENT, CART_OPEN_EVENT } from "@/components/cart/cart-shell";
 import {
   confirmQty,
-  enqueueWrite,
   getLocalQty,
   isPending,
   publishQty,
@@ -31,7 +30,9 @@ import {
   setCartOrderId,
   subscribeCartQty,
 } from "@/components/cart/cart-store";
-import { persistItemQty } from "@/components/cart/persist-qty";
+// 副作用 import：把「数量落库」的实现注册进 cart-store 的写队列
+// （写入与重试都由 store 的模块级队列托管，不再依赖本组件的定时器生命周期）
+import "@/components/cart/persist-qty";
 import { useToast } from "@/components/ui/toast";
 import type { Dict } from "@/i18n";
 
@@ -41,9 +42,6 @@ interface CartSnapLike {
     items: { productId: string; quantity: number }[];
   }[];
 }
-
-/** 落库合并窗口：连续点击只写最后一个值 */
-const WRITE_DEBOUNCE = 300;
 
 export function QuickAdd({
   productId,
@@ -67,7 +65,6 @@ export function QuickAdd({
   const [pending, startTransition] = useTransition();
   const toast = useToast();
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const writeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const aliveRef = useRef(true);
   const moqSafe = Math.max(1, Math.floor(moq) || 1);
 
@@ -76,7 +73,8 @@ export function QuickAdd({
     try {
       const snap = (await getCartSnapshotAction()) as CartSnapLike | null;
       if (!aliveRef.current) return;
-      setCartOrderId(snap ? snap.orderId : null);
+      // 只在拿到真快照时更新 orderId；瞬时 null 不能作废已知可用的 id
+      if (snap) setCartOrderId(snap.orderId);
       const rows = (snap?.groups ?? []).flatMap((g) =>
         g.items.map((it) => ({ productId: it.productId, quantity: it.quantity })),
       );
@@ -102,6 +100,12 @@ export function QuickAdd({
         return;
       }
       if (e.productId !== productId) return;
+      if (e.type === "write-error") {
+        // 重试耗尽仍未落库 → 提示 + 回拉服务端真值（不静默留一个假数字）
+        toast.error(t.ui.networkError);
+        void syncFromServer();
+        return;
+      }
       setQty(e.type === "remove" ? 0 : e.quantity);
     });
 
@@ -109,7 +113,6 @@ export function QuickAdd({
       aliveRef.current = false;
       unsub();
       if (flashTimer.current) clearTimeout(flashTimer.current);
-      if (writeTimer.current) clearTimeout(writeTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
@@ -148,28 +151,14 @@ export function QuickAdd({
       }
     });
 
-  /** 串行写库（300ms 合并）：保证「最后一次点击」是最终落库值，杜绝乱序覆盖 */
-  const persist = (target: number) => {
-    if (writeTimer.current) clearTimeout(writeTimer.current);
-    writeTimer.current = setTimeout(() => {
-      void enqueueWrite(productId, async () => {
-        // 落库封装自带 orderId 自愈 + 失败重试（见 cart/persist-qty.ts）：
-        // 本地缓存的 orderId 可能已过期，旧的失败会被服务端「找不到该商品」挡下，
-        // 这里换新 id 重试一次；确实写不进去才回滚到服务端真值，绝不假装成功。
-        const ok = await persistItemQty(productId, target);
-        if (!ok && aliveRef.current) {
-          toast.error(t.ui.networkError);
-          await syncFromServer();
-        }
-      }).then(() => window.dispatchEvent(new Event(CART_EVENT)));
-    }, WRITE_DEBOUNCE);
-  };
-
-  /** 用户改数量：本地即时生效 + 广播给购物车，再延时落库 */
+  /**
+   * 用户改数量：本地即时生效 + 广播给购物车。
+   * 落库交给 cart-store 的模块级队列（publishQty 内部会安排写入与重试），
+   * 这样即使本组件随后被卸载/重挂，这一笔改动也不会丢。
+   */
   const setTo = (target: number) => {
     setQty(target);
     publishQty(productId, target);
-    persist(target);
   };
 
   // 不可购（无价格/未授权/售罄）：保持卡片其它信息，仅不渲染控件

@@ -30,10 +30,10 @@ import {
 import { QtyStepper } from "@/components/qty-stepper";
 import { ProductImage } from "@/components/product-image";
 import {
-  enqueueWrite,
   forgetQty,
   getCartOrderId,
   getLocalQty,
+  hasPendingWrites,
   isPending,
   publishCleared,
   publishQty,
@@ -43,7 +43,8 @@ import {
   subscribeCartQty,
   type CartQtyEvent,
 } from "@/components/cart/cart-store";
-import { persistItemQty } from "@/components/cart/persist-qty";
+// 副作用 import：注册「数量落库」实现（写入/重试由 store 的模块级队列托管）
+import "@/components/cart/persist-qty";
 import { useConfirm } from "@/components/ui/confirm";
 import { money } from "@/lib/format";
 import { fmt } from "@/i18n/utils";
@@ -143,7 +144,6 @@ export function CartButton({
   useEffect(() => {
     snapRef.current = snap;
   }, [snap]);
-  const syncTimers = useRef<Map<string, number>>(new Map());
 
   const refresh = useCallback(async () => {
     try {
@@ -151,15 +151,17 @@ export function CartButton({
       if (s) {
         orderIdRef.current = s.orderId;
         setCartOrderId(s.orderId);
-      } else {
-        setCartOrderId(null);
       }
+      // s 为 null 时**不动** orderId：并发/瞬时 null 快照不能作废已知可用的草稿单 id，
+      // 否则紧随其后的落库会因为「没有 orderId」而被整笔丢掉。
       // 把服务端真值写回本地事实源；有未落库写入的商品会被 reconcile 忽略（防回跳）
       reconcile(
         (s?.groups ?? []).flatMap((g) =>
           g.items.map((it) => ({ productId: it.productId, quantity: it.quantity })),
         ),
       );
+      // 瞬时读到空快照、但本地还有待落库的改动 → 保留当前视图，别把抽屉清空
+      if (s === null && hasPendingWrites()) return snapRef.current;
       // 叠加尚未落库的本地值后再渲染：避免「刚点完就打开抽屉，看到的是旧数量」
       const merged = overlayPending(s);
       setSnap(merged);
@@ -169,6 +171,25 @@ export function CartButton({
       return null;
     }
   }, []);
+
+  /** 合并短时间内的多次刷新请求（连点时事件密集，避免一口气打出几十个快照请求） */
+  const refreshTimer = useRef<number | null>(null);
+  const refreshSoon = useCallback(() => {
+    if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
+    refreshTimer.current = window.setTimeout(() => {
+      refreshTimer.current = null;
+      void refresh();
+    }, 200);
+  }, [refresh]);
+
+  /**
+   * 挂载即同步一次：拿到 orderId 与完整快照。
+   * 否则在没打开过抽屉的页面上，本地只有「服务端首屏给的件数」，
+   * 商品卡改数量时既算不出正确的角标总额，也会退化成「每次事件都去回读」。
+   */
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   const openDrawer = useCallback(() => {
     setOpen(true);
@@ -234,6 +255,11 @@ export function CartButton({
         return;
       }
       const pid = e.productId;
+      if (e.type === "write-error") {
+        // 重试耗尽仍未落库 → 回拉服务端真值对账（用户看到的数字必须是真数字）
+        void refresh();
+        return;
+      }
       if (e.type === "remove") {
         setSnap((prev) => {
           if (!prev) return prev;
@@ -265,14 +291,14 @@ export function CartButton({
         !!snapRef.current &&
         snapRef.current.groups.some((g) => g.items.some((it) => it.productId === pid));
       if (!known) {
-        void refresh();
+        refreshSoon();
         return;
       }
       setSnap((prev) => applyQtyTo(prev, pid, e.quantity));
     };
     const unsub = subscribeCartQty(onStore);
     return unsub;
-  }, [refresh]);
+  }, [refresh, refreshSoon]);
 
   // 顶栏角标与 Header 件数由快照派生（乐观更新即时一致，不依赖服务端回写）
   useEffect(() => {
@@ -280,30 +306,13 @@ export function CartButton({
   }, [snap]);
 
   /**
-   * 静默落库（每商品 300ms 合并 + **串行执行**）。
-   * UI 完全由本地乐观驱动，服务端永不回写覆盖 —— 保证零回跳、零闪烁。
-   * 串行化是为了防乱序：若两次写入并发且后发的先落库，最终数量会错（误差来源之一）。
+   * 用户改数量：本地即时生效 + 广播给商品卡（零往返）。
+   * 落库交给 cart-store 的模块级队列（publishQty 内部会安排写入 + 退避重试），
+   * 与组件生命周期无关，因此抽屉关闭、页面刷新都不会丢掉这一笔。
    */
-  const queueSync = (pid: string, q: number) => {
-    const t0 = syncTimers.current.get(pid);
-    if (t0) window.clearTimeout(t0);
-    syncTimers.current.set(
-      pid,
-      window.setTimeout(() => {
-        syncTimers.current.delete(pid);
-        void enqueueWrite(pid, async () => {
-          // 自带 orderId 自愈 + 失败重试（见 cart/persist-qty.ts）；确实失败才回拉真值对账
-          const ok = await persistItemQty(pid, q);
-          if (!ok) await refresh();
-        });
-      }, 300),
-    );
-  };
-
   const setItemQty = (pid: string, q: number) => {
     applyQty(pid, q);
-    publishQty(pid, q); // 广播给商品卡：零往返即时同步
-    queueSync(pid, q);
+    publishQty(pid, q);
   };
 
   /** 乐观删除：立即从本地移除该商品（空组随之消失），后台同步 */
@@ -384,7 +393,7 @@ export function CartButton({
 
   useEffect(() => {
     return () => {
-      syncTimers.current.forEach((t0) => window.clearTimeout(t0));
+      if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
     };
   }, []);
 
