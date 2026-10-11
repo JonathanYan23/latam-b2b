@@ -17,7 +17,6 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { ShoppingBag, Check, Loader2 } from "lucide-react";
 import {
   addToDraftAction,
-  setDraftItemQuantityAction,
   getCartSnapshotAction,
 } from "@/app/retailer/draft-actions";
 import { QtyStepper } from "@/components/qty-stepper";
@@ -25,7 +24,6 @@ import { CART_EVENT, CART_OPEN_EVENT } from "@/components/cart/cart-shell";
 import {
   confirmQty,
   enqueueWrite,
-  getCartOrderId,
   getLocalQty,
   isPending,
   publishQty,
@@ -33,6 +31,7 @@ import {
   setCartOrderId,
   subscribeCartQty,
 } from "@/components/cart/cart-store";
+import { persistItemQty } from "@/components/cart/persist-qty";
 import { useToast } from "@/components/ui/toast";
 import type { Dict } from "@/i18n";
 
@@ -154,21 +153,13 @@ export function QuickAdd({
     if (writeTimer.current) clearTimeout(writeTimer.current);
     writeTimer.current = setTimeout(() => {
       void enqueueWrite(productId, async () => {
-        const oid = getCartOrderId();
-        if (!oid) return;
-        try {
-          const res = await setDraftItemQuantityAction(oid, productId, target);
-          if (res.ok) {
-            confirmQty(productId, target);
-          } else if (aliveRef.current) {
-            toast.error(res.error || t.ui.networkError);
-            await syncFromServer();
-          }
-        } catch {
-          if (aliveRef.current) {
-            toast.error(t.ui.networkError);
-            await syncFromServer();
-          }
+        // 落库封装自带 orderId 自愈 + 失败重试（见 cart/persist-qty.ts）：
+        // 本地缓存的 orderId 可能已过期，旧的失败会被服务端「找不到该商品」挡下，
+        // 这里换新 id 重试一次；确实写不进去才回滚到服务端真值，绝不假装成功。
+        const ok = await persistItemQty(productId, target);
+        if (!ok && aliveRef.current) {
+          toast.error(t.ui.networkError);
+          await syncFromServer();
         }
       }).then(() => window.dispatchEvent(new Event(CART_EVENT)));
     }, WRITE_DEBOUNCE);

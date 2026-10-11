@@ -24,14 +24,12 @@ import { createPortal } from "react-dom";
 import { ShoppingBag, X, Trash2, Loader2, ChevronRight } from "lucide-react";
 import {
   getCartSnapshotAction,
-  setDraftItemQuantityAction,
   removeDraftItemAction,
   clearDraftAction,
 } from "@/app/retailer/draft-actions";
 import { QtyStepper } from "@/components/qty-stepper";
 import { ProductImage } from "@/components/product-image";
 import {
-  confirmQty,
   enqueueWrite,
   forgetQty,
   getCartOrderId,
@@ -45,6 +43,7 @@ import {
   subscribeCartQty,
   type CartQtyEvent,
 } from "@/components/cart/cart-store";
+import { persistItemQty } from "@/components/cart/persist-qty";
 import { useConfirm } from "@/components/ui/confirm";
 import { money } from "@/lib/format";
 import { fmt } from "@/i18n/utils";
@@ -293,15 +292,9 @@ export function CartButton({
       window.setTimeout(() => {
         syncTimers.current.delete(pid);
         void enqueueWrite(pid, async () => {
-          const oid = orderIdRef.current ?? getCartOrderId();
-          if (!oid) return;
-          try {
-            const res = await setDraftItemQuantityAction(oid, pid, q);
-            if (res.ok) confirmQty(pid, q);
-            else await refresh(); // 失败才回拉真值对账
-          } catch {
-            await refresh();
-          }
+          // 自带 orderId 自愈 + 失败重试（见 cart/persist-qty.ts）；确实失败才回拉真值对账
+          const ok = await persistItemQty(pid, q);
+          if (!ok) await refresh();
         });
       }, 300),
     );
@@ -339,13 +332,22 @@ export function CartButton({
     });
     publishRemoved(pid); // 广播给商品卡：数量归零，回到「加入购物车」态
     startTransition(async () => {
-      const oid = orderIdRef.current ?? getCartOrderId();
-      if (!oid) return;
-      try {
-        await removeDraftItemAction(oid, pid);
-      } catch {
-        /* ignore */
+      let oid = orderIdRef.current ?? getCartOrderId();
+      if (!oid) {
+        await refresh();
+        oid = orderIdRef.current ?? getCartOrderId();
       }
+      let ok = false;
+      if (oid) {
+        try {
+          const res = await removeDraftItemAction(oid, pid);
+          ok = res.ok;
+        } catch {
+          ok = false;
+        }
+      }
+      // 没删成功（orderId 过期/网络失败）→ 拉回服务端真值，避免「刷新后商品又回来了」却没提示
+      if (!ok) await refresh();
       window.dispatchEvent(new Event(CART_EVENT));
     });
   };
@@ -362,6 +364,8 @@ export function CartButton({
       setBusy(true);
       try {
         await clearDraftAction(snap.orderId);
+        orderIdRef.current = null;
+        setCartOrderId(null); // 清空后旧 orderId 失效，置空避免后续写入打到已删的单子
         setSnap(null);
         setCount(0);
         publishCleared(); // 广播：所有商品卡立刻回到「加入购物车」态

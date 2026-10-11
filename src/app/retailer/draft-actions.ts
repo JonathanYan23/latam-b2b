@@ -210,10 +210,12 @@ export async function removeDraftItemAction(
   });
   if (!order) return { ok: false, error: t.orders.errNotFound };
 
+  let matched = false;
   await db.$transaction(async (tx) => {
     for (const so of order.supplierOrders) {
       const item = so.items.find((i) => i.productId === productId);
       if (!item) continue;
+      matched = true;
       await tx.orderItem.delete({ where: { id: item.id } });
       const rest = await tx.orderItem.findMany({ where: { supplierOrderId: so.id } });
       if (rest.length === 0) {
@@ -227,6 +229,8 @@ export async function removeDraftItemAction(
       }
     }
   });
+  // 同 setDraftItemQuantityAction：没匹配到就如实失败，避免「看似删掉、刷新又回来」
+  if (!matched) return { ok: false, error: t.orders.errNotFound };
   revalidatePath("/retailer/orders/draft");
   return { ok: true };
 }
@@ -248,10 +252,12 @@ export async function setDraftItemQuantityAction(
   });
   if (!order) return { ok: false, error: t.orders.errNotFound };
 
+  let matched = false;
   await db.$transaction(async (tx) => {
     for (const so of order.supplierOrders) {
       const item = so.items.find((i) => i.productId === productId);
       if (!item) continue;
+      matched = true;
       if (target <= 0) {
         // 移除行；组空则删整组
         await tx.orderItem.delete({ where: { id: item.id } });
@@ -286,6 +292,16 @@ export async function setDraftItemQuantityAction(
         });
       }
     }
+  });
+  // 该商品不在传入的草稿单里（多为客户端缓存的 orderId 已过期）。
+  // 必须如实返回失败：否则客户端会以为写成功，表现为「卡片显示已改、刷新又回退」的静默丢写。
+  if (!matched) return { ok: false, error: t.orders.errNotFound };
+
+  // 触碰订单 updatedAt：activeDraft 按 updatedAt desc 取「当前草稿」，
+  // 让最近被编辑的这张始终是活跃草稿，避免后续取到旧单导致写入对不上。
+  await db.order.update({
+    where: { id: order.id },
+    data: { updatedAt: new Date() },
   });
   revalidatePath("/retailer/orders/draft");
   return { ok: true };
