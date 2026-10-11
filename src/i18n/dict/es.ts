@@ -55,6 +55,7 @@ const es = {
     termsNetDay: "Crédito Net {n} días",
     termsCodFull: "Contado · pago total",
     removeOne: "Reducir cantidad",
+    addOne: "Aumentar cantidad",
     unit: "unidad",
     zoomHint: "Toca la imagen para ampliar",
     pack: "Caja",

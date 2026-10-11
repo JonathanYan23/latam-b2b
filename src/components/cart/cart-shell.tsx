@@ -8,7 +8,7 @@
  *  - Header（标题 + 件数 + 关闭）/ 商品列表（仅此区滚动）/ Footer（小计 + Checkout）三段清晰
  * Mobile: Drawer 占满宽度（近似全屏购物车），Header / 列表 / Checkout 依然分明
  *
- * 数量调整使用 QtyWheel 滚轮选择器；改数量即时乐观更新行小计 / 组小计 / 总额 / 角标，
+ * 数量调整使用 QtyStepper 步进器（− / 直接输入 / +）；改数量即时乐观更新行小计 / 组小计 / 总额 / 角标，
  * 300ms 后静默同步服务端（无需刷新页面）。
  */
 import {
@@ -28,7 +28,7 @@ import {
   removeDraftItemAction,
   clearDraftAction,
 } from "@/app/retailer/draft-actions";
-import { QtyWheel } from "@/components/qty-wheel";
+import { QtyStepper } from "@/components/qty-stepper";
 import { ProductImage } from "@/components/product-image";
 import { useConfirm } from "@/components/ui/confirm";
 import { money } from "@/lib/format";
@@ -455,13 +455,14 @@ export function CartButton({
                               </p>
 
                               <div className="mt-2 flex items-center justify-between gap-3">
-                                {/* 滚轮式数量选择器（1..库存，拖/滚/键盘均吸附） */}
-                                <div className="w-[68px] shrink-0">
-                                  <QtyWheel
+                                {/* 数量步进器（− / 直接输入 / +，1..库存） */}
+                                <div className="shrink-0">
+                                  <QtyStepper
                                     value={item.quantity}
                                     min={1}
                                     max={stockCap}
                                     ariaLabel={item.name}
+                                    t={t}
                                     onChange={(q) => setItemQty(item.productId, q)}
                                   />
                                 </div>

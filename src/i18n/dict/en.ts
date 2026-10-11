@@ -55,6 +55,7 @@ const en = {
     termsNetDay: "Net {n} days",
     termsCodFull: "COD · full payment",
     removeOne: "Decrease quantity",
+    addOne: "Increase quantity",
     unit: "unit",
     zoomHint: "Tap image to zoom",
     pack: "Pack",

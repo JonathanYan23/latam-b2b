@@ -55,6 +55,7 @@ const zh = {
     termsNetDay: "账期{n}天",
     termsCodFull: "全款（COD）",
     removeOne: "减少数量",
+    addOne: "增加数量",
     unit: "件",
     zoomHint: "点击图片放大",
     pack: "装箱",

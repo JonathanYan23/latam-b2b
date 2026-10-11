@@ -9,7 +9,7 @@ import {
   removeDraftItemAction,
   submitDraftAction,
 } from "../../draft-actions";
-import { QtyWheel } from "@/components/qty-wheel";
+import { QtyStepper } from "@/components/qty-stepper";
 import { ProductImage } from "@/components/product-image";
 import { fmt } from "@/i18n/utils";
 import { CART_EVENT } from "@/components/cart/cart-shell";
@@ -133,13 +133,14 @@ export function DraftManager({
                   </p>
                 </div>
 
-                {/* 数量：滚轮选择器（1..库存；滚轮 / 拖拽 / 键盘，松手自动吸附） */}
-                <div className="w-[70px] shrink-0">
-                  <QtyWheel
+                {/* 数量：步进器（− / 直接输入 / +，1..库存） */}
+                <div className="shrink-0">
+                  <QtyStepper
                     value={item.quantity}
                     min={1}
                     max={Math.max(1, item.stock > 0 ? item.stock : 999)}
                     ariaLabel={item.name}
+                    t={t}
                     onChange={(next) => setQty(item.productId, next)}
                   />
                 </div>

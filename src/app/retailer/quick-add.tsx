@@ -13,7 +13,7 @@ import {
   setDraftItemQuantityAction,
   getCartSnapshotAction,
 } from "@/app/retailer/draft-actions";
-import { QtyWheel } from "@/components/qty-wheel";
+import { QtyStepper } from "@/components/qty-stepper";
 import { CART_EVENT, CART_OPEN_EVENT } from "@/components/cart/cart-shell";
 import { useToast } from "@/components/ui/toast";
 import type { Dict } from "@/i18n";
@@ -181,15 +181,15 @@ export function QuickAdd({
 
   return (
     <div className="flex flex-col items-center">
-      <div className={compact ? "w-[66px]" : "w-[74px]"}>
-        <QtyWheel
-          value={qty}
-          min={1}
-          max={Math.max(1, stock > 0 ? stock : 999)}
-          ariaLabel={t.product.addToOrder}
-          onChange={setTo}
-        />
-      </div>
+      <QtyStepper
+        value={qty}
+        min={1}
+        max={Math.max(1, stock > 0 ? stock : 999)}
+        ariaLabel={t.product.addToOrder}
+        t={t}
+        size={compact ? "sm" : "md"}
+        onChange={setTo}
+      />
       {stock > 0 && stock <= 99 && (
         <p className="mt-1 text-center text-[10px] leading-none text-[var(--color-ink-3)]">
           {t.cart.inStockCount.replace("{n}", String(stock))}
