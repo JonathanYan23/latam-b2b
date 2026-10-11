@@ -30,6 +30,21 @@ import {
 } from "@/app/retailer/draft-actions";
 import { QtyStepper } from "@/components/qty-stepper";
 import { ProductImage } from "@/components/product-image";
+import {
+  confirmQty,
+  enqueueWrite,
+  forgetQty,
+  getCartOrderId,
+  getLocalQty,
+  isPending,
+  publishCleared,
+  publishQty,
+  publishRemoved,
+  reconcile,
+  setCartOrderId,
+  subscribeCartQty,
+  type CartQtyEvent,
+} from "@/components/cart/cart-store";
 import { useConfirm } from "@/components/ui/confirm";
 import { money } from "@/lib/format";
 import { fmt } from "@/i18n/utils";
@@ -68,6 +83,44 @@ interface CartSnap {
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
+/** 纯函数：按目标数量重算快照（行小计 → 组小计 → 总额 → 件数） */
+function applyQtyTo(prev: CartSnap | null, pid: string, q: number): CartSnap | null {
+  if (!prev) return prev;
+  const groups = prev.groups.map((g) => {
+    const items = g.items.map((it) =>
+      it.productId === pid ? { ...it, quantity: q, subtotal: round2(it.unitPrice * q) } : it,
+    );
+    return { ...g, items, subtotal: round2(items.reduce((s, it) => s + it.subtotal, 0)) };
+  });
+  return {
+    ...prev,
+    groups,
+    total: round2(groups.reduce((s, g) => s + g.subtotal, 0)),
+    count: groups.reduce((s, g) => s + g.items.reduce((x, it) => x + it.quantity, 0), 0),
+  };
+}
+
+/**
+ * 把「尚未落库的本地数量」叠加到服务端快照上。
+ * 场景：用户刚点了 +（写入还在 300ms 防抖窗口内），立刻打开购物车 →
+ * 服务端读数仍是旧值，直接渲染就会「打开购物车看到的是旧数量」。
+ * 这里以本地未落库值为准做叠加，保证打开瞬间看到的就是用户刚点出来的数。
+ */
+function overlayPending(s: CartSnap | null): CartSnap | null {
+  if (!s) return s;
+  let next: CartSnap | null = s;
+  for (const g of s.groups) {
+    for (const it of g.items) {
+      if (!isPending(it.productId)) continue;
+      const local = getLocalQty(it.productId);
+      if (local !== undefined && local !== it.quantity) {
+        next = applyQtyTo(next, it.productId, local);
+      }
+    }
+  }
+  return next;
+}
+
 export function CartButton({
   initialCount,
   t,
@@ -87,15 +140,32 @@ export function CartButton({
   const [pending, startTransition] = useTransition();
 
   const orderIdRef = useRef<string | null>(null);
+  const snapRef = useRef<CartSnap | null>(null);
+  useEffect(() => {
+    snapRef.current = snap;
+  }, [snap]);
   const syncTimers = useRef<Map<string, number>>(new Map());
 
   const refresh = useCallback(async () => {
     try {
       const s = (await getCartSnapshotAction()) as CartSnap | null;
-      setSnap(s);
-      setCount(s ? s.count : 0);
-      if (s) orderIdRef.current = s.orderId;
-      return s;
+      if (s) {
+        orderIdRef.current = s.orderId;
+        setCartOrderId(s.orderId);
+      } else {
+        setCartOrderId(null);
+      }
+      // 把服务端真值写回本地事实源；有未落库写入的商品会被 reconcile 忽略（防回跳）
+      reconcile(
+        (s?.groups ?? []).flatMap((g) =>
+          g.items.map((it) => ({ productId: it.productId, quantity: it.quantity })),
+        ),
+      );
+      // 叠加尚未落库的本地值后再渲染：避免「刚点完就打开抽屉，看到的是旧数量」
+      const merged = overlayPending(s);
+      setSnap(merged);
+      setCount(merged ? merged.count : 0);
+      return merged;
     } catch {
       return null;
     }
@@ -148,42 +218,73 @@ export function CartButton({
     };
   }, [open]);
 
-  /** 纯函数：按目标数量重算快照（行小计 → 组小计 → 总额 → 件数） */
-  const applyQtyTo = (prev: CartSnap | null, pid: string, q: number): CartSnap | null => {
-    if (!prev) return prev;
-    const groups = prev.groups.map((g) => {
-      const items = g.items.map((it) =>
-        it.productId === pid
-          ? { ...it, quantity: q, subtotal: round2(it.unitPrice * q) }
-          : it,
-      );
-      return {
-        ...g,
-        items,
-        subtotal: round2(items.reduce((s, it) => s + it.subtotal, 0)),
-      };
-    });
-    return {
-      ...prev,
-      groups,
-      total: round2(groups.reduce((s, g) => s + g.subtotal, 0)),
-      count: groups.reduce(
-        (s, g) => s + g.items.reduce((x, it) => x + it.quantity, 0),
-        0,
-      ),
-    };
-  };
-
   const applyQty = (pid: string, q: number) => {
     setSnap((prev) => applyQtyTo(prev, pid, q));
   };
+
+  /**
+   * 订阅本地事实源（cart-store）：商品卡上改数量 → 抽屉**零往返**即时跟随。
+   * 之前抽屉只有在打开时才回拉服务端，快速连点时明显落后；现在改为本地广播即时应用。
+   * 若广播的商品还没进本地快照（首次加购），才回拉一次完整快照补齐分组信息。
+   */
+  useEffect(() => {
+    const onStore = (e: CartQtyEvent) => {
+      if (e.type === "clear") {
+        setSnap(null);
+        setCount(0);
+        return;
+      }
+      const pid = e.productId;
+      if (e.type === "remove") {
+        setSnap((prev) => {
+          if (!prev) return prev;
+          const groups = prev.groups
+            .map((g) => {
+              const items = g.items.filter((it) => it.productId !== pid);
+              return {
+                ...g,
+                items,
+                subtotal: round2(items.reduce((s, it) => s + it.subtotal, 0)),
+              };
+            })
+            .filter((g) => g.items.length > 0);
+          return {
+            ...prev,
+            groups,
+            total: round2(groups.reduce((s, g) => s + g.subtotal, 0)),
+            count: groups.reduce(
+              (s, g) => s + g.items.reduce((x, it) => x + it.quantity, 0),
+              0,
+            ),
+          };
+        });
+        forgetQty(pid);
+        return;
+      }
+      // qty：商品已在快照内 → 直接本地重算（零往返）；还没进车（首次加购）→ 回拉一次补齐分组信息
+      const known =
+        !!snapRef.current &&
+        snapRef.current.groups.some((g) => g.items.some((it) => it.productId === pid));
+      if (!known) {
+        void refresh();
+        return;
+      }
+      setSnap((prev) => applyQtyTo(prev, pid, e.quantity));
+    };
+    const unsub = subscribeCartQty(onStore);
+    return unsub;
+  }, [refresh]);
 
   // 顶栏角标与 Header 件数由快照派生（乐观更新即时一致，不依赖服务端回写）
   useEffect(() => {
     setCount(snap ? snap.count : 0);
   }, [snap]);
 
-  /** 静默落库（每商品 300ms 合并）。UI 完全由本地乐观驱动——服务端永不回写覆盖，保证零回跳零闪烁 */
+  /**
+   * 静默落库（每商品 300ms 合并 + **串行执行**）。
+   * UI 完全由本地乐观驱动，服务端永不回写覆盖 —— 保证零回跳、零闪烁。
+   * 串行化是为了防乱序：若两次写入并发且后发的先落库，最终数量会错（误差来源之一）。
+   */
   const queueSync = (pid: string, q: number) => {
     const t0 = syncTimers.current.get(pid);
     if (t0) window.clearTimeout(t0);
@@ -191,22 +292,24 @@ export function CartButton({
       pid,
       window.setTimeout(() => {
         syncTimers.current.delete(pid);
-        void (async () => {
-          const oid = orderIdRef.current;
+        void enqueueWrite(pid, async () => {
+          const oid = orderIdRef.current ?? getCartOrderId();
           if (!oid) return;
           try {
-            await setDraftItemQuantityAction(oid, pid, q);
+            const res = await setDraftItemQuantityAction(oid, pid, q);
+            if (res.ok) confirmQty(pid, q);
+            else await refresh(); // 失败才回拉真值对账
           } catch {
-            /* 静默失败：忽略 */
+            await refresh();
           }
-          window.dispatchEvent(new Event(CART_EVENT));
-        })();
+        });
       }, 300),
     );
   };
 
   const setItemQty = (pid: string, q: number) => {
     applyQty(pid, q);
+    publishQty(pid, q); // 广播给商品卡：零往返即时同步
     queueSync(pid, q);
   };
 
@@ -234,8 +337,9 @@ export function CartButton({
       };
       return next;
     });
+    publishRemoved(pid); // 广播给商品卡：数量归零，回到「加入购物车」态
     startTransition(async () => {
-      const oid = orderIdRef.current;
+      const oid = orderIdRef.current ?? getCartOrderId();
       if (!oid) return;
       try {
         await removeDraftItemAction(oid, pid);
@@ -260,6 +364,7 @@ export function CartButton({
         await clearDraftAction(snap.orderId);
         setSnap(null);
         setCount(0);
+        publishCleared(); // 广播：所有商品卡立刻回到「加入购物车」态
         window.dispatchEvent(new Event(CART_EVENT));
       } finally {
         setBusy(false);
