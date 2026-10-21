@@ -7,30 +7,30 @@
    ============================================================= */
 
 @theme {
-  /* Apple / macOS 极简设计系统 — 页面浅灰底、纯白卡片、克制的蓝 */
+  /* 浅灰页面、白色表面、深色数据、蓝色操作。 */
   --color-bg: #ffffff; /* 卡片 / 白色表面 */
-  --color-page: #f5f5f7; /* 页面背景（Apple 暖灰白） */
-  --color-bg-subtle: #f5f5f7;
-  --color-bg-muted: #e9e9ec;
-  --color-ink: #1d1d1f; /* 主文字 */
-  --color-ink-2: #6e6e73; /* 次级文字 */
-  --color-ink-3: #aeaeb2; /* 弱化文字 */
-  --color-line: #d2d2d7; /* 分割/描边（Apple） */
-  --color-line-2: #ececee;
+  --color-page: #f6f7f9; /* 页面背景 */
+  --color-bg-subtle: #f6f7f9;
+  --color-bg-muted: #edf0f4;
+  --color-ink: #202733; /* 主文字 */
+  --color-ink-2: #596577; /* 次级文字 */
+  --color-ink-3: #687588; /* 弱化文字 */
+  --color-line: #cbd2dc; /* 分割/描边（Apple） */
+  --color-line-2: #e5e9ef;
 
-  --color-primary: #0071e3; /* 主按钮：Apple 蓝 */
-  --color-primary-hover: #0077ed;
-  --color-accent: #0071e3; /* 强调色（统一蓝：金额/重点/状态） */
-  --color-accent-soft: #e8f1fd;
-  --color-success: #34c759;
-  --color-warning: #ff9500;
-  --color-danger: #ff3b30;
+  --color-primary: #245bd6; /* 主要操作 */
+  --color-primary-hover: #1949b3;
+  --color-accent: #245bd6; /* 链接与交互强调 */
+  --color-accent-soft: #edf3ff;
+  --color-success: #188454;
+  --color-warning: #a96910;
+  --color-danger: #c93542;
 
   /* 圆角（Apple 大圆角） */
   --radius-sm: 8px;
-  --radius-md: 12px;
+  --radius-md: 10px;
   --radius-lg: 16px;
-  --radius-xl: 22px;
+  --radius-xl: 24px;
   --radius-full: 999px;
 
   /* 字体 */
@@ -39,8 +39,7 @@
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 
   /* 阴影（克制） */
-  --shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03),
-    0 8px 24px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 0 0 1px var(--color-line-2), 0 2px 4px rgb(32 39 51 / 3%);
   --shadow-pop: 0 2px 4px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.1);
 }
 
@@ -64,7 +63,7 @@ body {
 }
 
 ::selection {
-  background: rgba(37, 99, 235, 0.15);
+  background: rgb(36 91 214 / 16%);
 }
 
 /* ===== 通用组件类 ===== */
@@ -86,15 +85,17 @@ body {
 
 /* 按钮 */
 .btn {
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   font-weight: 500;
-  border-radius: var(--radius-full);
-  transition: all 0.15s ease;
+  border-radius: var(--radius-md);
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
 }
 .btn:disabled {
   opacity: 0.5;
@@ -115,7 +116,7 @@ body {
   border: 1px solid var(--color-line);
 }
 .btn-secondary:hover:not(:disabled) {
-  border-color: #d4d4d8;
+  border-color: var(--color-line);
   background: var(--color-bg-subtle);
 }
 
@@ -145,7 +146,7 @@ body {
 .input:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
+  box-shadow: 0 0 0 3px rgb(36 91 214 / 14%);
 }
 .input::placeholder {
   color: var(--color-ink-3);
@@ -190,27 +191,31 @@ body {
   border-color: #e4e4e7;
 }
 
-/* 强调金额：琥珀橙加粗（UI 规范：金额/待付款突出） */
+/* 金额采用深色与等宽数字，语义状态由徽章表达。 */
 .amount {
-  color: #d97706;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
-/* 状态语义色底（规范：待付款 #fef3c7 橙底橙字） */
+/* 次级金额强调：保留字重层级。 */
 .amount-accent {
-  color: #f59e0b;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
 
 /* 文本层级 */
 .text-hero {
-  font-size: clamp(2.25rem, 5.4vw, 3.75rem);
+  font-size: clamp(2.5rem, 5.4vw, 4.75rem);
   font-weight: 700;
   letter-spacing: -0.035em;
-  line-height: 1.08;
-  line-height: 1.1;
+  line-height: 1.06;
+  text-wrap: balance;
 }
 .text-h1 {
-  font-size: 1.875rem;
+  font-size: clamp(1.625rem, 3vw, 2rem);
+  line-height: 1.2;
+  text-wrap: balance;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -278,11 +283,11 @@ body {
   header button,
   header a,
   nav a {
-    min-height: 40px;
+    min-height: 44px;
   }
   a.badge,
   button.badge {
-    min-height: 28px;
+    min-height: 44px;
   }
 }
 
@@ -363,4 +368,33 @@ body {
 }
 .toast-card:hover .toast-bar {
   animation-play-state: paused;
+}
+
+/* Shared surfaces: readable data, quiet borders, consistent keyboard feedback. */
+.btn > svg { flex-shrink: 0; }
+.btn:active:not(:disabled) { box-shadow: inset 0 2px 4px rgb(0 0 0 / 10%); }
+.input:disabled { background: var(--color-bg-subtle); cursor: not-allowed; }
+:where(table) { font-variant-numeric: tabular-nums; }
+:where(thead) { background: var(--color-bg-subtle); }
+:where(tbody tr) { transition: background-color 150ms ease; }
+:where(tbody tr:hover) { background: var(--color-bg-subtle); }
+.portal-content { padding-bottom: calc(7rem + env(safe-area-inset-bottom)); }
+.portal-bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
+.metric-card { min-height: 112px; justify-content: space-between; }
+.landing-role-icon { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 14px; background: var(--color-accent-soft); color: var(--color-primary); }
+@media (min-width: 1024px) {
+  .portal-content { padding-bottom: 3rem; }
+}
+@media (max-width: 639px) {
+  .input { font-size: 16px; }
+  .container-x { padding-inline: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  [data-ui="qty-stepper"] { min-height: 44px; }
+  [data-ui="qty-dec"], [data-ui="qty-inc"], [data-ui="qty-input"] { min-height: 44px; min-width: 44px; }
 }
