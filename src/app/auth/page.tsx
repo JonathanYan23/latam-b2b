@@ -20,11 +20,11 @@ export default async function AuthPage() {
   }));
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] py-12">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--color-page)] px-4 pb-12 pt-24">
       <div className="absolute right-5 top-5">
         <LanguageSwitcher current={locale} />
       </div>
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="card h-96 w-full max-w-md animate-pulse" aria-hidden="true" />}>
         <AuthForm t={t} countries={countries} />
       </Suspense>
     </main>
