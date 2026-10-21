@@ -17,9 +17,9 @@ export default async function AdminLayout({
   const t = await getDictionary();
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
+    <div className="min-h-screen bg-[var(--color-page)]">
       <header className="sticky top-0 z-40 border-b border-[var(--color-line-2)] bg-white/85 backdrop-blur-md">
-        <div className="container-x flex h-14 items-center justify-between">
+        <div className="container-x flex min-h-16 flex-wrap items-center justify-between gap-3 py-3">
           <Link href="/admin" className="flex items-center gap-2">
             <span className="grid size-7 place-items-center rounded-md bg-[var(--color-ink)] text-white">
               <ShieldCheck className="size-3.5" />
@@ -28,7 +28,7 @@ export default async function AdminLayout({
               {t.admin.console}
             </span>
           </Link>
-          <nav className="flex items-center gap-3 text-[13px]">
+          <nav className="flex max-w-full flex-wrap items-center gap-x-4 gap-y-2 text-[13px]">
             <Link href="/admin/orders" className="text-[var(--color-ink-2)] transition-colors hover:text-[var(--color-ink)]">
               {t.admin.orders}
             </Link>
@@ -41,7 +41,7 @@ export default async function AdminLayout({
             <Link href="/admin/products" className="text-[var(--color-ink-2)] transition-colors hover:text-[var(--color-ink)]">
               {t.admin.products}
             </Link>
-            <span className="ml-1 text-sm text-[var(--color-ink-3)]">
+            <span className="hidden max-w-40 truncate text-sm text-[var(--color-ink-3)] lg:block">
               {session.user.name ?? session.user.email}
             </span>
           </nav>

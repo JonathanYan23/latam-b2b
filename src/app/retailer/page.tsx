@@ -169,10 +169,10 @@ export default async function RetailerHome() {
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Link
           href="#finance"
-          className="card card-hover flex flex-col p-4"
+          className="card card-hover metric-card flex flex-col p-4 sm:p-5"
         >
           <span className="text-meta text-xs">{t.retailerAccount.totalOutstanding}</span>
-          <span className="mt-1 truncate text-lg font-semibold">
+          <span className="mt-3 break-words text-xl font-semibold tracking-tight tabular-nums">
             {totalOutstanding > 0 ? (
               <span className="amount">{money(totalOutstanding, cur)}</span>
             ) : (
@@ -182,26 +182,26 @@ export default async function RetailerHome() {
         </Link>
         <Link
           href="/retailer/orders"
-          className="card card-hover flex flex-col p-4"
+          className="card card-hover metric-card flex flex-col p-4 sm:p-5"
         >
           <span className="text-meta text-xs">{t.nav.orders}</span>
-          <span className="mt-1 text-lg font-semibold">{orderCount}</span>
+          <span className="mt-3 text-2xl font-semibold tracking-tight tabular-nums">{orderCount}</span>
         </Link>
         <Link
           href="/retailer/suppliers"
-          className="card card-hover flex flex-col p-4"
+          className="card card-hover metric-card flex flex-col p-4 sm:p-5"
         >
           <span className="text-meta text-xs">{t.nav.suppliers}</span>
-          <span className="mt-1 text-lg font-semibold">{supplierCount}</span>
+          <span className="mt-3 text-2xl font-semibold tracking-tight tabular-nums">{supplierCount}</span>
         </Link>
         <Link
           href="/retailer/orders/draft"
-          className={`card card-hover flex flex-col p-4 ${
+          className={`card card-hover metric-card flex flex-col p-4 sm:p-5 ${
             draftItemCount > 0 ? "border-l-4 border-l-[var(--color-accent)]" : ""
           }`}
         >
           <span className="text-meta text-xs">{t.cart.title}</span>
-          <span className="mt-1 text-lg font-semibold">{draftItemCount}</span>
+          <span className="mt-3 text-2xl font-semibold tracking-tight tabular-nums">{draftItemCount}</span>
           {draftItemCount > 0 && (
             <span className="mt-0.5 text-[11px] font-medium text-[var(--color-accent)]">
               {t.cart.goCheckout} <ArrowRight className="inline size-3" />
@@ -217,7 +217,7 @@ export default async function RetailerHome() {
           <h2 className="text-h2 text-lg">{t.retailerAccount.title}</h2>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
           {/* 应付明细（账期本地化 + 到期/逾期）+ 查看全部 → 账款明细页 */}
           <div>
             <div className="mb-2 flex items-center justify-between">

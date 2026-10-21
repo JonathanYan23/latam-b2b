@@ -161,15 +161,15 @@ export default async function WholesalerHome() {
           <h2 className="text-h3 text-[15px] text-[var(--color-ink-2)]">
             {t.wholesalerHome.attention}
           </h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-4">
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {attention.map((a) => (
               <Link
                 key={a.label}
                 href={a.href}
-                className="card card-hover flex items-center justify-between p-4"
+                className="card card-hover flex items-center justify-between gap-3 p-5"
               >
                 <span className="text-sm font-medium">{a.label}</span>
-                <span className="grid size-9 place-items-center rounded-full bg-[var(--color-danger)] text-sm font-semibold text-white">
+                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--color-danger)] text-sm font-semibold text-white">
                   {a.count}
                 </span>
               </Link>
@@ -192,7 +192,7 @@ export default async function WholesalerHome() {
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <DollarSign className="size-4 text-[var(--color-ink-2)]" />
           </span>
-          <p className="amount mt-3 text-[15px]">
+          <p className="amount mt-4 break-words text-xl tracking-tight">
             {money(receivables._sum?.amount, cur)}
           </p>
           <p className="text-meta mt-0.5">{t.wholesalerHome.receivables}</p>
@@ -201,27 +201,27 @@ export default async function WholesalerHome() {
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <Package className="size-4 text-[var(--color-ink-2)]" />
           </span>
-          <p className="mt-3 text-[15px] font-semibold">{productCount}</p>
+          <p className="mt-4 text-2xl font-semibold tracking-tight tabular-nums">{productCount}</p>
           <p className="text-meta mt-0.5">{t.wholesalerHome.activeProducts}</p>
         </Link>
         <Link href="/wholesaler/customers" className="card card-hover p-5">
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <Users className="size-4 text-[var(--color-ink-2)]" />
           </span>
-          <p className="mt-3 text-[15px] font-semibold">{activeCustomers}</p>
+          <p className="mt-4 text-2xl font-semibold tracking-tight tabular-nums">{activeCustomers}</p>
           <p className="text-meta mt-0.5">{t.wholesalerHome.activeCustomers}</p>
         </Link>
         <Link href="/wholesaler/orders" className="card card-hover p-5">
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--color-bg-muted)]">
             <ShoppingCart className="size-4 text-[var(--color-ink-2)]" />
           </span>
-          <p className="mt-3 text-[15px] font-semibold">{newOrders}</p>
+          <p className="mt-4 text-2xl font-semibold tracking-tight tabular-nums">{newOrders}</p>
           <p className="text-meta mt-0.5">{t.wholesalerHome.awaitingReview}</p>
         </Link>
       </div>
 
       {/* 快捷操作 */}
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <Link
           href="/wholesaler/products/new"
           className="card card-hover group flex items-center justify-between p-5"
@@ -385,7 +385,7 @@ export default async function WholesalerHome() {
                 className={`grid size-8 shrink-0 place-items-center rounded-full ${
                   r.kind === "order"
                     ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
-                    : "bg-[#eff6ff] text-[#2563eb]"
+                    : "bg-[var(--color-bg-muted)] text-[var(--color-ink-2)]"
                 }`}
               >
                 {r.kind === "order" ? (

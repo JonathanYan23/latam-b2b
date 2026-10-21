@@ -26,8 +26,9 @@ export function AccountMenu({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Account menu"
-        className="grid size-8 place-items-center rounded-full bg-[var(--color-ink)] text-xs font-semibold text-white transition-transform hover:scale-105"
+        aria-label={t.security.menuAccount}
+        aria-expanded={open}
+        className="grid size-11 place-items-center rounded-full bg-[var(--color-ink)] text-xs font-semibold text-white transition-colors hover:bg-[var(--color-primary)]"
       >
         {initial}
       </button>

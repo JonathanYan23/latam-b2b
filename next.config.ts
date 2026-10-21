@@ -12,6 +12,22 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
+  /**
+   * 旧的「消息」入口已并入「我的供应商」。
+   * 这里用**路由级重定向**，而不是在页面里调用 redirect()：
+   * 页面级 redirect 在客户端导航时会改变 Router 内部的 hook 数量，
+   * 触发 React #310（Rendered more hooks than during the previous render）。
+   * 路由级重定向不会渲染该页面，因此不会出现该错误。
+   */
+  async redirects() {
+    return [
+      {
+        source: "/retailer/messages",
+        destination: "/retailer/suppliers",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

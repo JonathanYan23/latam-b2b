@@ -21,7 +21,7 @@ export function ErrorPanel({
   const { t } = useI18n();
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md text-center">
+      <div className="card w-full max-w-md p-7 text-center sm:p-10">
         <span className="mx-auto grid size-14 place-items-center rounded-full bg-[var(--color-danger)]/10">
           <AlertTriangle
             className="size-6 text-[var(--color-danger)]"
@@ -64,7 +64,7 @@ export function NotFoundPanel({ homeHref = "/" }: { homeHref?: string }) {
   const { t } = useI18n();
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md text-center">
+      <div className="card w-full max-w-md p-7 text-center sm:p-10">
         <span className="mx-auto grid size-14 place-items-center rounded-full bg-[var(--color-bg-muted)]">
           <Compass className="size-6 text-[var(--color-ink-2)]" strokeWidth={1.9} />
         </span>

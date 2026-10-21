@@ -21,13 +21,14 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
   };
 
   return (
-    <div className="relative flex items-center gap-1">
+    <div className="relative flex shrink-0 items-center gap-1">
       <Languages className="size-4 text-[var(--color-ink-3)]" />
       <select
+        aria-label={localeNames[current]}
         value={current}
         onChange={(e) => switchTo(e.target.value as Locale)}
         disabled={pending}
-        className="cursor-pointer rounded-md border-0 bg-transparent py-1 pr-6 text-sm font-medium text-[var(--color-ink-2)] outline-none transition-colors hover:text-[var(--color-ink)] disabled:opacity-50 [&>option]:text-[var(--color-ink)]"
+        className="cursor-pointer rounded-md border-0 bg-transparent py-1 pr-6 text-sm font-medium text-[var(--color-ink-2)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] transition-colors hover:text-[var(--color-ink)] disabled:opacity-50 [&>option]:text-[var(--color-ink)]"
       >
         {(Object.keys(localeNames) as Locale[]).map((l) => (
           <option key={l} value={l}>

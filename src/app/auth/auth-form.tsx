@@ -98,7 +98,7 @@ function AuthForm({
   const registerMode = mode === "register";
 
   return (
-    <div className="mx-auto w-full max-w-sm px-6">
+    <div className="card mx-auto w-full max-w-md p-6 sm:p-9">
       <Link
         href="/"
         className="mb-8 inline-flex items-center gap-1.5 text-sm text-[var(--color-ink-3)] transition-colors hover:text-[var(--color-ink)]"
@@ -114,7 +114,7 @@ function AuthForm({
       </p>
 
       {/* 登录 / 注册切换 */}
-      <div className="mt-8 grid grid-cols-2 rounded-lg border border-[var(--color-line)] bg-[var(--color-bg-muted)] p-1 text-sm">
+      <div className="mt-8 grid grid-cols-2 rounded-lg border border-[var(--color-line-2)] bg-[var(--color-bg-subtle)] p-1 text-sm">
         {(["login", "register"] as const).map((m) => (
           <button
             key={m}

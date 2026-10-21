@@ -59,7 +59,11 @@ export function QuickAdd({
   t: Dict;
   compact?: boolean;
 }) {
-  const [qty, setQty] = useState(() => getLocalQty(productId) ?? 0);
+  // 首屏必须与服务端一致：服务端没有本地购物车状态，只能渲染 0（加购按钮）。
+  // 若在 useState 初始化里读模块级 store，客户端 hydration 时可能已有值 →
+  // 服务端渲染 <button>、客户端渲染步进器，触发 hydration mismatch（React #418）。
+  // 本地的真实数量由下方 mount effect 读取并 setQty 补上。
+  const [qty, setQty] = useState(0);
   const [busy, setBusy] = useState(false);
   const [added, setAdded] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -173,7 +177,7 @@ export function QuickAdd({
         disabled={busyNow || stock <= 0}
         onClick={add}
         aria-label={`${t.product.addToOrder} · MOQ ${moqSafe}`}
-        className={`inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full font-medium text-white transition-all ${
+        className={`inline-flex min-h-11 max-w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] font-medium text-white transition-colors ${
           compact ? "px-3 py-1.5 text-xs" : "px-3.5 py-2 text-xs"
         } ${
           stock <= 0
@@ -185,11 +189,11 @@ export function QuickAdd({
           <Loader2 className="size-3.5 animate-spin" />
         ) : added ? (
           <>
-            <Check className="size-3.5" /> {t.product.added}
+            <Check className="size-3.5 shrink-0" /> {t.product.added}
           </>
         ) : (
           <>
-            <ShoppingBag className="size-3.5" /> {t.product.addToOrder}
+            <ShoppingBag className="size-3.5 shrink-0" /> {t.product.addToOrder}
           </>
         )}
       </button>
