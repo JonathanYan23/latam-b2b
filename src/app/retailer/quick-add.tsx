@@ -173,7 +173,7 @@ export function QuickAdd({
         disabled={busyNow || stock <= 0}
         onClick={add}
         aria-label={`${t.product.addToOrder} · MOQ ${moqSafe}`}
-        className={`inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full font-medium text-white transition-all ${
+        className={`inline-flex min-h-11 max-w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] font-medium text-white transition-colors ${
           compact ? "px-3 py-1.5 text-xs" : "px-3.5 py-2 text-xs"
         } ${
           stock <= 0
@@ -185,11 +185,11 @@ export function QuickAdd({
           <Loader2 className="size-3.5 animate-spin" />
         ) : added ? (
           <>
-            <Check className="size-3.5" /> {t.product.added}
+            <Check className="size-3.5 shrink-0" /> {t.product.added}
           </>
         ) : (
           <>
-            <ShoppingBag className="size-3.5" /> {t.product.addToOrder}
+            <ShoppingBag className="size-3.5 shrink-0" /> {t.product.addToOrder}
           </>
         )}
       </button>
