@@ -53,7 +53,7 @@ export default async function HomePage() {
       </header>
 
       {/* Hero + 双身份入口 */}
-      <section className="container-x pb-16 pt-14 sm:pb-20 sm:pt-20">
+      <section className="container-x pb-14 pt-10 sm:pb-16 sm:pt-16">
         <div className="mx-auto max-w-4xl text-center animate-fade-up">
           <div className="mb-5 inline-flex items-center rounded-full border border-[var(--color-line)] bg-[var(--color-bg-subtle)] px-3.5 py-1.5 text-xs font-medium text-[var(--color-ink-2)]">
             {t.landing.tagline}
