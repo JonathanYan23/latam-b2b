@@ -56,29 +56,30 @@ export function PortalShell({
   const pathname = usePathname();
   const nav = buildNav(role, t);
   const isActive = (item: NavItem) =>
-    (item.match ?? [item.href]).some((p) => pathname.startsWith(p) && p !== "/");
+    (item.match ?? [item.href]).some((p) => (p === `/${role}` ? pathname === p : pathname === p || pathname.startsWith(`${p}/`)));
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
+    <div className="min-h-screen bg-[var(--color-page)]">
       {/* 桌面顶部导航 */}
       <header className="sticky top-0 z-40 border-b border-[var(--color-line-2)] bg-white/85 backdrop-blur-md">
-        <div className="container-x flex h-14 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="container-x flex min-h-16 items-center justify-between gap-3">
+          <Link href="/" className="flex min-w-0 items-center gap-2">
             <span className="grid size-7 place-items-center rounded-md bg-[var(--color-ink)] text-white">
               <Package className="size-3.5" strokeWidth={2.2} />
             </span>
-            <span className="text-sm font-semibold tracking-tight">{brand}</span>
+            <span className="max-w-28 truncate text-sm font-semibold tracking-tight xl:max-w-none">{brand}</span>
           </Link>
 
-          <nav className="hidden items-center gap-1 md:flex">
+          <nav className="hidden items-center gap-1 lg:flex">
             {nav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors ${
+                aria-current={isActive(item) ? "page" : undefined}
+                className={`relative flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 py-2 text-[13px] transition-colors ${
                   isActive(item)
-                    ? "font-medium text-[var(--color-ink)] after:absolute after:inset-x-2 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-[var(--color-ink)]"
-                    : "text-[var(--color-ink-3)] hover:text-[var(--color-ink)]"
+                    ? "bg-[var(--color-accent-soft)] font-semibold text-[var(--color-primary)]"
+                    : "text-[var(--color-ink-2)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-ink)]"
                 }`}
               >
                 <item.icon className="size-4" />
@@ -111,10 +112,10 @@ export function PortalShell({
         </div>
       </header>
 
-      <main className="container-x pb-24 pt-8 md:pb-12">{children}</main>
+      <main className="portal-content container-x pt-7 sm:pt-10">{children}</main>
 
       {/* 移动端底部导航 */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-line-2)] bg-white/95 backdrop-blur-md md:hidden">
+      <nav className="portal-bottom-nav fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-line-2)] bg-white/95 backdrop-blur-md lg:hidden">
         <div
           className="grid"
           style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
@@ -124,16 +125,16 @@ export function PortalShell({
               key={item.href}
               href={item.href}
               aria-current={isActive(item) ? "page" : undefined}
-              className={`flex min-w-0 flex-col items-center justify-center gap-1 py-2 text-[10px] leading-none transition-colors ${
+              className={`flex min-h-[76px] min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] leading-tight transition-colors ${
                 isActive(item)
-                  ? "font-medium text-[var(--color-ink)]"
+                  ? "bg-[var(--color-accent-soft)] font-semibold text-[var(--color-primary)]"
                   : "text-[var(--color-ink-3)]"
               }`}
             >
               <span className="relative">
                 <item.icon
                   className="size-5 shrink-0"
-                  strokeWidth={isActive(item) ? 2.2 : 1.8}
+                  strokeWidth={1.8}
                 />
                 {unread?.[item.href] ? (
                   <span className="absolute -right-2 -top-1.5 grid min-w-3.5 place-items-center rounded-full bg-[var(--color-danger)] px-1 text-[9px] font-semibold leading-tight text-white">
@@ -141,7 +142,7 @@ export function PortalShell({
                   </span>
                 ) : null}
               </span>
-              <span className="w-full truncate text-center">{item.label}</span>
+              <span className="w-full break-words text-center">{item.label}</span>
             </Link>
           ))}
         </div>
