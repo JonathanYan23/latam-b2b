@@ -59,7 +59,11 @@ export function QuickAdd({
   t: Dict;
   compact?: boolean;
 }) {
-  const [qty, setQty] = useState(() => getLocalQty(productId) ?? 0);
+  // 首屏必须与服务端一致：服务端没有本地购物车状态，只能渲染 0（加购按钮）。
+  // 若在 useState 初始化里读模块级 store，客户端 hydration 时可能已有值 →
+  // 服务端渲染 <button>、客户端渲染步进器，触发 hydration mismatch（React #418）。
+  // 本地的真实数量由下方 mount effect 读取并 setQty 补上。
+  const [qty, setQty] = useState(0);
   const [busy, setBusy] = useState(false);
   const [added, setAdded] = useState(false);
   const [pending, startTransition] = useTransition();
