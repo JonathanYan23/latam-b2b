@@ -113,8 +113,8 @@ export default async function BrowsePage({
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 lg:flex-row lg:items-center">
-        <form className="relative flex-1">
+      <div className="card mt-7 flex flex-col gap-4 p-4 sm:p-5">
+        <form className="relative w-full lg:max-w-xl">
           <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[var(--color-ink-3)]" />
           <input
             name="q"
@@ -130,7 +130,7 @@ export default async function BrowsePage({
           <Link
             href="/retailer/browse"
             className={`badge px-3 py-1.5 text-[13px] transition-colors ${
-              !cat ? "badge-neutral" : "hover:border-[var(--color-ink-3)]"
+              !cat ? "badge-info" : "hover:border-[var(--color-ink-3)]"
             }`}
           >
             {t.common.all}
@@ -143,7 +143,7 @@ export default async function BrowsePage({
                 query: { ...(q && { q }), cat: c.id },
               }}
               className={`badge px-3 py-1.5 text-[13px] transition-colors ${
-                cat === c.id ? "badge-neutral" : "hover:border-[var(--color-ink-3)]"
+                cat === c.id ? "badge-info" : "hover:border-[var(--color-ink-3)]"
               }`}
             >
               {catName(c, locale)}
@@ -172,7 +172,7 @@ export default async function BrowsePage({
                     key={a.id}
                     className="card card-hover group flex flex-col overflow-hidden"
                   >
-                    <div className="relative aspect-square w-full bg-[var(--color-bg-muted)]">
+                    <div className="relative aspect-square w-full border-b border-[var(--color-line-2)] bg-[var(--color-bg-subtle)]">
                       <ProductImage
                         src={imgA}
                         alt={productName(a, locale)}
@@ -183,15 +183,15 @@ export default async function BrowsePage({
                       <span className="absolute right-2 top-2 z-10 grid size-6 place-items-center rounded-full bg-black/35 text-white opacity-70 transition-opacity group-hover:opacity-100">
                         <ZoomIn className="size-3.5" />
                       </span>
-                      <span className={`badge absolute left-3 top-3 backdrop-blur-sm ${stockA <= 0 ? "badge-danger" : stockA < 20 ? "badge-warning" : "badge-success"}`}>
+                      <span className={`badge absolute left-2 right-10 top-2 w-fit max-w-[calc(100%-3rem)] flex-wrap backdrop-blur-sm ${stockA <= 0 ? "badge-danger" : stockA < 20 ? "badge-warning" : "badge-success"}`}>
                         {stockA <= 0 ? t.common.outOfStock : t.common.inStock}
                       </span>
                     </div>
-                    <div className="flex flex-1 flex-col p-3">
+                    <div className="flex flex-1 flex-col p-3 sm:p-4">
                       <p className="text-meta truncate text-[11px]">{a.wholesaler.business.tradeName}</p>
                       <Link
                         href={`/retailer/products/${a.id}`}
-                        className="mt-0.5 line-clamp-2 text-[13px] font-medium leading-snug text-[var(--color-ink)] transition-colors hover:underline"
+                        className="mt-1.5 line-clamp-2 min-h-10 text-sm font-medium leading-5 text-[var(--color-ink)] transition-colors hover:underline"
                       >
                         {productName(a, locale)}
                       </Link>
@@ -200,7 +200,7 @@ export default async function BrowsePage({
                       </p>
                       <div className="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-2.5 pt-2">
                         {viewA.price ? (
-                          <p className="text-base font-bold">{money(viewA.price, cur)}</p>
+                          <p className="text-base font-semibold tracking-tight sm:text-lg">{money(viewA.price, cur)}</p>
                         ) : (
                           <span className="badge badge-info">{t.browse.requestPricing}</span>
                         )}
@@ -257,7 +257,7 @@ export default async function BrowsePage({
               );
             })}
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 lg:grid-cols-4">
           {rows.map(({ p, view }) => {
             const stock = p.inventories.reduce((s, i) => s + i.stock, 0);
             const [img] = parseImages(p.images);
@@ -268,7 +268,7 @@ export default async function BrowsePage({
                 className="card card-hover group relative flex flex-col overflow-hidden"
               >
                 {/* 商品图：点击直接放大（data-zoom 全局灯箱），右上轻提示可放大 */}
-                <div className="relative aspect-square w-full bg-[var(--color-bg-muted)]">
+                <div className="relative aspect-square w-full border-b border-[var(--color-line-2)] bg-[var(--color-bg-subtle)]">
                   <ProductImage
                     src={img}
                     alt={productName(p, locale)}
@@ -283,7 +283,7 @@ export default async function BrowsePage({
                     <ZoomIn className="size-3.5" />
                   </span>
                   <span
-                    className={`badge absolute left-3 top-3 backdrop-blur-sm ${
+                    className={`badge absolute left-2 right-10 top-2 w-fit max-w-[calc(100%-3rem)] flex-wrap backdrop-blur-sm ${
                       stock <= 0
                         ? "badge-danger"
                         : stock < 20
@@ -298,13 +298,13 @@ export default async function BrowsePage({
                         : t.common.inStock}
                   </span>
                 </div>
-                <div className="flex flex-1 flex-col p-3">
+                <div className="flex flex-1 flex-col p-3 sm:p-4">
                   <p className="text-meta truncate text-[11px]">
                     {p.wholesaler.business.tradeName}
                   </p>
                   <Link
                     href={`/retailer/products/${p.id}`}
-                    className="mt-0.5 line-clamp-2 text-[13px] font-medium leading-snug text-[var(--color-ink)] transition-colors hover:underline"
+                    className="mt-1.5 line-clamp-2 min-h-10 text-sm font-medium leading-5 text-[var(--color-ink)] transition-colors hover:underline"
                   >
                     {productName(p, locale)}
                   </Link>
@@ -317,7 +317,7 @@ export default async function BrowsePage({
                   <div className="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-2.5 pt-2">
                     {view.price ? (
                       <div className="min-w-0">
-                        <p className="text-base font-bold">{money(view.price, cur)}</p>
+                        <p className="text-base font-semibold tracking-tight sm:text-lg">{money(view.price, cur)}</p>
                         {view.priceType === "CUSTOMER" && (
                           <p className="text-[11px] font-medium text-[var(--color-accent)]">
                             {t.browse.yourPrice}
