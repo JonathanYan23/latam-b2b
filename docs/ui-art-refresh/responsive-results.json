@@ -1,0 +1,671 @@
+[
+  {
+    "route": "/",
+    "lang": "en",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/",
+    "scroll": 375,
+    "title": "One-stop B2B platform connecting Latin America's wholesalers and buyers",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/auth",
+    "lang": "en",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/auth",
+    "scroll": 375,
+    "title": "Welcome back",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/",
+    "lang": "en",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/",
+    "scroll": 768,
+    "title": "One-stop B2B platform connecting Latin America's wholesalers and buyers",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/auth",
+    "lang": "en",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/auth",
+    "scroll": 768,
+    "title": "Welcome back",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/",
+    "lang": "en",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/",
+    "scroll": 1280,
+    "title": "One-stop B2B platform connecting Latin America's wholesalers and buyers",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/auth",
+    "lang": "en",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/auth",
+    "scroll": 1280,
+    "title": "Welcome back",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/",
+    "lang": "es",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/",
+    "scroll": 375,
+    "title": "Plataforma B2B integral que conecta mayoristas y compradores de Latinoamérica",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/auth",
+    "lang": "es",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/auth",
+    "scroll": 375,
+    "title": "Bienvenido de nuevo",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/",
+    "lang": "es",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/",
+    "scroll": 768,
+    "title": "Plataforma B2B integral que conecta mayoristas y compradores de Latinoamérica",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/auth",
+    "lang": "es",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/auth",
+    "scroll": 768,
+    "title": "Bienvenido de nuevo",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/",
+    "lang": "es",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/",
+    "scroll": 1280,
+    "title": "Plataforma B2B integral que conecta mayoristas y compradores de Latinoamérica",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/auth",
+    "lang": "es",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/auth",
+    "scroll": 1280,
+    "title": "Bienvenido de nuevo",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/",
+    "lang": "zh",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/",
+    "scroll": 375,
+    "title": "连接拉美批发与采购，一站式 B2B 交易平台",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/auth",
+    "lang": "zh",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/auth",
+    "scroll": 375,
+    "title": "欢迎回来",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/",
+    "lang": "zh",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/",
+    "scroll": 768,
+    "title": "连接拉美批发与采购，一站式 B2B 交易平台",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/auth",
+    "lang": "zh",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/auth",
+    "scroll": 768,
+    "title": "欢迎回来",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/",
+    "lang": "zh",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/",
+    "scroll": 1280,
+    "title": "连接拉美批发与采购，一站式 B2B 交易平台",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/auth",
+    "lang": "zh",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/auth",
+    "scroll": 1280,
+    "title": "欢迎回来",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer",
+    "lang": "en",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer",
+    "scroll": 375,
+    "title": "Welcome back, Maria Rodriguez",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer/browse",
+    "lang": "en",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer/browse",
+    "scroll": 375,
+    "title": "Marketplace",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer",
+    "lang": "en",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer",
+    "scroll": 768,
+    "title": "Welcome back, Maria Rodriguez",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer/browse",
+    "lang": "en",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer/browse",
+    "scroll": 768,
+    "title": "Marketplace",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer",
+    "lang": "en",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer",
+    "scroll": 1280,
+    "title": "Welcome back, Maria Rodriguez",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer/browse",
+    "lang": "en",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer/browse",
+    "scroll": 1280,
+    "title": "Marketplace",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer",
+    "lang": "es",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer",
+    "scroll": 375,
+    "title": "Bienvenido de nuevo, Maria Rodriguez",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer/browse",
+    "lang": "es",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer/browse",
+    "scroll": 375,
+    "title": "Marketplace",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer",
+    "lang": "es",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer",
+    "scroll": 768,
+    "title": "Bienvenido de nuevo, Maria Rodriguez",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer/browse",
+    "lang": "es",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer/browse",
+    "scroll": 768,
+    "title": "Marketplace",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer",
+    "lang": "es",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer",
+    "scroll": 1280,
+    "title": "Bienvenido de nuevo, Maria Rodriguez",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer/browse",
+    "lang": "es",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer/browse",
+    "scroll": 1280,
+    "title": "Marketplace",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer",
+    "lang": "zh",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer",
+    "scroll": 375,
+    "title": "欢迎回来，Maria Rodriguez",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer/browse",
+    "lang": "zh",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer/browse",
+    "scroll": 375,
+    "title": "市场",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer",
+    "lang": "zh",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer",
+    "scroll": 768,
+    "title": "欢迎回来，Maria Rodriguez",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer/browse",
+    "lang": "zh",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer/browse",
+    "scroll": 768,
+    "title": "市场",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer",
+    "lang": "zh",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer",
+    "scroll": 1280,
+    "title": "欢迎回来，Maria Rodriguez",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/retailer/browse",
+    "lang": "zh",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/retailer/browse",
+    "scroll": 1280,
+    "title": "市场",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/wholesaler",
+    "lang": "en",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/wholesaler",
+    "scroll": 375,
+    "title": "Dashboard",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/wholesaler",
+    "lang": "en",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/wholesaler",
+    "scroll": 768,
+    "title": "Dashboard",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/wholesaler",
+    "lang": "en",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/wholesaler",
+    "scroll": 1280,
+    "title": "Dashboard",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/wholesaler",
+    "lang": "es",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/wholesaler",
+    "scroll": 375,
+    "title": "Panel",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/wholesaler",
+    "lang": "es",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/wholesaler",
+    "scroll": 768,
+    "title": "Panel",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/wholesaler",
+    "lang": "es",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/wholesaler",
+    "scroll": 1280,
+    "title": "Panel",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/wholesaler",
+    "lang": "zh",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/wholesaler",
+    "scroll": 375,
+    "title": "工作台",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/wholesaler",
+    "lang": "zh",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/wholesaler",
+    "scroll": 768,
+    "title": "工作台",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/wholesaler",
+    "lang": "zh",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/wholesaler",
+    "scroll": 1280,
+    "title": "工作台",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/admin",
+    "lang": "en",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/admin",
+    "scroll": 375,
+    "title": "Platform Admin",
+    "overflow": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[560px] text-left text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": ""
+      },
+      {
+        "tag": "TR",
+        "cls": "border-b border-[var(--color-line-2)] text-meta"
+      },
+      {
+        "tag": "TH",
+        "cls": "px-3 py-2.5 font-medium"
+      },
+      {
+        "tag": "TH",
+        "cls": "px-3 py-2.5 font-medium"
+      },
+      {
+        "tag": "TH",
+        "cls": "px-3 py-2.5 font-medium"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "route": "/admin",
+    "lang": "en",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/admin",
+    "scroll": 768,
+    "title": "Platform Admin",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/admin",
+    "lang": "en",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/admin",
+    "scroll": 1280,
+    "title": "Platform Admin",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/admin",
+    "lang": "es",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/admin",
+    "scroll": 375,
+    "title": "Administración",
+    "overflow": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[560px] text-left text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": ""
+      },
+      {
+        "tag": "TR",
+        "cls": "border-b border-[var(--color-line-2)] text-meta"
+      },
+      {
+        "tag": "TH",
+        "cls": "px-3 py-2.5 font-medium"
+      },
+      {
+        "tag": "TH",
+        "cls": "px-3 py-2.5 font-medium"
+      },
+      {
+        "tag": "TH",
+        "cls": "px-3 py-2.5 font-medium"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "route": "/admin",
+    "lang": "es",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/admin",
+    "scroll": 768,
+    "title": "Administración",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/admin",
+    "lang": "es",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/admin",
+    "scroll": 1280,
+    "title": "Administración",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/admin",
+    "lang": "zh",
+    "width": 375,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/admin",
+    "scroll": 375,
+    "title": "平台管理",
+    "overflow": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[560px] text-left text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": ""
+      },
+      {
+        "tag": "TR",
+        "cls": "border-b border-[var(--color-line-2)] text-meta"
+      },
+      {
+        "tag": "TH",
+        "cls": "px-3 py-2.5 font-medium"
+      },
+      {
+        "tag": "TH",
+        "cls": "px-3 py-2.5 font-medium"
+      },
+      {
+        "tag": "TH",
+        "cls": "px-3 py-2.5 font-medium"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "route": "/admin",
+    "lang": "zh",
+    "width": 768,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/admin",
+    "scroll": 768,
+    "title": "平台管理",
+    "overflow": [],
+    "errors": []
+  },
+  {
+    "route": "/admin",
+    "lang": "zh",
+    "width": 1280,
+    "status": 200,
+    "url": "http://127.0.0.1:3000/admin",
+    "scroll": 1280,
+    "title": "平台管理",
+    "overflow": [],
+    "errors": []
+  }
+]
