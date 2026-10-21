@@ -66,6 +66,8 @@ body {
   background: rgb(36 91 214 / 16%);
 }
 
+/* Component defaults stay below Tailwind utilities so page spacing overrides work. */
+@layer components {
 /* ===== 通用组件类 ===== */
 
 /* 卡片：干净、单边框、轻微阴影，不做渐变堆叠 */
@@ -206,7 +208,7 @@ body {
 
 /* 文本层级 */
 .text-hero {
-  font-size: clamp(2.5rem, 5.4vw, 4.75rem);
+  font-size: clamp(2rem, 4.6vw, 3.75rem);
   font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.06;
@@ -397,4 +399,6 @@ body {
 @media (hover: none) and (pointer: coarse) {
   [data-ui="qty-stepper"] { min-height: 44px; }
   [data-ui="qty-dec"], [data-ui="qty-inc"], [data-ui="qty-input"] { min-height: 44px; min-width: 44px; }
+}
+
 }
